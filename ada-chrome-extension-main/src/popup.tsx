@@ -15,7 +15,7 @@ import { render } from 'preact';
 import { useState, useEffect, useCallback, useRef } from 'preact/hooks';
 import type { PopupState, Category, MetaDataMessage, AuthStatusMessage, SaveResultMessage } from './types';
 import { classify } from './services/classifier';
-import { signInWithEmail, fetchProfile } from './services/auth';
+import { signInWithEmail, fetchProfile, signOut } from './services/auth';
 import { CONFIG } from './config';
 import { Preview } from './components/Preview';
 import { CategoryBadge } from './components/CategoryBadge';
@@ -54,22 +54,15 @@ function Popup() {
 
   async function init() {
     try {
-      const authResponse: AuthStatusMessage = await chrome.runtime.sendMessage({
-        type: 'AUTH_CHECK',
-      });
-
+      // Validate session directly from popup context where cookies are
+      // sent reliably. This catches expired JWTs immediately instead of
+      // trusting a stale background cache.
+      const user = await fetchProfile();
       if (!mountedRef.current) return;
 
-      if (!authResponse.authenticated) {
-        // Background service worker may fail to verify via API because
-        // MV3 workers can't reliably send cookies with fetch.
-        // Retry from the popup context where credentials: 'include' works.
-        const user = await fetchProfile();
-        if (!mountedRef.current) return;
-        if (!user) {
-          setState('auth');
-          return;
-        }
+      if (!user) {
+        setState('auth');
+        return;
       }
 
       const [tab] = await chrome.tabs.query({
@@ -148,7 +141,7 @@ function Popup() {
     }
   }, []);
 
-  const handleSave = useCallback(async () => {
+  const handleSave = useCallback(async (saveAndAct: boolean) => {
     if (!pageData || saving) return;
     setSaving(true);
     setState('saving');
@@ -163,7 +156,7 @@ function Popup() {
           selectedText: pageData.selectedText,
           ogImage: pageData.ogImage,
           userNote: userNote.trim() || undefined,
-          saveAndAct: false,
+          saveAndAct,
         },
       });
 
@@ -176,10 +169,17 @@ function Popup() {
         setState('success');
         setTimeout(() => { window.close(); }, CONFIG.timing.successDismissMs);
       } else {
-        const msg = sanitizeErrorMessage(response.error);
-        setError(msg);
-        setState('error');
-        setSaving(false);
+        const raw = (response.error ?? '').toLowerCase();
+        if (raw.includes('jwt') || raw.includes('expired') || raw.includes('not authenticated') || raw.includes('unauthorized')) {
+          await signOut();
+          setSaving(false);
+          setState('auth');
+        } else {
+          const msg = sanitizeErrorMessage(response.error);
+          setError(msg);
+          setState('error');
+          setSaving(false);
+        }
       }
     } catch (err) {
       if (!mountedRef.current) return;
@@ -232,13 +232,24 @@ function Popup() {
             />
             <CategoryBadge category={category} />
             <NoteInput value={userNote} onChange={setUserNote} />
-            <button
-              class="btn btn-primary save-btn slide-up"
-              onClick={handleSave}
-              disabled={saving}
-            >
-              {saving ? 'Saving...' : 'Save to Ada'}
-            </button>
+            <div class="save-actions slide-up">
+              <button
+                class="btn btn-secondary save-action-btn"
+                onClick={() => handleSave(false)}
+                disabled={saving}
+              >
+                <span class="save-action-label">Save</span>
+                <span class="save-action-sub">Organize only</span>
+              </button>
+              <button
+                class="btn btn-primary save-action-btn"
+                onClick={() => handleSave(true)}
+                disabled={saving}
+              >
+                <span class="save-action-label">Save + Act</span>
+                <span class="save-action-sub">Ada suggests actions</span>
+              </button>
+            </div>
           </>
         )}
 

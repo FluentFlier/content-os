@@ -194,6 +194,10 @@ export default function ContentStudio() {
             Content OS
           </h1>
 
+          <div className="flex items-center gap-3">
+          <a href="/login" className="text-[13px] text-text-muted hover:text-text-secondary transition-colors">
+            Sign in
+          </a>
           <div className="relative" ref={modelPickerRef}>
             <button
               onClick={() => setShowModelPicker(!showModelPicker)}
@@ -222,6 +226,7 @@ export default function ContentStudio() {
                 ))}
               </div>
             )}
+          </div>
           </div>
         </div>
       </header>

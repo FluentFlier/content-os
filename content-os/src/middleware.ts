@@ -18,10 +18,9 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const token = request.cookies.get("insforge-access-token")?.value;
 
-  // Root redirect based on auth state
+  // Root "/" is now the public content studio - no redirect
   if (pathname === "/") {
-    const destination = token ? "/dashboard" : "/login";
-    return NextResponse.redirect(new URL(destination, request.url));
+    return NextResponse.next();
   }
 
   // If on login page with valid token, redirect to dashboard

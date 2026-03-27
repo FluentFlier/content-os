@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerInsforge } from "@/lib/insforge/server";
 import { generateContent } from "@/lib/claude";
 
 interface OptimizeBody {
-  postId: string;
   script: string;
   caption: string;
   platforms: string[];
+  model?: string;
 }
 
 const PLATFORM_PROMPTS: Record<string, string> = {
@@ -17,15 +16,8 @@ const PLATFORM_PROMPTS: Record<string, string> = {
 
 export async function POST(request: NextRequest) {
   try {
-    const insforge = getServerInsforge();
-
-    const { data: userData } = await insforge.auth.getCurrentUser();
-    if (!userData?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     const body: OptimizeBody = await request.json();
-    const { script, caption, platforms } = body;
+    const { script, caption, platforms, model } = body;
 
     if (!platforms || platforms.length === 0) {
       return NextResponse.json(
@@ -44,13 +36,12 @@ export async function POST(request: NextRequest) {
 
     const results: Record<string, string> = {};
 
-    // Run all platform optimizations concurrently
     const promises = platforms.map(async (platform) => {
       const prompt = PLATFORM_PROMPTS[platform];
       if (!prompt) return;
 
       const userPrompt = `Here is the content to adapt:\n\n---\n${source}\n---\n\n${prompt}`;
-      const optimized = await generateContent(userPrompt);
+      const optimized = await generateContent(userPrompt, undefined, model);
       results[platform] = optimized;
     });
 

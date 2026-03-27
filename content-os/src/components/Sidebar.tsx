@@ -12,6 +12,7 @@ import {
   Layers,
   BarChart3,
   Settings,
+  Zap,
 } from "lucide-react";
 
 const navItems = [
@@ -32,10 +33,14 @@ export default function Sidebar() {
   return (
     <aside className="hidden md:flex md:flex-col fixed left-0 top-0 bottom-0 w-60 bg-surface border-r border-border z-40">
       <div className="px-5 pt-6 pb-2">
-        <h1 className="font-heading font-bold text-lg text-text-primary tracking-tight">
-          CONTENT OS
-        </h1>
-        <p className="text-xs text-text-muted mt-1">Anirudh / tryada.app</p>
+        <Link href="/" className="flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-lg bg-amber/10 flex items-center justify-center">
+            <Zap size={14} className="text-amber" />
+          </div>
+          <h1 className="font-display font-normal text-lg text-text-primary italic tracking-tight">
+            Content OS
+          </h1>
+        </Link>
       </div>
 
       <div className="mx-4 my-3 border-t border-border" />
@@ -52,7 +57,7 @@ export default function Sidebar() {
               href={item.href}
               className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors ${
                 isActive
-                  ? "text-coral border-l-2 border-coral bg-coral/5"
+                  ? "text-amber border-l-2 border-amber bg-amber/5"
                   : "text-text-muted hover:text-text-primary hover:bg-white/[0.03]"
               }`}
             >

@@ -3,18 +3,17 @@
 @tailwind utilities;
 
 body {
-  background-color: #09090B;
-  color: #FAFAF9;
-  font-family: 'Outfit', sans-serif;
+  background-color: #FAFAFA;
+  color: #171717;
+  font-family: 'Inter', system-ui, sans-serif;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'Instrument Serif', serif;
+  font-family: 'Instrument Serif', Georgia, serif;
 }
 
-/* Scrollbar */
 ::-webkit-scrollbar {
-  width: 5px;
+  width: 4px;
 }
 
 ::-webkit-scrollbar-track {
@@ -22,20 +21,18 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #27272A;
-  border-radius: 3px;
+  background: #D4D4D4;
+  border-radius: 2px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #3F3F46;
+  background: #A3A3A3;
 }
 
-/* Textarea focus glow */
 textarea:focus, input:focus, select:focus {
   outline: none;
 }
 
-/* Drawer animation */
 @keyframes slide-in-right {
   from { transform: translateX(100%); }
   to { transform: translateX(0); }
@@ -45,25 +42,7 @@ textarea:focus, input:focus, select:focus {
   animation: slide-in-right 0.25s ease-out;
 }
 
-/* Amber glow effect */
-.glow-amber {
-  box-shadow: 0 0 20px rgba(245, 158, 11, 0.15),
-              0 0 60px rgba(245, 158, 11, 0.05);
-}
-
-/* Noise texture overlay */
-.noise::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  opacity: 0.03;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-  pointer-events: none;
-  z-index: 0;
-}
-
-/* Selection */
 ::selection {
-  background: rgba(245, 158, 11, 0.3);
-  color: #FAFAF9;
+  background: rgba(23, 23, 23, 0.08);
+  color: #171717;
 }

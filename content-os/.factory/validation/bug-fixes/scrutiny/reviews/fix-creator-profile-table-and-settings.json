@@ -1,0 +1,38 @@
+{
+  "featureId": "fix-creator-profile-table-and-settings",
+  "reviewedAt": "2026-03-30T07:04:43Z",
+  "commitId": "5a6be9e68a4bc070fa4610fd52326ff365fc0965",
+  "transcriptSkeletonReviewed": true,
+  "diffReviewed": true,
+  "status": "fail",
+  "codeReview": {
+    "summary": "The implementation fixes the Settings null-profile crash path (.maybeSingle()) and switches profile/platform saves to upsert, and the posts.pillar CHECK constraint is removed in db/schema.sql. However, the required creator_profile.bio column from the feature contract is not present, so the feature is not fully implemented as specified.",
+    "issues": [
+      {
+        "file": "content-os/db/schema.sql",
+        "line": 14,
+        "severity": "blocking",
+        "description": "Feature spec requires creator_profile to include a bio column, but the table defines bio_facts/voice_* fields instead and no bio column exists. This does not fully satisfy the feature description and expected schema shape."
+      }
+    ]
+  },
+  "sharedStateObservations": [
+    {
+      "area": "skills",
+      "observation": "fullstack-worker procedure requires agent-browser/manual verification for UI-facing changes, but this worker transcript contains no agent-browser invocation or interactive checks while skillFeedback.followedProcedure is true.",
+      "evidence": "Skill file: .factory/skills/fullstack-worker/SKILL.md (Work Procedure step 6). Transcript skeleton for session a82445f1-2e23-4130-b1a1-6b87d4fe070e shows build/lint and file reads/edits only, no agent-browser/manual verification steps."
+    },
+    {
+      "area": "conventions",
+      "observation": "Mission AGENTS.md says all DB mutations should go through API routes, but this feature directly mutates creator_profile from a client component. This suggests either an enforced convention violation pattern or that the convention needs explicit exceptions/updates.",
+      "evidence": "Mission AGENTS.md Data Access section vs commit 5a6be9e settings page direct calls: content-os/src/app/(dashboard)/settings/page.tsx lines ~399-429 (.from(\"creator_profile\").upsert(...))."
+    },
+    {
+      "area": "knowledge",
+      "observation": "Schema source of truth appears ambiguous: both db/schema.sql and src/lib/schema.sql exist. Worker had to inspect both during implementation, indicating shared-state docs may need an explicit canonical-schema note to reduce drift.",
+      "evidence": "Transcript skeleton includes Read on /db/schema.sql and /src/lib/schema.sql; repository contains both files (content-os/db/schema.sql and content-os/src/lib/schema.sql)."
+    }
+  ],
+  "addressesFailureFrom": null,
+  "summary": "Review failed due to a blocking schema mismatch: creator_profile.bio was required but not added. Null-profile handling and pillar CHECK removal were implemented, but the feature is incomplete against its declared schema contract."
+}

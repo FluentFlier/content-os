@@ -1,0 +1,21 @@
+{
+  "featureId": "fix-series-nav-and-ideas-conversion",
+  "reviewedAt": "2026-03-30T07:02:38Z",
+  "commitId": "ea7a837b6b90e4487ac91ccdd15d1d4d7bef17ce",
+  "transcriptSkeletonReviewed": true,
+  "diffReviewed": true,
+  "status": "pass",
+  "codeReview": {
+    "summary": "Implementation satisfies the feature scope: Series page links now target ?tab=series, Generate page reads result/topic/pillar query params, and ScriptGenerator initializes output/topic/pillar from those params. The tab param is honored on initial load via activeTab initialization from searchParams.",
+    "issues": []
+  },
+  "sharedStateObservations": [
+    {
+      "area": "skills",
+      "observation": "The fullstack-worker skill requires agent-browser for UI-flow verification, but this worker validated only with build/lint/grep and static code checks. This suggests either enforcement is weak or the skill should clarify when browser verification may be skipped.",
+      "evidence": "Skill requirement: .factory/skills/fullstack-worker/SKILL.md (\"Required Skills: agent-browser\" and \"Manual verification ... use agent-browser\"). Transcript skeleton for workerSessionId cc4f5711-6928-408c-b154-bdfb7fc800a0 shows no agent-browser usage and handoff verification contains only npm run build, npm run lint, and rg checks."
+    }
+  ],
+  "addressesFailureFrom": null,
+  "summary": "Reviewed handoff, transcript skeleton, and commit ea7a837b6b90e4487ac91ccdd15d1d4d7bef17ce for feature fix-series-nav-and-ideas-conversion. Code changes meet expected behavior with no blocking defects found; review passes. One shared-state observation was recorded about skill-procedure adherence for UI verification."
+}

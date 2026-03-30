@@ -36,7 +36,7 @@ Environment variables, external dependencies, and setup notes.
 
 ## Dependency Notes
 
-- `@anthropic-ai/sdk` was listed but is UNUSED - AI calls go through InsForge AI gateway
-- `@insforge/nextjs` was listed but is UNUSED - using @insforge/sdk directly
+- `@anthropic-ai/sdk` has been removed from package.json - AI calls go through InsForge AI gateway
+- `@insforge/nextjs` has been removed from package.json - using @insforge/sdk directly
 - `@hello-pangea/dnd` - needed for calendar drag-and-drop (was installed but not used yet)
 - `remotion` + `@remotion/player` - needed for video studio (to be installed)

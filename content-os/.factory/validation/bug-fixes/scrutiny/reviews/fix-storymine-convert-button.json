@@ -1,0 +1,33 @@
+{
+  "featureId": "fix-storymine-convert-button",
+  "reviewedAt": "2026-03-30T07:03:11Z",
+  "commitId": "7c91a51ba793f56b3de5c91dc27d488229f71d71",
+  "transcriptSkeletonReviewed": true,
+  "diffReviewed": true,
+  "status": "fail",
+  "codeReview": {
+    "summary": "StoryMine's Convert to Post flow is implemented and wired correctly, but Story Bank conversion does not verify the story-used PATCH result and can report success even when the story is not marked used.",
+    "issues": [
+      {
+        "file": "content-os/src/app/(dashboard)/story-bank/page.tsx",
+        "line": 99,
+        "severity": "blocking",
+        "description": "After creating the post, the code sends PATCH /api/story-bank/{id} but does not check response status. If PATCH fails, the function still toasts \"Post created\" (line 106) and exits as success, violating the required behavior that conversion marks the story as used."
+      }
+    ]
+  },
+  "sharedStateObservations": [
+    {
+      "area": "skills",
+      "observation": "The fullstack-worker skill requires agent-browser verification for UI/component changes, but this worker's verification only listed build/lint while skillFeedback still marked followedProcedure=true.",
+      "evidence": "Skill requires agent-browser/manual checks at .factory/skills/fullstack-worker/SKILL.md:23,33,50-53; handoff verification lists only npm run build and npm run lint at handoffs/2026-03-30T06-44-53-060Z__fix-storymine-convert-button__615b0de2-7f43-4047-a8ed-2b389e99a6f4.json:14-23 and followedProcedure=true at :33."
+    },
+    {
+      "area": "conventions",
+      "observation": "Mission guidance says all DB mutations should go through API routes, but Story Bank still performs direct client-side InsForge update/delete mutations in non-convert paths, indicating convention drift in this area.",
+      "evidence": "Rule in mission AGENTS.md:44; direct mutations in content-os/src/app/(dashboard)/story-bank/page.tsx:147-148 (.update) and :179-180 (.delete)."
+    }
+  ],
+  "addressesFailureFrom": null,
+  "summary": "Reviewed commit 7c91a51 for fix-storymine-convert-button. StoryMine conversion is correctly implemented, but Story Bank conversion has a blocking reliability bug: it does not enforce/verify the 'mark used' step before reporting success."
+}

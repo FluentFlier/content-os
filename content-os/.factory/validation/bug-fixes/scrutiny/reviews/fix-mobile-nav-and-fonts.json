@@ -1,0 +1,39 @@
+{
+  "featureId": "fix-mobile-nav-and-fonts",
+  "reviewedAt": "2026-03-30T07:02:49Z",
+  "commitId": "887ac29",
+  "transcriptSkeletonReviewed": true,
+  "diffReviewed": true,
+  "status": "fail",
+  "codeReview": {
+    "summary": "The mobile More menu and heading font alias were implemented, but the feature does not fully satisfy the expected behavior because inline fontFamily styles remain in Teleprompter files.",
+    "issues": [
+      {
+        "file": "content-os/src/app/(dashboard)/teleprompter/page.tsx",
+        "line": 49,
+        "severity": "blocking",
+        "description": "Inline fontFamily styling still exists (`style={{ fontFamily: \"'Space Grotesk', sans-serif\" }}`), violating the feature expectedBehavior requirement that no inline fontFamily styles remain."
+      },
+      {
+        "file": "content-os/src/components/teleprompter/TeleprompterReader.tsx",
+        "line": 186,
+        "severity": "blocking",
+        "description": "Multiple inline fontFamily styles remain in this file (e.g. line 186 and nearby lines 205/212/221/231/240 in commit 887ac29), so the feature is incomplete versus expectedBehavior."
+      }
+    ]
+  },
+  "sharedStateObservations": [
+    {
+      "area": "skills",
+      "observation": "The fullstack-worker procedure requires running both build and lint, but this worker session only recorded build and ad-hoc checks.",
+      "evidence": ".factory/skills/fullstack-worker/SKILL.md step 5 requires `npm run build` and `npm run lint`; handoff verification for session b340d308-107e-4d98-8e50-ff2e6f097227 lists `npm run build`, agent-browser style check, and grep only."
+    },
+    {
+      "area": "skills",
+      "observation": "Skill guidance for auth-gated UI verification appears incomplete; worker explicitly noted this as a procedure improvement.",
+      "evidence": "handoff.skillFeedback.suggestedChanges: 'fullstack-worker skill could mention that for auth-gated pages, agent-browser verification may require a login flow or suggest testing non-auth pages when auth is not available.'"
+    }
+  ],
+  "addressesFailureFrom": null,
+  "summary": "Reviewed feature fix-mobile-nav-and-fonts (worker session b340d308-107e-4d98-8e50-ff2e6f097227, commit 887ac29). The More menu and font-heading alias are present, but inline fontFamily styles remain in Teleprompter files, so the feature fails against its expected behavior."
+}

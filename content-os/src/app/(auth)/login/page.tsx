@@ -1,19 +1,19 @@
 "use client";
 
 import { useState, useEffect, FormEvent } from "react";
-import { useRouter } from "next/navigation";
 import { getInsforgeClient } from "@/lib/insforge/client";
 
-async function syncToken(token: string) {
+async function syncTokenAndRedirect(token: string) {
   await fetch("/api/auth", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ token }),
   });
+  // Full page reload so server sees the cookie
+  window.location.href = "/dashboard";
 }
 
 export default function LoginPage() {
-  const router = useRouter();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -27,32 +27,36 @@ export default function LoginPage() {
     async function init() {
       const client = getInsforgeClient();
 
-      // Handle hash-based OAuth callback (implicit flow)
+      // Check URL mode param
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlMode = urlParams.get("mode");
+      if (urlMode === "signup") setMode("signup");
+
+      // Check if we already have a session
+      let token = (client.auth as unknown as { getAccessToken(): string | null }).getAccessToken();
+      if (token) {
+        await syncTokenAndRedirect(token);
+        return;
+      }
+
+      // Handle hash-based OAuth (implicit flow)
       if (window.location.hash) {
         const params = new URLSearchParams(window.location.hash.slice(1));
         const accessToken = params.get("access_token");
         if (accessToken) {
-          await syncToken(accessToken);
-          window.history.replaceState(null, "", window.location.pathname);
-          router.push("/dashboard");
+          await syncTokenAndRedirect(accessToken);
           return;
         }
       }
 
-      const urlParams = new URLSearchParams(window.location.search);
-      const urlMode = urlParams.get("mode");
-      if (urlMode === "signup") {
-        setMode("signup");
-      }
-
-      // Handle code-based OAuth callback
-      const code = urlParams.get("code");
+      // Handle code-based OAuth callback (PKCE or standard)
+      const code = urlParams.get("code") || urlParams.get("insforge_code");
       if (code) {
         try {
           const result = await client.auth.exchangeOAuthCode(code);
-          if (result?.data?.accessToken) {
-            await syncToken(result.data.accessToken);
-            router.push("/dashboard");
+          const exchangedToken = result?.data?.accessToken ?? (client.auth as unknown as { getAccessToken(): string | null }).getAccessToken();
+          if (exchangedToken) {
+            await syncTokenAndRedirect(exchangedToken);
             return;
           }
         } catch {
@@ -60,21 +64,10 @@ export default function LoginPage() {
         }
       }
 
-      // Check if already logged in
-      try {
-        const { data } = await client.auth.getCurrentUser();
-        if (data?.user) {
-          router.push("/dashboard");
-          return;
-        }
-      } catch {
-        // Not logged in, show form
-      }
-
       setCheckingSession(false);
     }
     init();
-  }, [router]);
+  }, []);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -92,17 +85,17 @@ export default function LoginPage() {
         });
         if (err) { setError(err.message); setLoading(false); return; }
         if (data?.requireEmailVerification) { setNeedsVerification(true); setLoading(false); return; }
-        if (data?.accessToken) {
-          await syncToken(data.accessToken);
-          router.push("/dashboard");
+        const token = data?.accessToken ?? (client.auth as unknown as { getAccessToken(): string | null }).getAccessToken();
+        if (token) {
+          await syncTokenAndRedirect(token);
           return;
         }
       } else {
         const { data, error: err } = await client.auth.signInWithPassword({ email, password });
         if (err) { setError(err.message); setLoading(false); return; }
-        if (data?.accessToken) {
-          await syncToken(data.accessToken);
-          router.push("/dashboard");
+        const token = data?.accessToken ?? (client.auth as unknown as { getAccessToken(): string | null }).getAccessToken();
+        if (token) {
+          await syncTokenAndRedirect(token);
           return;
         }
       }
@@ -128,9 +121,10 @@ export default function LoginPage() {
 
   if (checkingSession) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="w-full max-w-sm px-4 text-center">
-          <div className="animate-pulse font-body text-[13px] text-text-tertiary">Loading...</div>
+      <div className="min-h-screen bg-bg-secondary flex items-center justify-center">
+        <div className="w-full max-w-sm px-4 text-center space-y-3">
+          <div className="w-8 h-8 border-2 border-coral border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="font-body text-[13px] text-text-tertiary">Signing you in...</p>
         </div>
       </div>
     );
@@ -138,12 +132,12 @@ export default function LoginPage() {
 
   if (needsVerification) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="w-full max-w-sm px-4">
+      <div className="min-h-screen bg-bg-secondary flex items-center justify-center px-4">
+        <div className="w-full max-w-[380px]">
           <div className="text-center mb-8">
-            <h1 className="font-display font-[800] text-[22px] text-text-primary tracking-[0.16em]">DISPATCH</h1>
+            <h1 className="font-display font-[800] text-[20px] text-text-primary tracking-[0.16em]">DISPATCH</h1>
           </div>
-          <div className="bg-white rounded-lg p-6 text-center space-y-4 border border-border">
+          <div className="bg-white rounded-lg p-6 text-center space-y-4 border border-border shadow-sm">
             <div className="w-12 h-12 rounded-full bg-coral-light flex items-center justify-center mx-auto">
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M2 4L10 10L18 4" stroke="#6366F1" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/><rect x="2" y="4" width="16" height="12" rx="2" stroke="#6366F1" strokeWidth="1.5"/></svg>
             </div>

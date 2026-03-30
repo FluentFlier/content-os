@@ -46,7 +46,7 @@ function TeleprompterContent() {
   if (loading) {
     return (
       <div className="flex h-screen items-center justify-center bg-black">
-        <p className="text-[13px] text-white/60" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>Loading script...</p>
+        <p className="font-body text-[13px] text-white/60">Loading script...</p>
       </div>
     );
   }
@@ -92,7 +92,7 @@ export default function TeleprompterPage() {
     <Suspense
       fallback={
         <div className="flex h-screen items-center justify-center bg-black">
-          <p className="text-[13px] text-white/60" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>Loading...</p>
+          <p className="font-body text-[13px] text-white/60">Loading...</p>
         </div>
       }
     >

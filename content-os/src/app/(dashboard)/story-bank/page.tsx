@@ -96,11 +96,17 @@ export default function StoryBankPage() {
 
       // Mark story as used via API route
       if (newPost?.id) {
-        await fetch(`/api/story-bank/${story.id}`, {
+        const patchRes = await fetch(`/api/story-bank/${story.id}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ used: true, used_post_id: newPost.id }),
         });
+
+        if (!patchRes.ok) {
+          const patchBody = await patchRes.json().catch(() => ({}));
+          toast(patchBody.error || "Failed to mark story as used", "error");
+          return;
+        }
       }
 
       toast("Post created");

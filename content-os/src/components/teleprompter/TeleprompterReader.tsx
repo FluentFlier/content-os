@@ -183,7 +183,7 @@ export default function TeleprompterReader({ script, onExit }: TeleprompterReade
         <div className="mx-auto flex max-w-xl flex-col gap-4 px-4 pb-8 pt-12">
           {/* Speed slider */}
           <div className="flex items-center gap-3">
-            <span className="min-w-[60px] text-[13px] text-white/60" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+            <span className="font-body min-w-[60px] text-[13px] text-white/60">
               Speed {speed}
             </span>
             <input
@@ -201,34 +201,32 @@ export default function TeleprompterReader({ script, onExit }: TeleprompterReade
           <div className="flex items-center justify-center gap-3">
             <button
               onClick={(e) => { e.stopPropagation(); setFontSize((s) => Math.max(28, s - 2)); resetHideTimer(); }}
-              className="rounded-full px-3 py-2 text-[13px] font-[600] text-white"
-              style={{ backgroundColor: 'rgba(255,255,255,0.15)', fontFamily: "'Space Grotesk', sans-serif" }}
+              className="font-body rounded-full px-3 py-2 text-[13px] font-[600] text-white"
+              style={{ backgroundColor: 'rgba(255,255,255,0.15)' }}
             >
               A-
             </button>
             <button
               onClick={(e) => { e.stopPropagation(); setFontSize((s) => Math.min(42, s + 2)); resetHideTimer(); }}
-              className="rounded-full px-3 py-2 text-[13px] font-[600] text-white"
-              style={{ backgroundColor: 'rgba(255,255,255,0.15)', fontFamily: "'Space Grotesk', sans-serif" }}
+              className="font-body rounded-full px-3 py-2 text-[13px] font-[600] text-white"
+              style={{ backgroundColor: 'rgba(255,255,255,0.15)' }}
             >
               A+
             </button>
             <button
               onClick={(e) => { e.stopPropagation(); setMirrored((m) => !m); resetHideTimer(); }}
-              className="rounded-full px-3 py-2 text-[13px] font-[600] text-white"
+              className="font-body rounded-full px-3 py-2 text-[13px] font-[600] text-white"
               style={{
                 backgroundColor: mirrored ? 'rgba(235,94,85,0.4)' : 'rgba(255,255,255,0.15)',
-                fontFamily: "'Space Grotesk', sans-serif",
               }}
             >
               Mirror
             </button>
             <button
               onClick={(e) => { e.stopPropagation(); togglePlayPause(); }}
-              className="rounded-full px-6 py-2 text-[13px] font-[600] text-white"
+              className="font-body rounded-full px-6 py-2 text-[13px] font-[600] text-white"
               style={{
                 backgroundColor: !isPlaying ? '#EB5E55' : 'rgba(255,255,255,0.15)',
-                fontFamily: "'Space Grotesk', sans-serif",
               }}
             >
               {isPlaying ? 'Pause' : 'Resume'}
@@ -236,8 +234,8 @@ export default function TeleprompterReader({ script, onExit }: TeleprompterReade
             <Link
               href="/library"
               onClick={(e) => e.stopPropagation()}
-              className="rounded-full px-4 py-2 text-[13px] font-[600] text-white"
-              style={{ backgroundColor: 'rgba(255,255,255,0.15)', fontFamily: "'Space Grotesk', sans-serif" }}
+              className="font-body rounded-full px-4 py-2 text-[13px] font-[600] text-white"
+              style={{ backgroundColor: 'rgba(255,255,255,0.15)' }}
             >
               Done
             </Link>

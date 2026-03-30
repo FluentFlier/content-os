@@ -11,6 +11,7 @@ create table if not exists creator_profile (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null unique,
   display_name text not null,
+  bio text,
   bio_facts text not null default '',
   voice_description text not null default '',
   voice_rules text not null default '',

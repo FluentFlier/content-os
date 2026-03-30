@@ -47,7 +47,7 @@ export default async function DashboardLayout({
 
   return (
     <ToastProvider>
-      <div className="flex h-screen bg-[#FFFFFF]">
+      <div className="flex h-screen bg-bg-primary">
         <Sidebar />
         <main className="flex-1 md:ml-[240px] overflow-y-auto px-[28px] py-[24px] pb-20 md:pb-[24px]">
           {children}

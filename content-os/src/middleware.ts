@@ -23,8 +23,12 @@ export function middleware(request: NextRequest): NextResponse {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
+  // Only redirect /login to /dashboard if no OAuth callback params
   if (token && request.nextUrl.pathname === '/login') {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
+    const hasCallback = request.nextUrl.searchParams.has('insforge_code') || request.nextUrl.searchParams.has('code');
+    if (!hasCallback) {
+      return NextResponse.redirect(new URL('/dashboard', request.url));
+    }
   }
 
   const requestHeaders = new Headers(request.headers);

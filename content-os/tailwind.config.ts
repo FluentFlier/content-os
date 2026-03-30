@@ -10,32 +10,32 @@ const config: Config = {
     extend: {
       colors: {
         bg: {
-          primary: '#FFFFFF',
-          secondary: '#F8FAFC',
-          tertiary: '#F1F5F9',
+          primary: '#09090B',
+          secondary: '#18181B',
+          tertiary: '#27272A',
         },
         text: {
-          primary: '#0F172A',
-          secondary: '#475569',
-          tertiary: '#94A3B8',
+          primary: '#FAFAFA',
+          secondary: '#A1A1AA',
+          tertiary: '#71717A',
         },
         border: {
-          DEFAULT: 'rgba(15, 23, 42, 0.08)',
-          hover: 'rgba(15, 23, 42, 0.16)',
-          active: 'rgba(15, 23, 42, 0.28)',
+          DEFAULT: 'rgba(255, 255, 255, 0.08)',
+          hover: 'rgba(255, 255, 255, 0.16)',
+          active: 'rgba(255, 255, 255, 0.28)',
         },
         coral: {
-          DEFAULT: '#6366F1',
-          light: '#EEF2FF',
-          dark: '#4338CA',
+          DEFAULT: '#818CF8',
+          light: 'rgba(99, 102, 241, 0.12)',
+          dark: '#6366F1',
         },
         pillar: {
           'hot-take': '#EF4444',
           hackathon: '#F59E0B',
-          founder: '#6366F1',
-          explainer: '#8B5CF6',
-          origin: '#10B981',
-          research: '#06B6D4',
+          founder: '#818CF8',
+          explainer: '#A78BFA',
+          origin: '#34D399',
+          research: '#22D3EE',
         },
       },
       fontFamily: {

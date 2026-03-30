@@ -117,7 +117,7 @@ export default function LoginPage() {
           <p className="font-body text-[13px] mt-1.5 text-text-tertiary">Content command center</p>
         </div>
 
-        <div className="bg-white rounded-lg p-6 space-y-5 border border-border shadow-sm">
+        <div className="bg-bg-tertiary rounded-lg p-6 space-y-5 border border-border">
           {/* Google OAuth only */}
           <button onClick={startGoogle} disabled={loading}
             className="w-full flex items-center justify-center gap-2.5 rounded-md py-3 font-body text-[13px] font-medium text-text-primary bg-bg-secondary border border-border hover:border-border-hover hover:bg-bg-tertiary transition-all duration-100 disabled:opacity-40">

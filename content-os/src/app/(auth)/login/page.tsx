@@ -45,12 +45,20 @@ export default function LoginPage() {
     setReady(true);
   }
 
-  function handleGoogle() {
-    const client = getInsforgeClient();
-    client.auth.signInWithOAuth({
-      provider: "google",
-      redirectTo: `${window.location.origin}/login`,
-    });
+  async function handleGoogle() {
+    setError("");
+    try {
+      const client = getInsforgeClient();
+      const { error: oauthErr } = await client.auth.signInWithOAuth({
+        provider: "google",
+        redirectTo: `${window.location.origin}/login`,
+      });
+      if (oauthErr) {
+        setError(`OAuth error: ${oauthErr.message}`);
+      }
+    } catch (e) {
+      setError(`Failed: ${e instanceof Error ? e.message : String(e)}`);
+    }
   }
 
   if (!ready) {

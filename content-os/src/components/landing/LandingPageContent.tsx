@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 
-/* ---------- fade-in on scroll ---------- */
-function useFadeIn(): React.RefObject<HTMLDivElement> {
+/* ---------- intersection observer fade-in ---------- */
+function useFadeIn(delay = 0): React.RefObject<HTMLDivElement> {
   const ref = useRef<HTMLDivElement>(null!);
   useEffect(() => {
     const el = ref.current;
@@ -12,230 +12,96 @@ function useFadeIn(): React.RefObject<HTMLDivElement> {
     const io = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          el.style.opacity = '1';
-          el.style.transform = 'translateY(0)';
+          setTimeout(() => {
+            el.style.opacity = '1';
+            el.style.transform = 'translateY(0)';
+          }, delay);
           io.unobserve(el);
         }
       },
-      { threshold: 0.15 },
+      { threshold: 0.1 },
     );
     io.observe(el);
     return () => io.disconnect();
-  }, []);
+  }, [delay]);
   return ref;
 }
 
-function Section({
-  children,
-  className = '',
-}: {
-  children: React.ReactNode;
-  className?: string;
-}) {
-  const ref = useFadeIn();
+function FadeIn({ children, className = '', delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) {
+  const ref = useFadeIn(delay);
   return (
-    <section
+    <div
       ref={ref}
       className={className}
-      style={{
-        opacity: 0,
-        transform: 'translateY(16px)',
-        transition: 'opacity 0.35s ease, transform 0.35s ease',
-      }}
+      style={{ opacity: 0, transform: 'translateY(24px)', transition: 'opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1)' }}
     >
       {children}
-    </section>
+    </div>
   );
 }
 
-/* ---------- inline SVG icons (20x20) ---------- */
-function IconPen() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M14.5 2.5L17.5 5.5L6 17H3V14L14.5 2.5Z" stroke="#6366F1" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-function IconLibrary() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect x="2" y="3" width="5" height="14" rx="1" stroke="#6366F1" strokeWidth="1.5" />
-      <rect x="9" y="3" width="5" height="14" rx="1" stroke="#6366F1" strokeWidth="1.5" />
-      <path d="M16 3V17" stroke="#6366F1" strokeWidth="1.5" strokeLinecap="round" />
-    </svg>
-  );
-}
-function IconCalendar() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect x="2" y="4" width="16" height="14" rx="2" stroke="#F59E0B" strokeWidth="1.5" />
-      <path d="M2 8H18" stroke="#F59E0B" strokeWidth="1.5" />
-      <path d="M6 2V5" stroke="#F59E0B" strokeWidth="1.5" strokeLinecap="round" />
-      <path d="M14 2V5" stroke="#F59E0B" strokeWidth="1.5" strokeLinecap="round" />
-    </svg>
-  );
-}
-function IconVideo() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect x="2" y="4" width="11" height="12" rx="2" stroke="#8B5CF6" strokeWidth="1.5" />
-      <path d="M13 8L18 5V15L13 12" stroke="#8B5CF6" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-function IconShare() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="14" cy="4" r="2.5" stroke="#10B981" strokeWidth="1.5" />
-      <circle cx="5" cy="10" r="2.5" stroke="#10B981" strokeWidth="1.5" />
-      <circle cx="14" cy="16" r="2.5" stroke="#10B981" strokeWidth="1.5" />
-      <path d="M7.2 8.8L11.8 5.2" stroke="#10B981" strokeWidth="1.5" />
-      <path d="M7.2 11.2L11.8 14.8" stroke="#10B981" strokeWidth="1.5" />
-    </svg>
-  );
-}
-function IconChart() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M3 17V9" stroke="#EF4444" strokeWidth="1.5" strokeLinecap="round" />
-      <path d="M7 17V5" stroke="#F59E0B" strokeWidth="1.5" strokeLinecap="round" />
-      <path d="M11 17V11" stroke="#6366F1" strokeWidth="1.5" strokeLinecap="round" />
-      <path d="M15 17V3" stroke="#10B981" strokeWidth="1.5" strokeLinecap="round" />
-    </svg>
-  );
-}
-function IconBrain() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M10 2C7.5 2 5 4 5 7C3.5 7.5 2.5 9 3 11C3.5 13 5 14 6 14H8" stroke="#8B5CF6" strokeWidth="1.5" strokeLinecap="round" />
-      <path d="M10 2C12.5 2 15 4 15 7C16.5 7.5 17.5 9 17 11C16.5 13 15 14 14 14H12" stroke="#8B5CF6" strokeWidth="1.5" strokeLinecap="round" />
-      <path d="M10 14V18" stroke="#8B5CF6" strokeWidth="1.5" strokeLinecap="round" />
-      <path d="M8 16H12" stroke="#8B5CF6" strokeWidth="1.5" strokeLinecap="round" />
-    </svg>
-  );
-}
-function IconSwitch() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M4 7H16M16 7L13 4M16 7L13 10" stroke="#6366F1" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M16 13H4M4 13L7 10M4 13L7 16" stroke="#6366F1" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-function IconTarget() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="10" cy="10" r="7.5" stroke="#10B981" strokeWidth="1.5" />
-      <circle cx="10" cy="10" r="4" stroke="#10B981" strokeWidth="1.5" />
-      <circle cx="10" cy="10" r="1" fill="#10B981" />
-    </svg>
-  );
+/* ---------- animated counter ---------- */
+function Counter({ target, suffix = '' }: { target: number; suffix?: string }) {
+  const [count, setCount] = useState(0);
+  const ref = useRef<HTMLSpanElement>(null!);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const io = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        let start = 0;
+        const step = Math.max(1, Math.floor(target / 40));
+        const timer = setInterval(() => {
+          start += step;
+          if (start >= target) { setCount(target); clearInterval(timer); }
+          else setCount(start);
+        }, 30);
+        io.unobserve(el);
+      }
+    }, { threshold: 0.5 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [target]);
+  return <span ref={ref}>{count}{suffix}</span>;
 }
 
-/* ---------- feature data ---------- */
+/* ---------- data ---------- */
 const features = [
-  {
-    icon: <IconPen />,
-    title: 'AI Writing Tools',
-    desc: 'Scripts, hooks, captions, replies, and repurposing. Eight AI tools that write in your voice, trained on your style.',
-  },
-  {
-    icon: <IconLibrary />,
-    title: 'Content Library',
-    desc: 'Every post in one place with status tracking, pillar tags, and a pipeline from idea to posted.',
-  },
-  {
-    icon: <IconCalendar />,
-    title: 'Smart Calendar',
-    desc: 'Visual calendar for scheduling content. See what is coming, spot gaps, and keep your cadence consistent.',
-  },
-  {
-    icon: <IconVideo />,
-    title: 'Video Studio',
-    desc: 'Upload, preview, and compose videos with AI-generated templates. Built for short-form creators.',
-  },
-  {
-    icon: <IconShare />,
-    title: 'Social Publishing',
-    desc: 'Connect Twitter, LinkedIn, Instagram, and Threads. Publish from one place with per-platform formatting.',
-  },
-  {
-    icon: <IconChart />,
-    title: 'Analytics',
-    desc: 'Track what works. Pillar breakdowns, posting streaks, weekly AI reviews, and performance logs.',
-  },
+  { emoji: '✍️', title: '8 AI Writing Tools', desc: 'Scripts, hooks, captions, comment replies, repurposing, trend catching, and more. All trained on your voice.' },
+  { emoji: '📚', title: 'Content Library', desc: 'Every post tracked from idea to posted. Filter by pillar, status, platform. Bulk actions. Full pipeline.' },
+  { emoji: '📅', title: 'Smart Calendar', desc: 'Drag posts onto days. AI fills your week. See gaps before they become missed opportunities.' },
+  { emoji: '🎬', title: 'Video Studio', desc: 'Upload, preview, and template videos. Auto-captions and smart cuts when you connect a processing backend.' },
+  { emoji: '📤', title: 'Social Publishing', desc: 'Connect X, LinkedIn, Instagram, Threads. Publish from one place. Platform-specific formatting built in.' },
+  { emoji: '📊', title: 'Analytics + Reviews', desc: 'Weekly AI reviews. Pillar breakdowns. Posting streaks. Performance logs. Know what actually works.' },
 ];
 
-/* ---------- problem/solution data ---------- */
-const problems = [
-  {
-    icon: <IconSwitch />,
-    title: 'Stop context-switching',
-    desc: 'Ideas live in Notes. Scripts in Docs. Scheduling in yet another app. Dispatch puts the whole pipeline in one place.',
-  },
-  {
-    icon: <IconBrain />,
-    title: 'AI that knows YOUR voice',
-    desc: 'Generic AI writes generic content. Dispatch learns your background, your pillars, and your tone, then writes like you.',
-  },
-  {
-    icon: <IconTarget />,
-    title: 'Idea to posted in one place',
-    desc: 'Capture an idea, turn it into a script, schedule it, film it, edit it, post it. One tool. One pipeline. Zero switching.',
-  },
-];
-
-/* ---------- how it works ---------- */
 const steps = [
-  {
-    n: '1',
-    title: 'Set up your profile',
-    desc: 'Tell Dispatch your name, content pillars, voice, and background. The AI adapts to you, not the other way around.',
-  },
-  {
-    n: '2',
-    title: 'Generate, organize, schedule',
-    desc: 'Use AI tools to write scripts and hooks. Organize in the library. Drop posts on the calendar to plan your week.',
-  },
-  {
-    n: '3',
-    title: 'Publish and track',
-    desc: 'Push content to your connected platforms. Track performance, spot trends, and let AI tell you what is working.',
-  },
+  { n: '01', title: 'Define your voice', desc: 'Name, pillars, background, tone. The AI adapts to you.' },
+  { n: '02', title: 'Create and organize', desc: 'Generate content, organize in library, schedule on calendar.' },
+  { n: '03', title: 'Publish and learn', desc: 'Push to platforms. Track performance. Let AI spot patterns.' },
 ];
 
-interface LandingPageContentProps {
-  loggedIn: boolean;
-}
+interface Props { loggedIn: boolean; }
 
-export default function LandingPageContent({ loggedIn }: LandingPageContentProps) {
+export default function LandingPageContent({ loggedIn }: Props) {
   return (
-    <div className="min-h-screen bg-bg-primary font-body overflow-x-hidden">
+    <div className="min-h-screen bg-white font-body overflow-x-hidden">
       {/* ==================== Nav ==================== */}
-      <nav className="flex items-center justify-between px-6 py-4 max-w-5xl mx-auto">
-        <span className="font-display font-[800] text-[16px] tracking-[0.16em] text-text-primary">
+      <nav className="flex items-center justify-between px-6 py-5 max-w-6xl mx-auto">
+        <span className="font-display font-[800] text-[15px] tracking-[0.2em] text-text-primary">
           DISPATCH
         </span>
         <div className="flex items-center gap-3">
           {loggedIn ? (
-            <Link
-              href="/dashboard"
-              className="rounded-md py-[10px] px-[20px] text-white text-[13px] font-medium bg-coral hover:bg-coral-dark transition-all duration-100"
-            >
-              Go to Dashboard
+            <Link href="/dashboard" className="rounded-md py-2 px-5 text-white text-[13px] font-semibold bg-[#6366F1] hover:bg-[#4F46E5] transition-all duration-150">
+              Dashboard
             </Link>
           ) : (
             <>
-              <Link
-                href="/login"
-                className="rounded-md py-[10px] px-[20px] text-[13px] font-medium text-text-secondary border border-border hover:text-text-primary hover:border-border-hover transition-all duration-100"
-              >
-                Sign In
+              <Link href="/login" className="rounded-md py-2 px-4 text-[13px] font-medium text-text-secondary hover:text-text-primary transition-colors">
+                Sign in
               </Link>
-              <Link
-                href="/login?mode=signup"
-                className="rounded-md py-[10px] px-[20px] text-white text-[13px] font-medium bg-coral hover:bg-coral-dark transition-all duration-100"
-              >
+              <Link href="/login?mode=signup" className="rounded-md py-2 px-5 text-white text-[13px] font-semibold bg-[#6366F1] hover:bg-[#4F46E5] transition-all duration-150 shadow-sm shadow-[#6366F1]/25">
                 Get Started
               </Link>
             </>
@@ -244,134 +110,142 @@ export default function LandingPageContent({ loggedIn }: LandingPageContentProps
       </nav>
 
       {/* ==================== Hero ==================== */}
-      <Section className="text-center pt-16 sm:pt-24 pb-16 px-6">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-coral mb-4">
-          Content Command Center
-        </p>
-        <h1 className="font-display font-[800] text-[36px] sm:text-[52px] tracking-[-0.03em] text-text-primary leading-[1.08]">
-          Your content,<br />dispatched.
-        </h1>
-        <p className="mt-5 text-[15px] sm:text-[17px] text-text-secondary max-w-lg mx-auto leading-relaxed">
-          The command center for creators who take their work seriously.
-          AI writing, scheduling, publishing, and analytics in one pipeline.
-        </p>
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-8">
-          <Link
-            href="/login?mode=signup"
-            className="rounded-md py-[12px] px-[28px] text-white text-[14px] font-semibold bg-coral hover:bg-coral-dark transition-all duration-150 min-h-[44px] flex items-center shadow-sm"
-          >
-            Get Started Free
-          </Link>
-          <Link
-            href="/login"
-            className="rounded-md py-[12px] px-[28px] text-[14px] font-medium text-text-secondary border border-border hover:text-text-primary hover:border-border-hover transition-all duration-100 min-h-[44px] flex items-center"
-          >
-            Sign In
-          </Link>
-        </div>
-      </Section>
+      <section className="relative pt-16 sm:pt-28 pb-20 px-6 text-center overflow-hidden">
+        {/* Subtle gradient orb */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-gradient-to-b from-[#6366F1]/[0.06] to-transparent rounded-full blur-3xl pointer-events-none" />
 
-      {/* ==================== Problem / Solution ==================== */}
-      <Section className="max-w-4xl mx-auto px-6 pb-20">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-text-tertiary mb-3 text-center">
-          WHY DISPATCH
-        </p>
-        <h2 className="font-display text-center mb-10 font-[700] text-[24px] sm:text-[30px] text-text-primary tracking-[-0.02em]">
-          The problem with <span className="text-coral">your current workflow</span>
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {problems.map((p, i) => (
-            <div
-              key={i}
-              className="rounded-lg p-5 border border-border bg-bg-secondary hover:border-border-hover hover:shadow-sm transition-all duration-150"
+        <FadeIn className="relative">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#EEF2FF] border border-[#6366F1]/10 mb-6">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#6366F1] animate-pulse" />
+            <span className="text-[11px] font-semibold text-[#6366F1] uppercase tracking-[0.08em]">Now in public beta</span>
+          </div>
+        </FadeIn>
+
+        <FadeIn delay={80}>
+          <h1 className="font-display font-[800] text-[40px] sm:text-[56px] md:text-[64px] tracking-[-0.04em] text-text-primary leading-[1.05] max-w-3xl mx-auto">
+            Your content,<br />
+            <span className="bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] bg-clip-text text-transparent">dispatched.</span>
+          </h1>
+        </FadeIn>
+
+        <FadeIn delay={160}>
+          <p className="mt-5 text-[16px] sm:text-[18px] text-text-secondary max-w-xl mx-auto leading-relaxed">
+            The command center for creators who ship. AI writing, content pipeline, scheduling, and multi-platform publishing in one workspace.
+          </p>
+        </FadeIn>
+
+        <FadeIn delay={240}>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-8">
+            <Link
+              href="/login?mode=signup"
+              className="group rounded-lg py-3 px-7 text-white text-[14px] font-semibold bg-[#6366F1] hover:bg-[#4F46E5] transition-all duration-200 flex items-center gap-2 shadow-lg shadow-[#6366F1]/20 hover:shadow-[#6366F1]/30 hover:-translate-y-0.5"
             >
-              <div className="w-9 h-9 rounded-md bg-coral-light flex items-center justify-center mb-3">{p.icon}</div>
-              <h3 className="font-display text-[14px] font-[700] text-text-primary mb-2">
-                {p.title}
-              </h3>
-              <p className="text-[13px] text-text-secondary leading-relaxed">
-                {p.desc}
-              </p>
-            </div>
-          ))}
-        </div>
-      </Section>
+              Start creating
+              <svg className="w-4 h-4 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+            </Link>
+            <Link
+              href="#features"
+              className="rounded-lg py-3 px-7 text-[14px] font-medium text-text-secondary hover:text-text-primary transition-colors"
+            >
+              See how it works
+            </Link>
+          </div>
+        </FadeIn>
 
-      {/* ==================== Features Showcase ==================== */}
-      <Section className="max-w-4xl mx-auto px-6 pb-20">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-text-tertiary mb-3 text-center">
-          FEATURES
-        </p>
-        <h2 className="font-display text-center mb-10 font-[700] text-[24px] sm:text-[30px] text-text-primary tracking-[-0.02em]">
-          Everything you need to <span className="text-coral">create and ship</span>
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+        {/* Stats bar */}
+        <FadeIn delay={350}>
+          <div className="flex items-center justify-center gap-8 sm:gap-12 mt-14 text-center">
+            {[
+              { value: 8, suffix: '', label: 'AI writing tools' },
+              { value: 4, suffix: '', label: 'Connected platforms' },
+              { value: 5, suffix: '', label: 'Pipeline stages' },
+            ].map((s, i) => (
+              <div key={i}>
+                <div className="font-display font-[800] text-[28px] sm:text-[32px] text-text-primary tracking-tight">
+                  <Counter target={s.value} suffix={s.suffix} />
+                </div>
+                <div className="text-[11px] text-text-tertiary uppercase tracking-[0.08em] mt-0.5">{s.label}</div>
+              </div>
+            ))}
+          </div>
+        </FadeIn>
+      </section>
+
+      {/* ==================== Features ==================== */}
+      <section id="features" className="max-w-5xl mx-auto px-6 pb-24">
+        <FadeIn>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#6366F1] mb-3 text-center">Everything you need</p>
+          <h2 className="font-display text-center mb-12 font-[800] text-[28px] sm:text-[36px] text-text-primary tracking-[-0.03em]">
+            One workspace. Zero context-switching.
+          </h2>
+        </FadeIn>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {features.map((f, i) => (
-            <div
-              key={i}
-              className="rounded-lg p-5 border border-border bg-bg-secondary hover:border-border-hover hover:shadow-sm transition-all duration-150"
-            >
-              <div className="w-9 h-9 rounded-md bg-coral-light flex items-center justify-center mb-3">{f.icon}</div>
-              <h3 className="font-display text-[14px] font-[700] text-text-primary mb-2">
-                {f.title}
-              </h3>
-              <p className="text-[13px] text-text-secondary leading-relaxed">
-                {f.desc}
-              </p>
-            </div>
+            <FadeIn key={i} delay={i * 60}>
+              <div className="group rounded-xl p-5 border border-transparent bg-[#F8FAFC] hover:bg-white hover:border-[#E2E8F0] hover:shadow-lg hover:shadow-[#6366F1]/[0.04] transition-all duration-300 hover:-translate-y-0.5 h-full">
+                <span className="text-[24px] block mb-3">{f.emoji}</span>
+                <h3 className="font-display text-[15px] font-[700] text-text-primary mb-1.5">{f.title}</h3>
+                <p className="text-[13px] text-text-secondary leading-relaxed">{f.desc}</p>
+              </div>
+            </FadeIn>
           ))}
         </div>
-      </Section>
+      </section>
 
       {/* ==================== How It Works ==================== */}
-      <Section className="max-w-3xl mx-auto px-6 pb-20">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-text-tertiary mb-3 text-center">
-          HOW IT WORKS
-        </p>
-        <h2 className="font-display text-center mb-10 font-[700] text-[24px] sm:text-[30px] text-text-primary tracking-[-0.02em]">
-          Idea to posted in <span className="text-coral">three steps</span>
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {steps.map((s, i) => (
-            <div key={i} className="text-center">
-              <div className="w-11 h-11 rounded-full mx-auto mb-4 flex items-center justify-center text-[14px] font-semibold text-coral bg-coral-light border-[1.5px] border-coral/20">
-                {s.n}
-              </div>
-              <h3 className="font-display text-[14px] font-[700] text-text-primary mb-2">
-                {s.title}
-              </h3>
-              <p className="text-[13px] text-text-secondary leading-relaxed">
-                {s.desc}
-              </p>
-            </div>
-          ))}
+      <section className="bg-[#F8FAFC] py-20 px-6">
+        <div className="max-w-3xl mx-auto">
+          <FadeIn>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#6366F1] mb-3 text-center">How it works</p>
+            <h2 className="font-display text-center mb-14 font-[800] text-[28px] sm:text-[36px] text-text-primary tracking-[-0.03em]">
+              Three steps to shipping consistently.
+            </h2>
+          </FadeIn>
+          <div className="space-y-8">
+            {steps.map((s, i) => (
+              <FadeIn key={i} delay={i * 100}>
+                <div className="flex items-start gap-5">
+                  <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] flex items-center justify-center text-white font-display font-[700] text-[14px] shadow-md shadow-[#6366F1]/20">
+                    {s.n}
+                  </div>
+                  <div>
+                    <h3 className="font-display text-[16px] font-[700] text-text-primary mb-1">{s.title}</h3>
+                    <p className="text-[14px] text-text-secondary leading-relaxed">{s.desc}</p>
+                  </div>
+                </div>
+              </FadeIn>
+            ))}
+          </div>
         </div>
-      </Section>
+      </section>
 
       {/* ==================== CTA ==================== */}
-      <Section className="text-center px-6 pb-20">
-        <h2 className="font-display font-[800] text-[28px] sm:text-[34px] text-text-primary tracking-[-0.02em]">
-          Ready to <span className="text-coral">dispatch</span>?
-        </h2>
-        <p className="text-[14px] text-text-secondary mt-3 mb-6">
-          Free to use. Set up in under a minute.
-        </p>
-        <Link
-          href="/login?mode=signup"
-          className="inline-flex items-center rounded-md py-[12px] px-[28px] text-white text-[14px] font-semibold bg-coral hover:bg-coral-dark transition-all duration-150 min-h-[44px] shadow-sm"
-        >
-          Get Started Free
-        </Link>
-      </Section>
+      <section className="relative text-center py-24 px-6 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-white via-[#EEF2FF]/40 to-white pointer-events-none" />
+        <FadeIn className="relative">
+          <h2 className="font-display font-[800] text-[32px] sm:text-[42px] text-text-primary tracking-[-0.03em] leading-tight">
+            Ready to ship<br />
+            <span className="bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] bg-clip-text text-transparent">more content?</span>
+          </h2>
+          <p className="text-[15px] text-text-secondary mt-4 mb-8 max-w-md mx-auto">
+            Free to use. Set up your profile in under a minute. Start generating content immediately.
+          </p>
+          <Link
+            href="/login?mode=signup"
+            className="group inline-flex items-center rounded-lg py-3 px-8 text-white text-[15px] font-semibold bg-[#6366F1] hover:bg-[#4F46E5] transition-all duration-200 gap-2 shadow-lg shadow-[#6366F1]/20 hover:shadow-[#6366F1]/30 hover:-translate-y-0.5"
+          >
+            Get Started Free
+            <svg className="w-4 h-4 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+          </Link>
+        </FadeIn>
+      </section>
 
       {/* ==================== Footer ==================== */}
-      <footer className="text-center py-8 px-6 border-t border-border">
-        <span className="font-display font-[800] text-[12px] tracking-[0.16em] text-text-tertiary">
-          DISPATCH
-        </span>
-        <p className="text-[11px] text-text-tertiary mt-2">
-          &copy; {new Date().getFullYear()} Dispatch. All rights reserved.
-        </p>
+      <footer className="border-t border-[#E2E8F0] py-8 px-6">
+        <div className="max-w-5xl mx-auto flex items-center justify-between">
+          <span className="font-display font-[800] text-[11px] tracking-[0.2em] text-text-tertiary">DISPATCH</span>
+          <p className="text-[11px] text-text-tertiary">&copy; {new Date().getFullYear()} Dispatch</p>
+        </div>
       </footer>
     </div>
   );

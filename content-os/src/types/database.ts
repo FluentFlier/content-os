@@ -37,7 +37,11 @@ export interface ContentPillarConfig {
 }
 
 export interface PlatformConfig {
-  instagram?: { enabled: boolean };
+  instagram?: {
+    accessToken?: string;
+    igUserId?: string;
+    enabled: boolean;
+  };
   x?: {
     apiKey?: string;
     apiSecret?: string;
@@ -51,6 +55,11 @@ export interface PlatformConfig {
     accessToken?: string;
     refreshToken?: string;
     personId?: string;
+    enabled: boolean;
+  };
+  threads?: {
+    accessToken?: string;
+    threadsUserId?: string;
     enabled: boolean;
   };
 }

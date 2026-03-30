@@ -364,6 +364,11 @@ export default function PostEditorDrawer({ post, series, onClose, onSave, onDele
             postId={post.id}
             content={form.script || form.hook || form.title}
             caption={form.caption}
+            onPublishSuccess={() => {
+              setForm((f) => ({ ...f, status: 'posted' }));
+              toast('Published! Post status updated.');
+              onSave();
+            }}
           />
 
           {/* Delete */}

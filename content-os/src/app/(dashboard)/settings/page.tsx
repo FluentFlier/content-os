@@ -5,7 +5,7 @@ import { getInsforge } from "@/lib/insforge/client";
 import type { ContentPillarConfig, PlatformConfig, CreatorProfile, UserSetting } from "@/types/database";
 import type { Platform } from "@/lib/constants";
 import { PLATFORMS } from "@/lib/constants";
-import { Eye, EyeOff, Copy, Check, Loader2, Unplug } from "lucide-react";
+import { Eye, EyeOff, Copy, Check, Loader2, Unplug, ChevronDown, ChevronRight } from "lucide-react";
 
 /* ------------------------------------------------------------------ */
 /*  Constants                                                          */
@@ -150,20 +150,6 @@ function Section({
   );
 }
 
-function ConnectionStatus({ connected }: { connected: boolean }) {
-  return (
-    <span
-      className={`text-xs px-2 py-0.5 rounded-full ${
-        connected
-          ? "bg-[#EAF3DE] text-[#3B6D11]"
-          : "bg-[#F4F2EF] text-[#8C857D]"
-      }`}
-    >
-      {connected ? "Connected" : "Not configured"}
-    </span>
-  );
-}
-
 /* ------------------------------------------------------------------ */
 /*  Main settings page                                                 */
 /* ------------------------------------------------------------------ */
@@ -207,7 +193,7 @@ export default function SettingsPage() {
 
   // Section 6: Platform connections
   const [platformConfig, setPlatformConfig] = useState<PlatformConfig>({
-    instagram: { enabled: false },
+    instagram: { accessToken: "", igUserId: "", enabled: false },
     x: {
       apiKey: "",
       apiSecret: "",
@@ -223,7 +209,9 @@ export default function SettingsPage() {
       personId: "",
       enabled: false,
     },
+    threads: { accessToken: "", threadsUserId: "", enabled: false },
   });
+  const [expandedPlatform, setExpandedPlatform] = useState<string | null>(null);
   const [platformSaving, setPlatformSaving] = useState(false);
   const [platformSaved, setPlatformSaved] = useState(false);
 
@@ -549,76 +537,262 @@ export default function SettingsPage() {
     <div className="max-w-3xl mx-auto px-4 py-8 space-y-6">
       <h1 className="font-heading text-[22px] font-[800] text-[#1A1714] leading-[1.2] tracking-[-0.02em]">Settings</h1>
 
-      {/* Connected Accounts */}
-      <div className="bg-[#FAFAF8] border-[0.5px] border-[#1A1714]/12 rounded-[12px] p-6">
-        <span className="text-[10px] font-medium tracking-[0.10em] uppercase text-[#8C857D] block mb-4">
-          CONNECTED ACCOUNTS
-        </span>
-
+      {/* Platform Connections (unified OAuth + manual keys) */}
+      <Section title="Platform Connections">
+        <p className="text-sm text-[#8C857D] mb-4">
+          Connect accounts via OAuth or enter API keys manually.
+        </p>
         <div className="space-y-3">
-          {(["instagram", "linkedin", "twitter", "threads"] as const).map((platform) => {
+          {(["twitter", "linkedin", "instagram", "threads"] as const).map((platform) => {
             const account = connectedAccounts.find((a) => a.platform === platform);
-            const isConnected = !!account;
+            const isOAuthConnected = !!account;
             const isDisconnecting = disconnecting === platform;
+            const isExpanded = expandedPlatform === platform;
 
             const platformMeta: Record<string, { label: string; color: string; icon: string }> = {
               instagram: { label: "Instagram", color: "#E4405F", icon: "IG" },
               linkedin: { label: "LinkedIn", color: "#0A66C2", icon: "in" },
-              twitter: { label: "X", color: "#1A1714", icon: "\u{1D54F}" },
+              twitter: { label: "X / Twitter", color: "#1A1714", icon: "\u{1D54F}" },
               threads: { label: "Threads", color: "#1A1714", icon: "@" },
             };
 
             const meta = platformMeta[platform];
+            const configKey = platform === "twitter" ? "x" : platform;
+
+            // Determine manual key status
+            const getManualConfigured = (): boolean => {
+              if (platform === "twitter") {
+                const c = platformConfig.x;
+                return !!(c?.apiKey && c?.accessToken && c?.enabled);
+              }
+              if (platform === "linkedin") {
+                const c = platformConfig.linkedin;
+                return !!(c?.accessToken && c?.enabled);
+              }
+              if (platform === "instagram") {
+                const c = platformConfig.instagram;
+                return !!(c?.accessToken && c?.enabled);
+              }
+              if (platform === "threads") {
+                const c = platformConfig.threads;
+                return !!(c?.accessToken && c?.enabled);
+              }
+              return false;
+            };
+            const hasManualKeys = getManualConfigured();
 
             return (
               <div
                 key={platform}
-                className="flex items-center justify-between py-3 px-4 bg-[#F4F2EF] border-[0.5px] border-[#1A1714]/12 rounded-[7px]"
+                className="border-[0.5px] border-[#1A1714]/12 rounded-[12px] overflow-hidden"
               >
-                <div className="flex items-center gap-3">
-                  <span
-                    className="w-7 h-7 rounded-[5px] flex items-center justify-center text-[10px] font-bold text-white shrink-0"
-                    style={{ backgroundColor: meta.color }}
-                  >
-                    {meta.icon}
-                  </span>
-                  <div>
+                {/* Card header */}
+                <button
+                  type="button"
+                  onClick={() => setExpandedPlatform(isExpanded ? null : platform)}
+                  className="w-full flex items-center justify-between py-3 px-4 bg-[#F4F2EF] hover:bg-[#EDECEA] transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <span
+                      className="w-7 h-7 rounded-[5px] flex items-center justify-center text-[10px] font-bold text-white shrink-0"
+                      style={{ backgroundColor: meta.color }}
+                    >
+                      {meta.icon}
+                    </span>
                     <span className="text-[13px] font-medium text-[#1A1714]">{meta.label}</span>
-                    {isConnected && account.account_name && (
-                      <span className="ml-2 text-[11px] text-[#8C857D]">{account.account_name}</span>
+                    {isOAuthConnected && (
+                      <span className="text-[10px] font-medium px-2 py-0.5 rounded-[3px] bg-[#EAF3DE] text-[#3B6D11]">
+                        OAuth
+                      </span>
+                    )}
+                    {hasManualKeys && (
+                      <span className="text-[10px] font-medium px-2 py-0.5 rounded-[3px] bg-[#E8E5FF] text-[#6B5CE7]">
+                        Manual Keys
+                      </span>
+                    )}
+                    {!isOAuthConnected && !hasManualKeys && (
+                      <span className="text-[10px] px-2 py-0.5 rounded-[3px] bg-[#F4F2EF] text-[#8C857D]">
+                        Not configured
+                      </span>
                     )}
                   </div>
-                  {isConnected && (
-                    <span className="text-[10px] font-medium px-2 py-0.5 rounded-[3px] bg-[#EAF3DE] text-[#3B6D11]">
-                      Connected
-                    </span>
-                  )}
-                </div>
+                  {isExpanded ? <ChevronDown size={16} className="text-[#8C857D]" /> : <ChevronRight size={16} className="text-[#8C857D]" />}
+                </button>
 
-                {isConnected ? (
-                  <button
-                    type="button"
-                    disabled={isDisconnecting}
-                    onClick={() => disconnectAccount(platform)}
-                    className="flex items-center gap-1 px-3 py-1.5 text-[11px] text-[#4A4540] border-[0.5px] border-[#1A1714]/12 rounded-[6px] hover:border-[#1A1714]/25 transition-colors disabled:opacity-60"
-                  >
-                    <Unplug size={12} />
-                    {isDisconnecting ? "..." : "Disconnect"}
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => connectAccount(platform)}
-                    className="px-4 py-1.5 text-[11px] text-[#1A1714] bg-[#FAFAF8] border-[0.5px] border-[#1A1714]/12 rounded-[6px] hover:border-[#1A1714]/25 transition-colors"
-                  >
-                    Connect
-                  </button>
+                {/* Expanded body */}
+                {isExpanded && (
+                  <div className="p-4 space-y-4 border-t-[0.5px] border-[#1A1714]/12">
+                    {/* OAuth section */}
+                    <div>
+                      <span className="text-[10px] font-medium tracking-[0.10em] uppercase text-[#8C857D] block mb-2">
+                        OAUTH CONNECTION
+                      </span>
+                      {isOAuthConnected ? (
+                        <div className="flex items-center justify-between py-2">
+                          <div className="flex items-center gap-2">
+                            <Check size={14} className="text-[#3B6D11]" />
+                            <span className="text-[12px] text-[#3B6D11]">
+                              Connected{account.account_name ? ` as ${account.account_name}` : ""}
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            disabled={isDisconnecting}
+                            onClick={(e) => { e.stopPropagation(); disconnectAccount(platform); }}
+                            className="flex items-center gap-1 px-3 py-1.5 text-[11px] text-[#4A4540] border-[0.5px] border-[#1A1714]/12 rounded-[6px] hover:border-[#1A1714]/25 transition-colors disabled:opacity-60"
+                          >
+                            <Unplug size={12} />
+                            {isDisconnecting ? "..." : "Disconnect"}
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => connectAccount(platform)}
+                          className="px-4 py-2 text-[12px] text-white bg-[#EB5E55] rounded-[7px] hover:bg-[#EB5E55]/90 transition-colors"
+                        >
+                          Connect with {meta.label}
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Manual keys section */}
+                    <div>
+                      <span className="text-[10px] font-medium tracking-[0.10em] uppercase text-[#8C857D] block mb-2">
+                        MANUAL API KEYS
+                      </span>
+                      <p className="text-[11px] text-[#8C857D] mb-3">
+                        Enter your own API credentials as a fallback to OAuth.
+                      </p>
+
+                      {platform === "twitter" && (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          {([
+                            ["apiKey", "API Key"],
+                            ["apiSecret", "API Secret"],
+                            ["accessToken", "Access Token"],
+                            ["accessSecret", "Access Secret"],
+                          ] as const).map(([field, label]) => (
+                            <PasswordField
+                              key={field}
+                              label={label}
+                              value={(platformConfig.x as unknown as Record<string, string>)?.[field] ?? ""}
+                              onChange={(v) =>
+                                setPlatformConfig({
+                                  ...platformConfig,
+                                  x: { ...platformConfig.x!, [field]: v },
+                                })
+                              }
+                            />
+                          ))}
+                        </div>
+                      )}
+
+                      {platform === "linkedin" && (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          {([
+                            ["accessToken", "Access Token"],
+                            ["refreshToken", "Refresh Token"],
+                          ] as const).map(([field, label]) => (
+                            <PasswordField
+                              key={field}
+                              label={label}
+                              value={(platformConfig.linkedin as unknown as Record<string, string>)?.[field] ?? ""}
+                              onChange={(v) =>
+                                setPlatformConfig({
+                                  ...platformConfig,
+                                  linkedin: { ...platformConfig.linkedin!, [field]: v },
+                                })
+                              }
+                            />
+                          ))}
+                        </div>
+                      )}
+
+                      {platform === "instagram" && (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          {([
+                            ["accessToken", "Access Token"],
+                            ["igUserId", "Instagram User ID"],
+                          ] as const).map(([field, label]) => (
+                            <PasswordField
+                              key={field}
+                              label={label}
+                              value={(platformConfig.instagram as unknown as Record<string, string>)?.[field] ?? ""}
+                              onChange={(v) =>
+                                setPlatformConfig({
+                                  ...platformConfig,
+                                  instagram: { ...platformConfig.instagram!, [field]: v },
+                                })
+                              }
+                            />
+                          ))}
+                        </div>
+                      )}
+
+                      {platform === "threads" && (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          {([
+                            ["accessToken", "Access Token"],
+                            ["threadsUserId", "Threads User ID"],
+                          ] as const).map(([field, label]) => (
+                            <PasswordField
+                              key={field}
+                              label={label}
+                              value={(platformConfig.threads as unknown as Record<string, string>)?.[field] ?? ""}
+                              onChange={(v) =>
+                                setPlatformConfig({
+                                  ...platformConfig,
+                                  threads: { ...platformConfig.threads!, [field]: v },
+                                })
+                              }
+                            />
+                          ))}
+                        </div>
+                      )}
+
+                      <div className="flex items-center justify-between mt-3">
+                        <span className="text-[12px] text-[#1A1714]">Enable manual keys</span>
+                        <Toggle
+                          enabled={
+                            platform === "twitter"
+                              ? (platformConfig.x?.enabled ?? false)
+                              : platform === "linkedin"
+                              ? (platformConfig.linkedin?.enabled ?? false)
+                              : platform === "instagram"
+                              ? (platformConfig.instagram?.enabled ?? false)
+                              : (platformConfig.threads?.enabled ?? false)
+                          }
+                          onChange={(v) => {
+                            if (platform === "twitter") {
+                              setPlatformConfig({ ...platformConfig, x: { ...platformConfig.x!, enabled: v } });
+                            } else if (platform === "linkedin") {
+                              setPlatformConfig({ ...platformConfig, linkedin: { ...platformConfig.linkedin!, enabled: v } });
+                            } else if (platform === "instagram") {
+                              setPlatformConfig({ ...platformConfig, instagram: { ...platformConfig.instagram!, enabled: v } });
+                            } else {
+                              setPlatformConfig({ ...platformConfig, threads: { ...platformConfig.threads!, enabled: v } });
+                            }
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
                 )}
               </div>
             );
           })}
         </div>
-      </div>
+
+        <div className="mt-4">
+          <SaveButton
+            onClick={savePlatformConfig}
+            loading={platformSaving}
+            saved={platformSaved}
+            label="Save API Keys"
+          />
+        </div>
+      </Section>
 
       {/* Section 1: Context Editor */}
       <Section title="Personal Context">
@@ -823,147 +997,7 @@ export default function SettingsPage() {
         )}
       </Section>
 
-      {/* Section 6: Platform Connections */}
-      <Section title="Platform Connections">
-        {/* X / Twitter */}
-        <div className="border-[0.5px] border-[#1A1714]/12 rounded-[12px] p-5 space-y-4 mb-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="font-medium text-[#1A1714]">X / Twitter</span>
-              <ConnectionStatus
-                connected={
-                  !!(
-                    platformConfig.x?.apiKey &&
-                    platformConfig.x?.accessToken &&
-                    platformConfig.x?.enabled
-                  )
-                }
-              />
-            </div>
-            <Toggle
-              enabled={platformConfig.x?.enabled ?? false}
-              onChange={(v) =>
-                setPlatformConfig({
-                  ...platformConfig,
-                  x: { ...platformConfig.x!, enabled: v },
-                })
-              }
-            />
-          </div>
-          {platformConfig.x?.enabled && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {(
-                [
-                  ["apiKey", "API Key"],
-                  ["apiSecret", "API Secret"],
-                  ["accessToken", "Access Token"],
-                  ["accessSecret", "Access Secret"],
-                ] as const
-              ).map(([field, label]) => (
-                <PasswordField
-                  key={field}
-                  label={label}
-                  value={
-                    (platformConfig.x as unknown as Record<string, string>)?.[field] ?? ""
-                  }
-                  onChange={(v) =>
-                    setPlatformConfig({
-                      ...platformConfig,
-                      x: { ...platformConfig.x!, [field]: v },
-                    })
-                  }
-                />
-              ))}
-            </div>
-          )}
-        </div>
 
-        {/* LinkedIn */}
-        <div className="border-[0.5px] border-[#1A1714]/12 rounded-[12px] p-5 space-y-4 mb-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="font-medium text-[#1A1714]">LinkedIn</span>
-              <ConnectionStatus
-                connected={
-                  !!(
-                    platformConfig.linkedin?.clientId &&
-                    platformConfig.linkedin?.accessToken &&
-                    platformConfig.linkedin?.enabled
-                  )
-                }
-              />
-            </div>
-            <Toggle
-              enabled={platformConfig.linkedin?.enabled ?? false}
-              onChange={(v) =>
-                setPlatformConfig({
-                  ...platformConfig,
-                  linkedin: { ...platformConfig.linkedin!, enabled: v },
-                })
-              }
-            />
-          </div>
-          {platformConfig.linkedin?.enabled && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {(
-                [
-                  ["clientId", "Client ID"],
-                  ["clientSecret", "Client Secret"],
-                  ["accessToken", "Access Token"],
-                  ["refreshToken", "Refresh Token"],
-                  ["personId", "Person ID"],
-                ] as const
-              ).map(([field, label]) => (
-                <PasswordField
-                  key={field}
-                  label={label}
-                  value={
-                    (platformConfig.linkedin as unknown as Record<string, string>)?.[field] ?? ""
-                  }
-                  onChange={(v) =>
-                    setPlatformConfig({
-                      ...platformConfig,
-                      linkedin: { ...platformConfig.linkedin!, [field]: v },
-                    })
-                  }
-                />
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Instagram */}
-        <div className="border-[0.5px] border-[#1A1714]/12 rounded-[12px] p-5 mb-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="font-medium text-[#1A1714]">Instagram</span>
-              <ConnectionStatus
-                connected={platformConfig.instagram?.enabled ?? false}
-              />
-            </div>
-            <Toggle
-              enabled={platformConfig.instagram?.enabled ?? false}
-              onChange={(v) =>
-                setPlatformConfig({
-                  ...platformConfig,
-                  instagram: { enabled: v },
-                })
-              }
-            />
-          </div>
-          {platformConfig.instagram?.enabled && (
-            <p className="text-xs text-[#8C857D] mt-2">
-              Manual posting mode. Content will be prepared and ready to copy.
-            </p>
-          )}
-        </div>
-
-        <SaveButton
-          onClick={savePlatformConfig}
-          loading={platformSaving}
-          saved={platformSaved}
-        />
-      </Section>
 
       {/* Section 7: Profile Editor */}
       <Section title="Profile Editor">

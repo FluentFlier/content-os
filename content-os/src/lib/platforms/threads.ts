@@ -79,6 +79,47 @@ export async function publishPost(
   }
 }
 
+interface RefreshResult {
+  success: boolean;
+  accessToken?: string;
+  expiresAt?: string;
+  error?: string;
+}
+
+/**
+ * Refresh a long-lived Threads access token.
+ * Valid tokens that are at least 24 hours old and not expired
+ * can be refreshed for a new 60-day token.
+ */
+export async function refreshAccessToken(
+  accessToken: string
+): Promise<RefreshResult> {
+  try {
+    const res = await fetch(
+      `https://graph.threads.net/refresh_access_token?grant_type=th_refresh_token&access_token=${accessToken}`
+    );
+
+    if (!res.ok) {
+      const body = await res.text();
+      return { success: false, error: `Threads refresh error: ${res.status} ${body}` };
+    }
+
+    const data = await res.json();
+    const expiresAt = data.expires_in
+      ? new Date(Date.now() + data.expires_in * 1000).toISOString()
+      : undefined;
+
+    return {
+      success: true,
+      accessToken: data.access_token,
+      expiresAt,
+    };
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Unknown error';
+    return { success: false, error: message };
+  }
+}
+
 export async function getProfile(accessToken: string): Promise<ProfileResult | null> {
   try {
     const res = await fetch(

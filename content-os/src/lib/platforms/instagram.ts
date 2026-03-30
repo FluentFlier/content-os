@@ -90,6 +90,47 @@ export async function publishPost(
   }
 }
 
+interface RefreshResult {
+  success: boolean;
+  accessToken?: string;
+  expiresAt?: string;
+  error?: string;
+}
+
+/**
+ * Refresh a long-lived Instagram/Facebook token.
+ * Long-lived tokens can be refreshed as long as they are at least 24 hours
+ * old and not expired.
+ */
+export async function refreshAccessToken(
+  accessToken: string
+): Promise<RefreshResult> {
+  try {
+    const res = await fetch(
+      `https://graph.facebook.com/v19.0/oauth/access_token?grant_type=fb_exchange_token&client_id=${process.env.INSTAGRAM_APP_ID}&client_secret=${process.env.INSTAGRAM_APP_SECRET}&fb_exchange_token=${accessToken}`
+    );
+
+    if (!res.ok) {
+      const body = await res.text();
+      return { success: false, error: `Instagram refresh error: ${res.status} ${body}` };
+    }
+
+    const data = await res.json();
+    const expiresAt = data.expires_in
+      ? new Date(Date.now() + data.expires_in * 1000).toISOString()
+      : undefined;
+
+    return {
+      success: true,
+      accessToken: data.access_token,
+      expiresAt,
+    };
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Unknown error';
+    return { success: false, error: message };
+  }
+}
+
 export async function getProfile(accessToken: string): Promise<ProfileResult | null> {
   try {
     const res = await fetch(

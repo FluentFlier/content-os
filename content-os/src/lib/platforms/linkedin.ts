@@ -68,6 +68,51 @@ export async function publishPost(
   }
 }
 
+interface RefreshResult {
+  success: boolean;
+  accessToken?: string;
+  refreshToken?: string;
+  expiresAt?: string;
+  error?: string;
+}
+
+export async function refreshAccessToken(
+  refreshToken: string,
+  clientId: string,
+  clientSecret: string
+): Promise<RefreshResult> {
+  try {
+    const res = await fetch('https://www.linkedin.com/oauth/v2/accessToken', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        grant_type: 'refresh_token',
+        refresh_token: refreshToken,
+        client_id: clientId,
+        client_secret: clientSecret,
+      }),
+    });
+
+    if (!res.ok) {
+      const body = await res.text();
+      return { success: false, error: `LinkedIn refresh error: ${res.status} ${body}` };
+    }
+
+    const data = await res.json();
+    const expiresAt = new Date(Date.now() + data.expires_in * 1000).toISOString();
+
+    return {
+      success: true,
+      accessToken: data.access_token,
+      refreshToken: data.refresh_token ?? refreshToken,
+      expiresAt,
+    };
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Unknown error';
+    return { success: false, error: message };
+  }
+}
+
 export async function getProfile(accessToken: string): Promise<ProfileResult | null> {
   try {
     const res = await fetch('https://api.linkedin.com/v2/me', {

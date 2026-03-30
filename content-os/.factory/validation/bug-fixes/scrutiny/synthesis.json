@@ -1,7 +1,7 @@
 {
   "milestone": "bug-fixes",
-  "round": 1,
-  "status": "fail",
+  "round": 2,
+  "status": "pass",
   "validatorsRun": {
     "test": {
       "passed": true,
@@ -21,88 +21,26 @@
     }
   },
   "reviewsSummary": {
-    "total": 7,
-    "passed": 4,
-    "failed": 3,
-    "failedFeatures": [
-      "fix-creator-profile-table-and-settings",
-      "fix-storymine-convert-button",
-      "fix-mobile-nav-and-fonts"
-    ]
+    "total": 1,
+    "passed": 1,
+    "failed": 0,
+    "failedFeatures": []
   },
-  "blockingIssues": [
-    {
-      "featureId": "fix-creator-profile-table-and-settings",
-      "severity": "blocking",
-      "description": "creator_profile.bio column required by feature contract is missing from db/schema.sql."
-    },
-    {
-      "featureId": "fix-storymine-convert-button",
-      "severity": "blocking",
-      "description": "Story Bank convert flow does not validate PATCH /api/story-bank/{id} response before reporting success, so story may not be marked used."
-    },
-    {
-      "featureId": "fix-mobile-nav-and-fonts",
-      "severity": "blocking",
-      "description": "Inline fontFamily style remains in teleprompter page, violating feature expectation to remove inline font styles."
-    },
-    {
-      "featureId": "fix-mobile-nav-and-fonts",
-      "severity": "blocking",
-      "description": "Multiple inline fontFamily styles remain in TeleprompterReader, so font cleanup is incomplete."
-    }
-  ],
-  "appliedUpdates": [
-    {
-      "target": "services.yaml",
-      "description": "Added commands.init = \"bash .factory/init.sh\" to document the setup command workers already use.",
-      "sourceFeature": "fix-todays-prompt-caching-and-deps"
-    },
-    {
-      "target": "library",
-      "description": "Updated dependency notes in .factory/library/environment.md to reflect that @anthropic-ai/sdk and @insforge/nextjs were removed.",
-      "sourceFeature": "fix-todays-prompt-caching-and-deps"
-    }
-  ],
+  "blockingIssues": [],
+  "appliedUpdates": [],
   "suggestedGuidanceUpdates": [
     {
-      "target": "skills",
-      "suggestion": "Update fullstack-worker skill to explicitly require agent-browser verification for UI features and enforce accurate skillFeedback.followedProcedure reporting when steps are skipped.",
-      "evidence": "Multiple reviews (fix-login-signup-mode-param, fix-series-nav-and-ideas-conversion, fix-storymine-convert-button, fix-api-validation-and-library-bulk-ops, fix-todays-prompt-caching-and-deps) reported no agent-browser usage despite UI changes.",
-      "isSystemic": true
-    },
-    {
       "target": "AGENTS.md",
-      "suggestion": "Clarify whether build and lint are both mandatory per feature and define enforcement expectations.",
-      "evidence": "Reviews for fix-login-signup-mode-param and fix-mobile-nav-and-fonts observed per-feature validation drift against documented guidance.",
+      "suggestion": "Define a canonical schema source (db/schema.sql vs src/lib/schema.sql) or require a synchronization workflow when schema fields are changed.",
+      "evidence": "The fix feature added creator_profile.bio to db/schema.sql, but src/lib/schema.sql still omits bio, creating drift risk.",
       "isSystemic": true
-    },
-    {
-      "target": "AGENTS.md",
-      "suggestion": "Clarify data-access boundary by distinguishing allowed read patterns from mutation requirements (mutations via API routes vs direct SDK reads).",
-      "evidence": "Reviews for fix-creator-profile-table-and-settings, fix-storymine-convert-button, and fix-api-validation-and-library-bulk-ops found inconsistent interpretation of client-side InsForge usage rules.",
-      "isSystemic": true
-    },
-    {
-      "target": "library",
-      "suggestion": "Document canonical schema ownership between db/schema.sql and src/lib/schema.sql (or require synchronization strategy) to reduce schema drift confusion.",
-      "evidence": "Review for fix-creator-profile-table-and-settings flagged ambiguity after worker had to inspect both schema files.",
-      "isSystemic": false
     }
   ],
   "rejectedObservations": [
     {
-      "observation": "Repeated reports that fullstack-worker lacked agent-browser usage for UI features.",
-      "reason": "duplicate"
-    },
-    {
-      "observation": "Auth-gated page verification nuance for agent-browser.",
-      "reason": "already-documented in suggested skill update"
-    },
-    {
-      "observation": "Conventions notes about direct client mutation in specific files.",
-      "reason": "merged into broader AGENTS.md data-access ambiguity recommendation"
+      "observation": "fullstack-worker UI verification drift (no agent-browser despite UI changes).",
+      "reason": "duplicate of prior-round skill guidance recommendation"
     }
   ],
-  "previousRound": null
+  "previousRound": ".factory/validation/bug-fixes/scrutiny/synthesis.round1.json"
 }

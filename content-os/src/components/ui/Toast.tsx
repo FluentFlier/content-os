@@ -63,7 +63,7 @@ function ToastNotification({
   const styles =
     item.type === 'success'
       ? 'bg-[#EAF3DE] text-[#3B6D11] border-[rgba(59,109,17,0.20)]'
-      : 'bg-[#FAECE7] text-[#993C1D] border-[rgba(153,60,29,0.20)]';
+      : 'bg-[#EEF2FF] text-[#4338CA] border-[rgba(153,60,29,0.20)]';
 
   return (
     <div

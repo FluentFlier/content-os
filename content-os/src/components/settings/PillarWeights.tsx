@@ -21,7 +21,7 @@ export default function PillarWeights({
 }: PillarWeightsProps) {
   return (
     <>
-      <p className="text-sm text-[#8C857D] mb-4">
+      <p className="text-sm text-[#94A3B8] mb-4">
         Set how many posts per week for each content pillar (0-7).
       </p>
       <div className="space-y-4 mb-4">
@@ -35,7 +35,7 @@ export default function PillarWeights({
                   className="w-3 h-3 rounded-full flex-shrink-0"
                   style={{ backgroundColor: pillar.color }}
                 />
-                <span className="text-sm text-[#1A1714] truncate">
+                <span className="text-sm text-[#0F172A] truncate">
                   {pillar.name}
                 </span>
               </div>
@@ -50,9 +50,9 @@ export default function PillarWeights({
                     [pillar.name]: parseInt(e.target.value, 10),
                   })
                 }
-                className="flex-1 accent-[#EB5E55] h-2 cursor-pointer"
+                className="flex-1 accent-[#6366F1] h-2 cursor-pointer"
               />
-              <span className="text-sm text-[#8C857D] w-16 text-right">
+              <span className="text-sm text-[#94A3B8] w-16 text-right">
                 {weight}/week
               </span>
             </div>
@@ -79,7 +79,7 @@ function SaveButton({
         type="button"
         disabled={loading}
         onClick={onClick}
-        className="px-5 py-2 rounded-lg bg-[#EB5E55] text-white font-medium text-sm hover:bg-[#EB5E55]/90 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+        className="px-5 py-2 rounded-lg bg-[#6366F1] text-white font-medium text-sm hover:bg-[#6366F1]/90 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
       >
         {loading ? "Saving..." : "Save"}
       </button>

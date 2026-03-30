@@ -33,7 +33,7 @@ export default function PlatformDefaults({
     <>
       <div className="space-y-4 mb-4">
         <div>
-          <label className="block text-sm text-[#8C857D] mb-1.5">
+          <label className="block text-sm text-[#94A3B8] mb-1.5">
             Default platform
           </label>
           <select
@@ -41,7 +41,7 @@ export default function PlatformDefaults({
             onChange={(e) =>
               onDefaultPlatformChange(e.target.value as Platform)
             }
-            className="w-full bg-[#F4F2EF] border-[0.5px] border-[#1A1714]/12 rounded-[7px] px-3 py-2 text-sm text-[#1A1714] focus:outline-none focus:border-[#1A1714]/40 transition-colors"
+            className="w-full bg-[#F8FAFC] border-[0.5px] border-[#0F172A]/12 rounded-[7px] px-3 py-2 text-sm text-[#0F172A] focus:outline-none focus:border-[#0F172A]/40 transition-colors"
           >
             {PLATFORMS.map((p) => (
               <option key={p} value={p}>
@@ -51,7 +51,7 @@ export default function PlatformDefaults({
           </select>
         </div>
         <div className="flex items-center justify-between">
-          <span className="text-sm text-[#1A1714]">
+          <span className="text-sm text-[#0F172A]">
             Cross-post reminders
           </span>
           <Toggle
@@ -79,7 +79,7 @@ function Toggle({
       aria-checked={enabled}
       onClick={() => onChange(!enabled)}
       className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-        enabled ? "bg-[#EB5E55]" : "bg-[#EDECEA]"
+        enabled ? "bg-[#6366F1]" : "bg-[#F1F5F9]"
       }`}
     >
       <span
@@ -106,7 +106,7 @@ function SaveButton({
         type="button"
         disabled={loading}
         onClick={onClick}
-        className="px-5 py-2 rounded-lg bg-[#EB5E55] text-white font-medium text-sm hover:bg-[#EB5E55]/90 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+        className="px-5 py-2 rounded-lg bg-[#6366F1] text-white font-medium text-sm hover:bg-[#6366F1]/90 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
       >
         {loading ? "Saving..." : "Save"}
       </button>

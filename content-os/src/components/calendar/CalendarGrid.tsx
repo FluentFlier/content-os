@@ -124,7 +124,7 @@ export default function CalendarGrid({
         {DAY_HEADERS_MON.map((d) => (
           <div
             key={d}
-            className="text-center text-[10px] font-medium text-[#8C857D] py-2 uppercase tracking-[0.1em]"
+            className="text-center text-[10px] font-medium text-[#94A3B8] py-2 uppercase tracking-[0.1em]"
             style={{ fontFamily: "'Space Grotesk', sans-serif" }}
           >
             {d}
@@ -133,7 +133,7 @@ export default function CalendarGrid({
       </div>
 
       {/* Day cells */}
-      <div className="grid grid-cols-7 border-[0.5px] border-[#1A1714]/12 rounded-[12px] overflow-hidden">
+      <div className="grid grid-cols-7 border-[0.5px] border-[#0F172A]/12 rounded-[12px] overflow-hidden">
         {days.map((day, i) => {
           const key = toDateKey(day);
           const isCurrentMonth =
@@ -148,7 +148,7 @@ export default function CalendarGrid({
           const borderClasses = [
             col < 6 ? 'border-r-[0.5px]' : '',
             row < totalRows - 1 ? 'border-b-[0.5px]' : '',
-            'border-[#1A1714]/12',
+            'border-[#0F172A]/12',
           ].join(' ');
 
           return (
@@ -158,24 +158,24 @@ export default function CalendarGrid({
                   ref={provided.innerRef}
                   {...provided.droppableProps}
                   onClick={() => onDayCellClick(day)}
-                  className={`bg-[#FAFAF8] cursor-pointer transition-colors ${borderClasses} ${
+                  className={`bg-[#FFFFFF] cursor-pointer transition-colors ${borderClasses} ${
                     isWeekView ? 'min-h-[200px] p-2' : 'min-h-[80px] p-1.5'
-                  } ${isToday ? 'ring-1 ring-inset ring-[#EB5E55]' : ''} ${
-                    isPickMode ? 'hover:ring-1 hover:ring-[#EB5E55]/60' : ''
+                  } ${isToday ? 'ring-1 ring-inset ring-[#6366F1]' : ''} ${
+                    isPickMode ? 'hover:ring-1 hover:ring-[#6366F1]/60' : ''
                   } ${
                     snapshot.isDraggingOver
-                      ? 'bg-[#FAECE7] ring-2 ring-inset ring-[#EB5E55]/50'
-                      : 'hover:bg-[#EDECEA]'
+                      ? 'bg-[#EEF2FF] ring-2 ring-inset ring-[#6366F1]/50'
+                      : 'hover:bg-[#F1F5F9]'
                   }`}
                 >
                   {isWeekView ? (
                     <div className="mb-2">
-                      <span className="text-[11px] text-[#8C857D] font-medium">
+                      <span className="text-[11px] text-[#94A3B8] font-medium">
                         {DAY_HEADERS_MON[i]}
                       </span>
                       <span
                         className={`ml-1 text-[13px] font-medium ${
-                          isToday ? 'text-[#EB5E55]' : 'text-[#1A1714]'
+                          isToday ? 'text-[#6366F1]' : 'text-[#0F172A]'
                         }`}
                       >
                         {day.getDate()}
@@ -184,7 +184,7 @@ export default function CalendarGrid({
                   ) : (
                     <span
                       className={`text-[11px] font-medium ${
-                        isCurrentMonth ? 'text-[#1A1714]' : 'text-[#8C857D]'
+                        isCurrentMonth ? 'text-[#0F172A]' : 'text-[#94A3B8]'
                       }`}
                     >
                       {day.getDate()}
@@ -200,11 +200,11 @@ export default function CalendarGrid({
                             e.stopPropagation();
                             onPostClick(p);
                           }}
-                          className="rounded-[7px] border-[0.5px] border-[#1A1714]/12 bg-[#FAFAF8] p-1.5 cursor-pointer hover:border-[#1A1714]/25 transition-colors"
+                          className="rounded-[7px] border-[0.5px] border-[#0F172A]/12 bg-[#FFFFFF] p-1.5 cursor-pointer hover:border-[#0F172A]/25 transition-colors"
                         >
                           <div className="flex items-center gap-1 mb-0.5">
                             <PillarDot pillar={p.pillar} />
-                            <span className="text-[11px] text-[#1A1714] font-medium truncate">
+                            <span className="text-[11px] text-[#0F172A] font-medium truncate">
                               {truncateText(p.title, 20)}
                             </span>
                           </div>
@@ -229,7 +229,7 @@ export default function CalendarGrid({
                       )
                     )}
                     {!isWeekView && dayPosts.length > 3 && (
-                      <span className="text-[10px] text-[#8C857D]">
+                      <span className="text-[10px] text-[#94A3B8]">
                         +{dayPosts.length - 3} more
                       </span>
                     )}

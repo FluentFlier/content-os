@@ -10,7 +10,7 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
       <textarea
         ref={ref}
         rows={rows}
-        className={`w-full bg-[#F4F2EF] border-[0.5px] border-[rgba(26,23,20,0.12)] text-[#1A1714] rounded-[7px] px-3 py-2 text-[13px] font-['Space_Grotesk'] placeholder:text-[#8C857D] focus:outline-none focus:border-[rgba(26,23,20,0.40)] resize-none ${className}`}
+        className={`w-full bg-[#F8FAFC] border-[0.5px] border-[rgba(26,23,20,0.12)] text-[#0F172A] rounded-[7px] px-3 py-2 text-[13px] font-['Space_Grotesk'] placeholder:text-[#94A3B8] focus:outline-none focus:border-[rgba(26,23,20,0.40)] resize-none ${className}`}
         {...rest}
       />
     );

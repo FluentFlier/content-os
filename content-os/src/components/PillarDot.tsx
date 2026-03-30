@@ -13,7 +13,7 @@ interface PillarDotProps {
 }
 
 export default function PillarDot({ pillar, showLabel = false, color, label }: PillarDotProps) {
-  const resolvedColor = color ?? PILLAR_COLORS[pillar as Pillar] ?? '#8C857D';
+  const resolvedColor = color ?? PILLAR_COLORS[pillar as Pillar] ?? '#94A3B8';
   const resolvedLabel =
     label ??
     PILLAR_LABELS[pillar as Pillar] ??

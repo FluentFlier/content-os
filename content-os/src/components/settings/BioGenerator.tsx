@@ -36,7 +36,7 @@ export default function BioGenerator({
         type="button"
         disabled={bioGenerating}
         onClick={onGenerate}
-        className="px-5 py-2 rounded-lg bg-[#EB5E55] text-white font-medium text-sm hover:bg-[#EB5E55]/90 disabled:opacity-60 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+        className="px-5 py-2 rounded-lg bg-[#6366F1] text-white font-medium text-sm hover:bg-[#6366F1]/90 disabled:opacity-60 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
       >
         {bioGenerating && <Loader2 size={16} className="animate-spin" />}
         {bioGenerating ? "Generating..." : "Generate Platform Bios"}
@@ -47,18 +47,18 @@ export default function BioGenerator({
           {bios.map((card) => (
             <div
               key={card.platform}
-              className="bg-[#F4F2EF] border-[0.5px] border-[#1A1714]/12 rounded-[7px] p-4"
+              className="bg-[#F8FAFC] border-[0.5px] border-[#0F172A]/12 rounded-[7px] p-4"
             >
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-[#1A1714]">
+                <span className="text-sm font-medium text-[#0F172A]">
                   {card.platform}
                 </span>
                 <div className="flex items-center gap-2">
                   <span
                     className={`text-xs ${
                       card.bio.length > card.limit
-                        ? "text-[#EB5E55]"
-                        : "text-[#8C857D]"
+                        ? "text-[#6366F1]"
+                        : "text-[#94A3B8]"
                     }`}
                   >
                     {card.bio.length}/{card.limit}
@@ -66,7 +66,7 @@ export default function BioGenerator({
                   <button
                     type="button"
                     onClick={() => copyBio(card.platform, card.bio)}
-                    className="text-[#8C857D] hover:text-[#1A1714] transition-colors"
+                    className="text-[#94A3B8] hover:text-[#0F172A] transition-colors"
                   >
                     {copiedBio === card.platform ? (
                       <Check size={16} className="text-[#3B6D11]" />
@@ -88,7 +88,7 @@ export default function BioGenerator({
                   );
                 }}
                 rows={3}
-                className="w-full bg-[#FAFAF8] border-[0.5px] border-[#1A1714]/12 rounded-[7px] px-3 py-2 text-sm text-[#1A1714] focus:outline-none focus:border-[#1A1714]/40 transition-colors resize-none"
+                className="w-full bg-[#FFFFFF] border-[0.5px] border-[#0F172A]/12 rounded-[7px] px-3 py-2 text-sm text-[#0F172A] focus:outline-none focus:border-[#0F172A]/40 transition-colors resize-none"
               />
             </div>
           ))}

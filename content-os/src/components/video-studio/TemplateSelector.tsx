@@ -63,7 +63,7 @@ export default function TemplateSelector({ onSelect }: TemplateSelectorProps) {
 
   return (
     <div className="space-y-3">
-      <h3 className="font-heading text-[15px] font-[700] text-[#1A1714]">
+      <h3 className="font-heading text-[15px] font-[700] text-[#0F172A]">
         Templates
       </h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -75,26 +75,26 @@ export default function TemplateSelector({ onSelect }: TemplateSelectorProps) {
               onClick={() => handleSelect(template.id)}
               className={`text-left rounded-lg p-4 transition-all duration-150 ${
                 isSelected
-                  ? 'bg-[#FAECE7] border-[1.5px] border-[#EB5E55]'
-                  : 'bg-[#F4F2EF] border-[0.5px] border-[#1A1714]/12 hover:border-[#1A1714]/25'
+                  ? 'bg-[#EEF2FF] border-[1.5px] border-[#6366F1]'
+                  : 'bg-[#F8FAFC] border-[0.5px] border-[#0F172A]/12 hover:border-[#0F172A]/25'
               }`}
             >
               {/* Thumbnail placeholder */}
               <div
                 className={`flex items-center justify-center w-full h-24 rounded-md mb-3 ${
-                  isSelected ? 'bg-[#EB5E55]/10 text-[#EB5E55]' : 'bg-[#EDECEA] text-[#8C857D]'
+                  isSelected ? 'bg-[#6366F1]/10 text-[#6366F1]' : 'bg-[#F1F5F9] text-[#94A3B8]'
                 }`}
               >
                 {template.icon}
               </div>
               <p
                 className={`font-body text-[13px] font-medium ${
-                  isSelected ? 'text-[#EB5E55]' : 'text-[#1A1714]'
+                  isSelected ? 'text-[#6366F1]' : 'text-[#0F172A]'
                 }`}
               >
                 {template.title}
               </p>
-              <p className="font-body text-[11px] text-[#8C857D] mt-1 line-clamp-2">
+              <p className="font-body text-[11px] text-[#94A3B8] mt-1 line-clamp-2">
                 {template.description}
               </p>
             </button>

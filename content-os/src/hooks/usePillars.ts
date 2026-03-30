@@ -23,11 +23,11 @@ export interface PillarInfo {
 
 /** Default fallback color palette for custom pillars without a saved color. */
 const DEFAULT_CUSTOM_COLORS = [
-  '#EB5E55',
-  '#F5C842',
-  '#5CB85C',
-  '#C77DFF',
-  '#4D96FF',
+  '#6366F1',
+  '#F59E0B',
+  '#10B981',
+  '#8B5CF6',
+  '#6366F1',
   '#5A5047',
 ];
 
@@ -179,7 +179,7 @@ export function usePillars(): UsePillarsReturn {
     const found = pillars.find((p) => p.value === value);
     if (found) return found.color;
     if (PILLAR_COLORS[value as Pillar]) return PILLAR_COLORS[value as Pillar];
-    return '#8C857D';
+    return '#94A3B8';
   };
 
   const getBadgeBg = (value: string): string => {

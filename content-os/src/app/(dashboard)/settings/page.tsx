@@ -50,8 +50,8 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <div className="bg-[#FAFAF8] border-[0.5px] border-[#1A1714]/12 rounded-[12px] p-6">
-      <h2 className="font-heading text-[16px] font-[700] text-[#1A1714] mb-4">{title}</h2>
+    <div className="bg-[#FFFFFF] border-[0.5px] border-[#0F172A]/12 rounded-[12px] p-6">
+      <h2 className="font-heading text-[16px] font-[700] text-[#0F172A] mb-4">{title}</h2>
       {children}
     </div>
   );
@@ -392,7 +392,7 @@ export default function SettingsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="w-6 h-6 animate-spin text-[#8C857D]" />
+        <Loader2 className="w-6 h-6 animate-spin text-[#94A3B8]" />
       </div>
     );
   }
@@ -401,7 +401,7 @@ export default function SettingsPage() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8 space-y-6">
-      <h1 className="font-heading text-[22px] font-[800] text-[#1A1714] leading-[1.2] tracking-[-0.02em]">
+      <h1 className="font-heading text-[22px] font-[800] text-[#0F172A] leading-[1.2] tracking-[-0.02em]">
         Settings
       </h1>
 

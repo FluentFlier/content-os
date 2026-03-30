@@ -30,8 +30,8 @@ const PLATFORM_META: Record<
 > = {
   instagram: { label: "Instagram", color: "#E4405F", icon: "IG" },
   linkedin: { label: "LinkedIn", color: "#0A66C2", icon: "in" },
-  twitter: { label: "X / Twitter", color: "#1A1714", icon: "\u{1D54F}" },
-  threads: { label: "Threads", color: "#1A1714", icon: "@" },
+  twitter: { label: "X / Twitter", color: "#0F172A", icon: "\u{1D54F}" },
+  threads: { label: "Threads", color: "#0F172A", icon: "@" },
 };
 
 export default function PlatformConnections({
@@ -111,7 +111,7 @@ export default function PlatformConnections({
 
   return (
     <>
-      <p className="text-sm text-[#8C857D] mb-4">
+      <p className="text-sm text-[#94A3B8] mb-4">
         Connect accounts via OAuth or enter API keys manually.
       </p>
       <div className="space-y-3">
@@ -129,7 +129,7 @@ export default function PlatformConnections({
             return (
               <div
                 key={platform}
-                className="border-[0.5px] border-[#1A1714]/12 rounded-[12px] overflow-hidden"
+                className="border-[0.5px] border-[#0F172A]/12 rounded-[12px] overflow-hidden"
               >
                 {/* Card header */}
                 <button
@@ -137,7 +137,7 @@ export default function PlatformConnections({
                   onClick={() =>
                     setExpandedPlatform(isExpanded ? null : platform)
                   }
-                  className="w-full flex items-center justify-between py-3 px-4 bg-[#F4F2EF] hover:bg-[#EDECEA] transition-colors"
+                  className="w-full flex items-center justify-between py-3 px-4 bg-[#F8FAFC] hover:bg-[#F1F5F9] transition-colors"
                 >
                   <div className="flex items-center gap-3">
                     <span
@@ -146,7 +146,7 @@ export default function PlatformConnections({
                     >
                       {meta.icon}
                     </span>
-                    <span className="text-[13px] font-medium text-[#1A1714]">
+                    <span className="text-[13px] font-medium text-[#0F172A]">
                       {meta.label}
                     </span>
                     {isOAuthConnected && (
@@ -160,24 +160,24 @@ export default function PlatformConnections({
                       </span>
                     )}
                     {!isOAuthConnected && !hasManualKeys && (
-                      <span className="text-[10px] px-2 py-0.5 rounded-[3px] bg-[#F4F2EF] text-[#8C857D]">
+                      <span className="text-[10px] px-2 py-0.5 rounded-[3px] bg-[#F8FAFC] text-[#94A3B8]">
                         Not configured
                       </span>
                     )}
                   </div>
                   {isExpanded ? (
-                    <ChevronDown size={16} className="text-[#8C857D]" />
+                    <ChevronDown size={16} className="text-[#94A3B8]" />
                   ) : (
-                    <ChevronRight size={16} className="text-[#8C857D]" />
+                    <ChevronRight size={16} className="text-[#94A3B8]" />
                   )}
                 </button>
 
                 {/* Expanded body */}
                 {isExpanded && (
-                  <div className="p-4 space-y-4 border-t-[0.5px] border-[#1A1714]/12">
+                  <div className="p-4 space-y-4 border-t-[0.5px] border-[#0F172A]/12">
                     {/* OAuth section */}
                     <div>
-                      <span className="text-[10px] font-medium tracking-[0.10em] uppercase text-[#8C857D] block mb-2">
+                      <span className="text-[10px] font-medium tracking-[0.10em] uppercase text-[#94A3B8] block mb-2">
                         OAUTH CONNECTION
                       </span>
                       {isOAuthConnected ? (
@@ -198,7 +198,7 @@ export default function PlatformConnections({
                               e.stopPropagation();
                               onDisconnect(platform);
                             }}
-                            className="flex items-center gap-1 px-3 py-1.5 text-[11px] text-[#4A4540] border-[0.5px] border-[#1A1714]/12 rounded-[6px] hover:border-[#1A1714]/25 transition-colors disabled:opacity-60"
+                            className="flex items-center gap-1 px-3 py-1.5 text-[11px] text-[#475569] border-[0.5px] border-[#0F172A]/12 rounded-[6px] hover:border-[#0F172A]/25 transition-colors disabled:opacity-60"
                           >
                             <Unplug size={12} />
                             {isDisconnecting ? "..." : "Disconnect"}
@@ -208,7 +208,7 @@ export default function PlatformConnections({
                         <button
                           type="button"
                           onClick={() => onConnect(platform)}
-                          className="px-4 py-2 text-[12px] text-white bg-[#EB5E55] rounded-[7px] hover:bg-[#EB5E55]/90 transition-colors"
+                          className="px-4 py-2 text-[12px] text-white bg-[#6366F1] rounded-[7px] hover:bg-[#6366F1]/90 transition-colors"
                         >
                           Connect with {meta.label}
                         </button>
@@ -217,10 +217,10 @@ export default function PlatformConnections({
 
                     {/* Manual keys section */}
                     <div>
-                      <span className="text-[10px] font-medium tracking-[0.10em] uppercase text-[#8C857D] block mb-2">
+                      <span className="text-[10px] font-medium tracking-[0.10em] uppercase text-[#94A3B8] block mb-2">
                         MANUAL API KEYS
                       </span>
-                      <p className="text-[11px] text-[#8C857D] mb-3">
+                      <p className="text-[11px] text-[#94A3B8] mb-3">
                         Enter your own API credentials as a fallback to OAuth.
                       </p>
 
@@ -231,7 +231,7 @@ export default function PlatformConnections({
                       />
 
                       <div className="flex items-center justify-between mt-3">
-                        <span className="text-[12px] text-[#1A1714]">
+                        <span className="text-[12px] text-[#0F172A]">
                           Enable manual keys
                         </span>
                         <Toggle
@@ -320,19 +320,19 @@ function PasswordField({
 
   return (
     <div>
-      <label className="block text-xs text-[#8C857D] mb-1">{label}</label>
+      <label className="block text-xs text-[#94A3B8] mb-1">{label}</label>
       <div className="relative">
         <input
           type={visible ? "text" : "password"}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={label}
-          className="w-full bg-[#F4F2EF] border-[0.5px] border-[#1A1714]/12 rounded-[7px] px-3 py-2 pr-10 text-sm font-mono text-[#1A1714] placeholder:text-[#8C857D] focus:outline-none focus:border-[#1A1714]/40 transition-colors"
+          className="w-full bg-[#F8FAFC] border-[0.5px] border-[#0F172A]/12 rounded-[7px] px-3 py-2 pr-10 text-sm font-mono text-[#0F172A] placeholder:text-[#94A3B8] focus:outline-none focus:border-[#0F172A]/40 transition-colors"
         />
         <button
           type="button"
           onClick={() => setVisible(!visible)}
-          className="absolute right-2 top-1/2 -translate-y-1/2 text-[#8C857D] hover:text-[#1A1714] transition-colors"
+          className="absolute right-2 top-1/2 -translate-y-1/2 text-[#94A3B8] hover:text-[#0F172A] transition-colors"
         >
           {visible ? <EyeOff size={16} /> : <Eye size={16} />}
         </button>
@@ -355,7 +355,7 @@ function Toggle({
       aria-checked={enabled}
       onClick={() => onChange(!enabled)}
       className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-        enabled ? "bg-[#EB5E55]" : "bg-[#EDECEA]"
+        enabled ? "bg-[#6366F1]" : "bg-[#F1F5F9]"
       }`}
     >
       <span
@@ -384,7 +384,7 @@ function SaveButton({
         type="button"
         disabled={loading}
         onClick={onClick}
-        className="px-5 py-2 rounded-lg bg-[#EB5E55] text-white font-medium text-sm hover:bg-[#EB5E55]/90 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+        className="px-5 py-2 rounded-lg bg-[#6366F1] text-white font-medium text-sm hover:bg-[#6366F1]/90 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
       >
         {loading ? "Saving..." : label}
       </button>

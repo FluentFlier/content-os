@@ -71,7 +71,7 @@ function TeleprompterContent() {
         value={script}
         onChange={(e) => setScript(e.target.value)}
         placeholder="Paste your script here..."
-        className="font-display h-64 w-full max-w-xl resize-none rounded-[12px] border-[0.5px] border-white/20 p-4 text-[16px] text-white placeholder-white/40 outline-none focus:border-[#EB5E55]"
+        className="font-display h-64 w-full max-w-xl resize-none rounded-[12px] border-[0.5px] border-white/20 p-4 text-[16px] text-white placeholder-white/40 outline-none focus:border-[#6366F1]"
         style={{ backgroundColor: '#111', lineHeight: 1.7 }}
       />
       <button
@@ -79,7 +79,7 @@ function TeleprompterContent() {
           if (script.trim()) setIsActive(true);
         }}
         disabled={!script.trim()}
-        className="font-display rounded-[7px] bg-[#EB5E55] px-8 py-3 text-[16px] font-[700] text-white transition-opacity hover:opacity-90 disabled:opacity-40"
+        className="font-display rounded-[7px] bg-[#6366F1] px-8 py-3 text-[16px] font-[700] text-white transition-opacity hover:opacity-90 disabled:opacity-40"
       >
         Start
       </button>

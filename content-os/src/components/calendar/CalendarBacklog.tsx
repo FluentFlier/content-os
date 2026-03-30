@@ -22,15 +22,15 @@ export default function CalendarBacklog({
   fillDisabled,
 }: CalendarBacklogProps) {
   return (
-    <div className="lg:w-[280px] lg:border-l-[0.5px] lg:border-[#1A1714]/12 lg:pl-4 shrink-0">
+    <div className="lg:w-[280px] lg:border-l-[0.5px] lg:border-[#0F172A]/12 lg:pl-4 shrink-0">
       <div className="flex items-center justify-between mb-3">
-        <h2 className="font-heading text-[16px] font-[700] text-[#1A1714]">
+        <h2 className="font-heading text-[16px] font-[700] text-[#0F172A]">
           Unscheduled
         </h2>
         <button
           onClick={onFillWeek}
           disabled={fillDisabled}
-          className="flex items-center gap-1.5 bg-[#EB5E55] text-white text-[11px] font-medium px-2.5 py-1.5 rounded-[7px] hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
+          className="flex items-center gap-1.5 bg-[#6366F1] text-white text-[11px] font-medium px-2.5 py-1.5 rounded-[7px] hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
         >
           <Sparkles className="w-3.5 h-3.5" />
           Fill This Week
@@ -38,7 +38,7 @@ export default function CalendarBacklog({
       </div>
 
       {backlog.length === 0 ? (
-        <p className="text-[13px] text-[#8C857D]">No unscheduled posts.</p>
+        <p className="text-[13px] text-[#94A3B8]">No unscheduled posts.</p>
       ) : (
         <Droppable droppableId="backlog" isDropDisabled>
           {(provided) => (
@@ -57,15 +57,15 @@ export default function CalendarBacklog({
                       onClick={() => onPostClick(p)}
                       className={`rounded-[12px] border-[0.5px] p-2.5 cursor-grab transition-colors ${
                         dragSnapshot.isDragging
-                          ? 'border-[#EB5E55] bg-[#FAECE7] shadow-lg rotate-2'
+                          ? 'border-[#6366F1] bg-[#EEF2FF] shadow-lg rotate-2'
                           : selectedPostId === p.id
-                          ? 'border-[#EB5E55] bg-[#FAECE7]'
-                          : 'border-[#1A1714]/12 bg-[#FAFAF8] hover:border-[#1A1714]/25'
+                          ? 'border-[#6366F1] bg-[#EEF2FF]'
+                          : 'border-[#0F172A]/12 bg-[#FFFFFF] hover:border-[#0F172A]/25'
                       }`}
                     >
                       <div className="flex items-center gap-1.5 mb-1">
                         <PillarDot pillar={p.pillar} />
-                        <span className="text-[13px] text-[#1A1714] font-medium truncate">
+                        <span className="text-[13px] text-[#0F172A] font-medium truncate">
                           {p.title}
                         </span>
                       </div>

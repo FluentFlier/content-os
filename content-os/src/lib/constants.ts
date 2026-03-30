@@ -19,21 +19,21 @@ export const PILLAR_LABELS: Record<Pillar, string> = {
 };
 
 export const PILLAR_COLORS: Record<Pillar, string> = {
-  'hot-take': '#EB5E55',
-  hackathon: '#F5C842',
-  founder: '#4D96FF',
-  explainer: '#C77DFF',
-  origin: '#5CB85C',
-  research: '#F5C842',
+  'hot-take': '#EF4444',
+  hackathon: '#F59E0B',
+  founder: '#6366F1',
+  explainer: '#8B5CF6',
+  origin: '#10B981',
+  research: '#06B6D4',
 };
 
 export const PILLAR_BADGE_BG: Record<Pillar, string> = {
-  'hot-take': 'bg-[#FAECE7] text-[#993C1D]',
-  hackathon: 'bg-[#FAEEDA] text-[#854F0B]',
-  founder: 'bg-[#E6F1FB] text-[#185FA5]',
-  explainer: 'bg-[#EEEDFE] text-[#534AB7]',
-  origin: 'bg-[#EAF3DE] text-[#3B6D11]',
-  research: 'bg-[#FAEEDA] text-[#854F0B]',
+  'hot-take': 'bg-[#FEF2F2] text-[#991B1B]',
+  hackathon: 'bg-[#FFFBEB] text-[#92400E]',
+  founder: 'bg-[#EEF2FF] text-[#3730A3]',
+  explainer: 'bg-[#F5F3FF] text-[#5B21B6]',
+  origin: 'bg-[#ECFDF5] text-[#065F46]',
+  research: 'bg-[#ECFEFF] text-[#155E75]',
 };
 
 export const STATUSES = ['idea', 'scripted', 'filmed', 'edited', 'posted'] as const;
@@ -48,11 +48,11 @@ export const STATUS_LABELS: Record<Status, string> = {
 };
 
 export const STATUS_BADGE: Record<Status, string> = {
-  idea: 'bg-[#F4F2EF] text-[#8C857D]',
-  scripted: 'bg-[#E6F1FB] text-[#185FA5]',
-  filmed: 'bg-[#FAEEDA] text-[#854F0B]',
-  edited: 'bg-[#FAECE7] text-[#993C1D]',
-  posted: 'bg-[#EAF3DE] text-[#3B6D11]',
+  idea: 'bg-[#F1F5F9] text-[#64748B]',
+  scripted: 'bg-[#EEF2FF] text-[#3730A3]',
+  filmed: 'bg-[#FFFBEB] text-[#92400E]',
+  edited: 'bg-[#FFF7ED] text-[#9A3412]',
+  posted: 'bg-[#ECFDF5] text-[#065F46]',
 };
 
 export const PLATFORMS = ['instagram', 'linkedin', 'twitter', 'threads'] as const;

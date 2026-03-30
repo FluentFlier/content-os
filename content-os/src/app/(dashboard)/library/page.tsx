@@ -163,12 +163,12 @@ export default function LibraryPage() {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <div className="h-8 w-32 bg-[#F4F2EF] rounded-[7px] animate-pulse" />
-          <div className="h-9 w-28 bg-[#F4F2EF] rounded-[7px] animate-pulse" />
+          <div className="h-8 w-32 bg-[#F8FAFC] rounded-[7px] animate-pulse" />
+          <div className="h-9 w-28 bg-[#F8FAFC] rounded-[7px] animate-pulse" />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-48 bg-[#F4F2EF] rounded-[12px] animate-pulse" />
+            <div key={i} className="h-48 bg-[#F8FAFC] rounded-[12px] animate-pulse" />
           ))}
         </div>
       </div>
@@ -179,24 +179,24 @@ export default function LibraryPage() {
     <div className="space-y-4">
       {/* Top bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <h1 className="font-heading text-[22px] font-[800] text-[#1A1714] leading-[1.2] tracking-[-0.02em]">Library</h1>
+        <h1 className="font-heading text-[22px] font-[800] text-[#0F172A] leading-[1.2] tracking-[-0.02em]">Library</h1>
         <div className="flex items-center gap-2">
           {/* Search */}
           <div className="relative">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8C857D]" />
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#94A3B8]" />
             <input
               type="text"
               placeholder="Search posts..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="bg-[#F4F2EF] border-[0.5px] border-[#1A171414]/12 rounded-[7px] pl-8 pr-3 py-1.5 text-[13px] text-[#1A1714] placeholder:text-[#8C857D] focus:outline-none focus:border-[#1A1714]/40 w-44 sm:w-56 transition-colors"
+              className="bg-[#F8FAFC] border-[0.5px] border-[#0F172A14]/12 rounded-[7px] pl-8 pr-3 py-1.5 text-[13px] text-[#0F172A] placeholder:text-[#94A3B8] focus:outline-none focus:border-[#0F172A]/40 w-44 sm:w-56 transition-colors"
             />
           </div>
           {/* View toggle */}
           <button
             onClick={() => setView('card')}
             className={`p-2 rounded-[7px] border-[0.5px] transition-all duration-100 ${
-              view === 'card' ? 'border-[#EB5E55] text-[#EB5E55]' : 'border-[#1A1714]/12 text-[#8C857D] hover:text-[#1A1714]'
+              view === 'card' ? 'border-[#6366F1] text-[#6366F1]' : 'border-[#0F172A]/12 text-[#94A3B8] hover:text-[#0F172A]'
             }`}
           >
             <Grid3X3 className="w-4 h-4" />
@@ -204,7 +204,7 @@ export default function LibraryPage() {
           <button
             onClick={() => setView('table')}
             className={`p-2 rounded-[7px] border-[0.5px] transition-all duration-100 ${
-              view === 'table' ? 'border-[#EB5E55] text-[#EB5E55]' : 'border-[#1A1714]/12 text-[#8C857D] hover:text-[#1A1714]'
+              view === 'table' ? 'border-[#6366F1] text-[#6366F1]' : 'border-[#0F172A]/12 text-[#94A3B8] hover:text-[#0F172A]'
             }`}
           >
             <List className="w-4 h-4" />
@@ -212,7 +212,7 @@ export default function LibraryPage() {
           {/* New Post */}
           <button
             onClick={handleNewPost}
-            className="flex items-center gap-1.5 bg-[#EB5E55] text-white text-[13px] font-medium px-5 py-[10px] rounded-[7px] hover:opacity-90 transition-opacity"
+            className="flex items-center gap-1.5 bg-[#6366F1] text-white text-[13px] font-medium px-5 py-[10px] rounded-[7px] hover:opacity-90 transition-opacity"
           >
             <Plus className="w-4 h-4" />
             New Post
@@ -252,21 +252,21 @@ export default function LibraryPage() {
 
       {/* Bulk actions */}
       {selected.size > 0 && (
-        <div className="flex items-center gap-3 bg-[#F4F2EF] border-[0.5px] border-[#1A1714]/12 rounded-[12px] px-4 py-2">
-          <span className="text-[13px] text-[#8C857D]">{selected.size} selected</span>
-          <button onClick={handleBulkDelete} className="flex items-center gap-1 text-[13px] text-[#EB5E55] hover:opacity-80">
+        <div className="flex items-center gap-3 bg-[#F8FAFC] border-[0.5px] border-[#0F172A]/12 rounded-[12px] px-4 py-2">
+          <span className="text-[13px] text-[#94A3B8]">{selected.size} selected</span>
+          <button onClick={handleBulkDelete} className="flex items-center gap-1 text-[13px] text-[#6366F1] hover:opacity-80">
             <Trash2 className="w-3.5 h-3.5" /> Delete
           </button>
           <div className="relative group">
-            <button className="flex items-center gap-1 text-[13px] text-[#8C857D] hover:text-[#1A1714]">
+            <button className="flex items-center gap-1 text-[13px] text-[#94A3B8] hover:text-[#0F172A]">
               Change Status <ChevronDown className="w-3.5 h-3.5" />
             </button>
-            <div className="absolute top-full left-0 mt-1 bg-[#FAFAF8] border-[0.5px] border-[#1A1714]/12 rounded-[12px] py-1 hidden group-hover:block z-20">
+            <div className="absolute top-full left-0 mt-1 bg-[#FFFFFF] border-[0.5px] border-[#0F172A]/12 rounded-[12px] py-1 hidden group-hover:block z-20">
               {STATUSES.map((s) => (
                 <button
                   key={s}
                   onClick={() => handleBulkStatus(s)}
-                  className="block w-full text-left px-4 py-1.5 text-[13px] text-[#1A1714] hover:bg-[#F4F2EF] capitalize"
+                  className="block w-full text-left px-4 py-1.5 text-[13px] text-[#0F172A] hover:bg-[#F8FAFC] capitalize"
                 >
                   {STATUS_LABELS[s]}
                 </button>
@@ -279,13 +279,13 @@ export default function LibraryPage() {
       {/* Content */}
       {filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
-          <p className="text-[#8C857D] text-[13px] mb-4">
+          <p className="text-[#94A3B8] text-[13px] mb-4">
             {posts.length === 0 ? 'Nothing scripted yet. Generate a script or convert an idea.' : 'No posts match your filters.'}
           </p>
           {posts.length === 0 && (
             <a
               href="/generate"
-              className="flex items-center gap-1.5 bg-[#EB5E55] text-white text-[13px] font-medium px-5 py-[10px] rounded-[7px] hover:opacity-90 transition-opacity"
+              className="flex items-center gap-1.5 bg-[#6366F1] text-white text-[13px] font-medium px-5 py-[10px] rounded-[7px] hover:opacity-90 transition-opacity"
             >
               <Plus className="w-4 h-4" /> Generate a Script
             </a>
@@ -342,7 +342,7 @@ function FilterDropdown({
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="appearance-none bg-[#F4F2EF] border-[0.5px] border-[#1A1714]/12 rounded-[7px] pl-3 pr-7 py-1.5 text-[13px] text-[#1A1714] focus:outline-none focus:border-[#1A1714]/40 cursor-pointer transition-colors"
+        className="appearance-none bg-[#F8FAFC] border-[0.5px] border-[#0F172A]/12 rounded-[7px] pl-3 pr-7 py-1.5 text-[13px] text-[#0F172A] focus:outline-none focus:border-[#0F172A]/40 cursor-pointer transition-colors"
       >
         {options.map((o) => (
           <option key={o.value} value={o.value}>
@@ -350,7 +350,7 @@ function FilterDropdown({
           </option>
         ))}
       </select>
-      <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#8C857D] pointer-events-none" />
+      <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#94A3B8] pointer-events-none" />
     </div>
   );
 }

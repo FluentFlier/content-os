@@ -8,7 +8,7 @@ const primaryItems = [
   {
     name: 'Dashboard',
     href: '/dashboard',
-    dotColor: '#EB5E55',
+    dotColor: '#6366F1',
     icon: (
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
         <rect x="2" y="2" width="7" height="8" rx="1.5" />
@@ -21,7 +21,7 @@ const primaryItems = [
   {
     name: 'Generate',
     href: '/generate',
-    dotColor: '#F5C842',
+    dotColor: '#F59E0B',
     icon: (
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
         <path d="M10 2l1.5 4.5L16 8l-4.5 1.5L10 14l-1.5-4.5L4 8l4.5-1.5L10 2z" />
@@ -32,7 +32,7 @@ const primaryItems = [
   {
     name: 'Library',
     href: '/library',
-    dotColor: '#4D96FF',
+    dotColor: '#6366F1',
     icon: (
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
         <rect x="2" y="2" width="6" height="6" rx="1" />
@@ -45,7 +45,7 @@ const primaryItems = [
   {
     name: 'Calendar',
     href: '/calendar',
-    dotColor: '#5CB85C',
+    dotColor: '#10B981',
     icon: (
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
         <rect x="2" y="3" width="16" height="15" rx="2" />
@@ -61,7 +61,7 @@ const moreItems = [
   {
     name: 'Story Bank',
     href: '/story-bank',
-    dotColor: '#C77DFF',
+    dotColor: '#8B5CF6',
     icon: (
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
         <rect x="3" y="2" width="14" height="16" rx="2" />
@@ -74,7 +74,7 @@ const moreItems = [
   {
     name: 'Ideas',
     href: '/ideas',
-    dotColor: '#F5C842',
+    dotColor: '#F59E0B',
     icon: (
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
         <path d="M10 2a5.5 5.5 0 00-2 10.63V14a1 1 0 001 1h2a1 1 0 001-1v-1.37A5.5 5.5 0 0010 2z" />
@@ -86,7 +86,7 @@ const moreItems = [
   {
     name: 'Series',
     href: '/series',
-    dotColor: '#4D96FF',
+    dotColor: '#6366F1',
     icon: (
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
         <rect x="4" y="1" width="12" height="4" rx="1" />
@@ -99,7 +99,7 @@ const moreItems = [
   {
     name: 'Video Studio',
     href: '/video-studio',
-    dotColor: '#C77DFF',
+    dotColor: '#8B5CF6',
     icon: (
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
         <rect x="2" y="3" width="16" height="14" rx="2" />
@@ -110,7 +110,7 @@ const moreItems = [
   {
     name: 'Analytics',
     href: '/analytics',
-    dotColor: '#5CB85C',
+    dotColor: '#10B981',
     icon: (
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
         <path d="M3 18V10" />
@@ -124,7 +124,7 @@ const moreItems = [
   {
     name: 'Settings',
     href: '/settings',
-    dotColor: '#8C857D',
+    dotColor: '#94A3B8',
     icon: (
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="10" cy="10" r="3" />
@@ -164,7 +164,7 @@ export default function BottomBar() {
       {/* Backdrop */}
       {moreOpen && (
         <div
-          className="fixed inset-0 z-40 bg-[#1A1714]/30 md:hidden"
+          className="fixed inset-0 z-40 bg-[#0F172A]/30 md:hidden"
           onClick={closeMore}
         />
       )}
@@ -173,7 +173,7 @@ export default function BottomBar() {
       {moreOpen && (
         <div className="fixed bottom-14 left-0 right-0 z-40 md:hidden pb-[env(safe-area-inset-bottom)]">
           <div
-            className="mx-3 mb-2 rounded-[12px] bg-[#FAFAF8] p-3 space-y-1 animate-slide-in"
+            className="mx-3 mb-2 rounded-[12px] bg-[#FFFFFF] p-3 space-y-1 animate-slide-in"
             style={{ border: '0.5px solid rgba(26,23,20,0.12)', boxShadow: '0 -4px 20px rgba(26,23,20,0.08)' }}
           >
             {moreItems.map((item) => {
@@ -185,8 +185,8 @@ export default function BottomBar() {
                   href={item.href}
                   className={`flex items-center gap-3 px-3 py-2.5 rounded-[7px] min-h-[44px] transition-all duration-100 ${
                     isActive
-                      ? 'bg-[#FAECE7] text-[#EB5E55]'
-                      : 'text-[#4A4540] hover:bg-[#F4F2EF]'
+                      ? 'bg-[#EEF2FF] text-[#6366F1]'
+                      : 'text-[#475569] hover:bg-[#F8FAFC]'
                   }`}
                   onClick={closeMore}
                 >
@@ -207,7 +207,7 @@ export default function BottomBar() {
 
       {/* Bottom bar */}
       <nav
-        className="fixed bottom-0 left-0 right-0 md:hidden bg-[#F4F2EF] z-40 pb-[env(safe-area-inset-bottom)]"
+        className="fixed bottom-0 left-0 right-0 md:hidden bg-[#F8FAFC] z-40 pb-[env(safe-area-inset-bottom)]"
         style={{ borderTop: '0.5px solid rgba(26,23,20,0.12)' }}
       >
         <div className="flex items-center justify-around h-14">
@@ -220,7 +220,7 @@ export default function BottomBar() {
                 key={item.name}
                 href={item.href}
                 className={`flex flex-col items-center justify-center gap-0.5 flex-1 py-1 transition-all duration-100 ${
-                  isActive ? 'text-[#EB5E55]' : 'text-[#4A4540]'
+                  isActive ? 'text-[#6366F1]' : 'text-[#475569]'
                 }`}
                 onClick={() => moreOpen && closeMore()}
               >
@@ -245,12 +245,12 @@ export default function BottomBar() {
             type="button"
             onClick={() => setMoreOpen((prev) => !prev)}
             className={`flex flex-col items-center justify-center gap-0.5 flex-1 py-1 transition-all duration-100 ${
-              moreOpen || isMoreActive ? 'text-[#EB5E55]' : 'text-[#4A4540]'
+              moreOpen || isMoreActive ? 'text-[#6366F1]' : 'text-[#475569]'
             }`}
           >
             <div className="relative">
               {isMoreActive && !moreOpen && (
-                <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-[6px] h-[6px] rounded-full bg-[#EB5E55]" />
+                <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-[6px] h-[6px] rounded-full bg-[#6366F1]" />
               )}
               <svg
                 width="20"

@@ -9,7 +9,7 @@ const navItems = [
   {
     name: 'Dashboard',
     href: '/dashboard',
-    dotColor: '#EB5E55',
+    dotColor: '#6366F1',
     icon: (
       <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
         <rect x="2" y="2" width="7" height="8" rx="1.5" />
@@ -22,7 +22,7 @@ const navItems = [
   {
     name: 'Generate',
     href: '/generate',
-    dotColor: '#F5C842',
+    dotColor: '#F59E0B',
     icon: (
       <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
         <path d="M10 2l1.5 4.5L16 8l-4.5 1.5L10 14l-1.5-4.5L4 8l4.5-1.5L10 2z" />
@@ -33,7 +33,7 @@ const navItems = [
   {
     name: 'Library',
     href: '/library',
-    dotColor: '#4D96FF',
+    dotColor: '#6366F1',
     icon: (
       <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
         <rect x="2" y="2" width="6" height="6" rx="1" />
@@ -46,7 +46,7 @@ const navItems = [
   {
     name: 'Calendar',
     href: '/calendar',
-    dotColor: '#5CB85C',
+    dotColor: '#10B981',
     icon: (
       <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
         <rect x="2" y="3" width="16" height="15" rx="2" />
@@ -59,7 +59,7 @@ const navItems = [
   {
     name: 'Story Bank',
     href: '/story-bank',
-    dotColor: '#C77DFF',
+    dotColor: '#8B5CF6',
     icon: (
       <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
         <rect x="3" y="2" width="14" height="16" rx="2" />
@@ -72,7 +72,7 @@ const navItems = [
   {
     name: 'Ideas',
     href: '/ideas',
-    dotColor: '#F5C842',
+    dotColor: '#F59E0B',
     icon: (
       <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
         <path d="M10 2a5.5 5.5 0 00-2 10.63V14a1 1 0 001 1h2a1 1 0 001-1v-1.37A5.5 5.5 0 0010 2z" />
@@ -84,7 +84,7 @@ const navItems = [
   {
     name: 'Series',
     href: '/series',
-    dotColor: '#4D96FF',
+    dotColor: '#6366F1',
     icon: (
       <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
         <rect x="4" y="1" width="12" height="4" rx="1" />
@@ -97,7 +97,7 @@ const navItems = [
   {
     name: 'Video Studio',
     href: '/video-studio',
-    dotColor: '#C77DFF',
+    dotColor: '#8B5CF6',
     icon: (
       <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
         <rect x="2" y="3" width="16" height="14" rx="2" />
@@ -108,7 +108,7 @@ const navItems = [
   {
     name: 'Analytics',
     href: '/analytics',
-    dotColor: '#5CB85C',
+    dotColor: '#10B981',
     icon: (
       <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
         <path d="M3 18V10" />
@@ -122,7 +122,7 @@ const navItems = [
   {
     name: 'Settings',
     href: '/settings',
-    dotColor: '#8C857D',
+    dotColor: '#94A3B8',
     icon: (
       <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="10" cy="10" r="3" />
@@ -169,13 +169,13 @@ export default function Sidebar() {
   };
 
   return (
-    <aside className="hidden md:flex md:flex-col fixed left-0 top-0 bottom-0 w-[240px] h-screen bg-[#F4F2EF] z-40" style={{ borderRight: '0.5px solid rgba(26,23,20,0.12)' }}>
+    <aside className="hidden md:flex md:flex-col fixed left-0 top-0 bottom-0 w-[240px] h-screen bg-[#F8FAFC] z-40" style={{ borderRight: '0.5px solid rgba(26,23,20,0.12)' }}>
       <div className="px-[18px] pt-6 pb-1">
-        <h1 className="font-[Syne] font-[800] text-[18px] text-[#1A1714] tracking-[0.16em]">
+        <h1 className="font-[Syne] font-[800] text-[18px] text-[#0F172A] tracking-[0.16em]">
           DISPATCH
         </h1>
         {userLabel && (
-          <p className="font-[Space_Grotesk] text-[11px] font-normal text-[#8C857D] mt-1 truncate">{userLabel}</p>
+          <p className="font-[Space_Grotesk] text-[11px] font-normal text-[#94A3B8] mt-1 truncate">{userLabel}</p>
         )}
       </div>
 
@@ -192,10 +192,10 @@ export default function Sidebar() {
               href={item.href}
               className={`relative flex items-center gap-2.5 px-[8px] py-[7px] rounded-md text-[13px] font-[Space_Grotesk] transition-all duration-100 ${
                 isActive
-                  ? 'text-[#EB5E55] font-medium bg-[#FAFAF8]'
-                  : 'text-[#4A4540] font-normal bg-transparent hover:text-[#1A1714] hover:bg-[#FAFAF8]'
+                  ? 'text-[#6366F1] font-medium bg-[#FFFFFF]'
+                  : 'text-[#475569] font-normal bg-transparent hover:text-[#0F172A] hover:bg-[#FFFFFF]'
               }`}
-              style={isActive ? { borderLeft: '2px solid #EB5E55' } : {}}
+              style={isActive ? { borderLeft: '2px solid #6366F1' } : {}}
             >
               <span
                 className="w-[6px] h-[6px] rounded-full flex-shrink-0"
@@ -214,7 +214,7 @@ export default function Sidebar() {
       <div className="px-[18px] pb-5">
         <button
           onClick={handleSignOut}
-          className="font-[Space_Grotesk] text-[11px] text-[#8C857D] hover:text-[#4A4540] transition-all duration-100"
+          className="font-[Space_Grotesk] text-[11px] text-[#94A3B8] hover:text-[#475569] transition-all duration-100"
         >
           Sign out
         </button>

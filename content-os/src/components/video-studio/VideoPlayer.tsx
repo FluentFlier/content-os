@@ -125,14 +125,14 @@ export default function VideoPlayer({ src, title }: VideoPlayerProps) {
         {!playing && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/20">
             <div className="w-14 h-14 rounded-full bg-white/90 flex items-center justify-center">
-              <Play className="w-6 h-6 text-[#1A1714] ml-0.5" />
+              <Play className="w-6 h-6 text-[#0F172A] ml-0.5" />
             </div>
           </div>
         )}
       </div>
 
       {/* Controls */}
-      <div className="bg-[#1A1714] px-3 py-2 space-y-1.5">
+      <div className="bg-[#0F172A] px-3 py-2 space-y-1.5">
         {title && (
           <p className="font-body text-[12px] text-white/70 truncate">
             {title}
@@ -147,7 +147,7 @@ export default function VideoPlayer({ src, title }: VideoPlayerProps) {
           step={0.1}
           value={currentTime}
           onChange={handleSeek}
-          className="w-full h-1 appearance-none bg-white/20 rounded-full cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#EB5E55]"
+          className="w-full h-1 appearance-none bg-white/20 rounded-full cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#6366F1]"
         />
 
         <div className="flex items-center justify-between gap-3">

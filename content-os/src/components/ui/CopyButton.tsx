@@ -19,7 +19,7 @@ export function CopyButton({ text, className = '' }: CopyButtonProps) {
   return (
     <button
       onClick={copy}
-      className={`px-[14px] py-[7px] text-[13px] font-['Space_Grotesk'] font-medium rounded-[7px] bg-transparent border-[0.5px] border-[rgba(26,23,20,0.12)] text-[#8C857D] hover:bg-[#EDECEA] transition-all duration-100 ${className}`}
+      className={`px-[14px] py-[7px] text-[13px] font-['Space_Grotesk'] font-medium rounded-[7px] bg-transparent border-[0.5px] border-[rgba(26,23,20,0.12)] text-[#94A3B8] hover:bg-[#F1F5F9] transition-all duration-100 ${className}`}
     >
       {copied ? (
         <span className="inline-flex items-center gap-1">

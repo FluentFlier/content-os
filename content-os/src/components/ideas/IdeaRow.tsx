@@ -7,9 +7,9 @@ import type { Priority } from '@/lib/constants';
 import { usePillars } from '@/hooks/usePillars';
 
 const PRIORITY_STYLES: Record<Priority, { bg: string; text: string }> = {
-  high: { bg: '#FAECE7', text: '#993C1D' },
+  high: { bg: '#EEF2FF', text: '#4338CA' },
   medium: { bg: '#FAEEDA', text: '#854F0B' },
-  low: { bg: '#F4F2EF', text: '#8C857D' },
+  low: { bg: '#F8FAFC', text: '#94A3B8' },
 };
 
 interface IdeaRowProps {
@@ -47,7 +47,7 @@ export default function IdeaRow({
 
   return (
     <div
-      className={`group flex items-start gap-3 px-3 py-2.5 rounded-[7px] hover:bg-[#F4F2EF] transition-colors ${
+      className={`group flex items-start gap-3 px-3 py-2.5 rounded-[7px] hover:bg-[#F8FAFC] transition-colors ${
         idea.converted ? 'opacity-50' : ''
       }`}
     >
@@ -57,10 +57,10 @@ export default function IdeaRow({
         style={{
           backgroundColor:
             idea.priority === 'high'
-              ? '#EB5E55'
+              ? '#6366F1'
               : idea.priority === 'medium'
-              ? '#F5C842'
-              : '#8C857D',
+              ? '#F59E0B'
+              : '#94A3B8',
         }}
       />
 
@@ -69,8 +69,8 @@ export default function IdeaRow({
         onClick={onToggleConverted}
         className={`mt-0.5 w-4 h-4 rounded border-[0.5px] shrink-0 transition-colors ${
           idea.converted
-            ? 'bg-[#5CB85C] border-[#5CB85C]'
-            : 'border-[#1A1714]/12 hover:border-[#1A1714]/25'
+            ? 'bg-[#10B981] border-[#10B981]'
+            : 'border-[#0F172A]/12 hover:border-[#0F172A]/25'
         }`}
         title={idea.converted ? 'Mark unconverted' : 'Mark converted'}
       >
@@ -102,7 +102,7 @@ export default function IdeaRow({
               }
               if (e.key === 'Escape') setEditing(false);
             }}
-            className="w-full bg-[#F4F2EF] border-[0.5px] border-[#1A1714]/12 rounded-[7px] px-2 py-0.5 text-[13px] text-[#1A1714] focus:outline-none focus:border-[#1A1714]/40 transition-colors"
+            className="w-full bg-[#F8FAFC] border-[0.5px] border-[#0F172A]/12 rounded-[7px] px-2 py-0.5 text-[13px] text-[#0F172A] focus:outline-none focus:border-[#0F172A]/40 transition-colors"
           />
         ) : (
           <p
@@ -110,7 +110,7 @@ export default function IdeaRow({
               setEditing(true);
               setEditText(idea.idea);
             }}
-            className={`text-[13px] text-[#1A1714] cursor-text leading-[1.55] ${
+            className={`text-[13px] text-[#0F172A] cursor-text leading-[1.55] ${
               idea.converted ? 'line-through' : ''
             }`}
           >
@@ -149,7 +149,7 @@ export default function IdeaRow({
           onClick={onConvertToScript}
           disabled={converting}
           title="Convert to Script"
-          className="p-1.5 rounded-[7px] text-[#8C857D] hover:text-[#534AB7] hover:bg-[#EEEDFE] transition-colors disabled:animate-pulse"
+          className="p-1.5 rounded-[7px] text-[#94A3B8] hover:text-[#534AB7] hover:bg-[#EEEDFE] transition-colors disabled:animate-pulse"
         >
           <Wand2 size={15} />
         </button>
@@ -160,7 +160,7 @@ export default function IdeaRow({
               onDelete();
               setConfirmDelete(false);
             }}
-            className="px-2 py-1 rounded-[3px] text-[10px] font-medium bg-[#FAECE7] text-[#EB5E55] hover:opacity-80 transition-opacity"
+            className="px-2 py-1 rounded-[3px] text-[10px] font-medium bg-[#EEF2FF] text-[#6366F1] hover:opacity-80 transition-opacity"
           >
             Confirm
           </button>
@@ -168,7 +168,7 @@ export default function IdeaRow({
           <button
             onClick={() => setConfirmDelete(true)}
             title="Delete"
-            className="p-1.5 rounded-[7px] text-[#8C857D] hover:text-[#EB5E55] hover:bg-[#FAECE7] transition-colors"
+            className="p-1.5 rounded-[7px] text-[#94A3B8] hover:text-[#6366F1] hover:bg-[#EEF2FF] transition-colors"
           >
             <Trash2 size={15} />
           </button>

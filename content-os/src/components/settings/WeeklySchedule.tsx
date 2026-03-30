@@ -32,7 +32,7 @@ export default function WeeklySchedule({
       <div className="space-y-3 mb-4">
         {DAYS_OF_WEEK.map((day) => (
           <div key={day} className="flex items-center gap-4">
-            <span className="text-sm text-[#1A1714] w-24">{day}</span>
+            <span className="text-sm text-[#0F172A] w-24">{day}</span>
             <select
               value={weeklySchedule[day] ?? "Rest"}
               onChange={(e) =>
@@ -41,7 +41,7 @@ export default function WeeklySchedule({
                   [day]: e.target.value,
                 })
               }
-              className="flex-1 bg-[#F4F2EF] border-[0.5px] border-[#1A1714]/12 rounded-[7px] px-3 py-2 text-sm text-[#1A1714] focus:outline-none focus:border-[#1A1714]/40 transition-colors"
+              className="flex-1 bg-[#F8FAFC] border-[0.5px] border-[#0F172A]/12 rounded-[7px] px-3 py-2 text-sm text-[#0F172A] focus:outline-none focus:border-[#0F172A]/40 transition-colors"
             >
               <option value="Rest">Rest</option>
               {pillarOptions.map((name) => (
@@ -73,7 +73,7 @@ function SaveButton({
         type="button"
         disabled={loading}
         onClick={onClick}
-        className="px-5 py-2 rounded-lg bg-[#EB5E55] text-white font-medium text-sm hover:bg-[#EB5E55]/90 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+        className="px-5 py-2 rounded-lg bg-[#6366F1] text-white font-medium text-sm hover:bg-[#6366F1]/90 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
       >
         {loading ? "Saving..." : "Save"}
       </button>

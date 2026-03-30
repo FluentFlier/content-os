@@ -18,7 +18,7 @@ import { PILLAR_COLORS, STATUS_BADGE, STATUS_LABELS } from '@/lib/constants';
 
 /** Resolve a pillar color with graceful fallback for custom pillars. */
 function getPillarColor(pillar: string): string {
-  return PILLAR_COLORS[pillar as Pillar] ?? '#8C857D';
+  return PILLAR_COLORS[pillar as Pillar] ?? '#94A3B8';
 }
 import { formatDateShort, formatRelative } from '@/lib/utils';
 import TodaysPrompt from '@/components/dashboard/TodaysPrompt';
@@ -63,8 +63,8 @@ function computeStreak(postedDates: string[]): number {
 }
 
 const PRIORITY_COLORS: Record<Priority, string> = {
-  high: '#EB5E55',
-  medium: '#F5C842',
+  high: '#6366F1',
+  medium: '#F59E0B',
   low: '#5A5047',
 };
 
@@ -78,7 +78,7 @@ export default async function DashboardPage() {
   if (!user) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <p className="font-['Space_Grotesk'] text-[13px] text-[#8C857D]">Please sign in to view your dashboard.</p>
+        <p className="font-['Space_Grotesk'] text-[13px] text-[#94A3B8]">Please sign in to view your dashboard.</p>
       </div>
     );
   }
@@ -126,7 +126,7 @@ export default async function DashboardPage() {
   return (
     <div className="max-w-5xl mx-auto space-y-8">
       {/* Greeting */}
-      <h1 className="font-display font-[800] text-[21px] text-[#1A1714] tracking-[-0.02em] leading-[1.2] pt-2">
+      <h1 className="font-display font-[800] text-[21px] text-[#0F172A] tracking-[-0.02em] leading-[1.2] pt-2">
         What are we building today?
       </h1>
 
@@ -141,10 +141,10 @@ export default async function DashboardPage() {
       {/* Middle row: Up Next + Today's Prompt */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
         {/* Up Next */}
-        <section className="bg-[#FAFAF8] border-[0.5px] border-[rgba(26,23,20,0.12)] rounded-[12px] p-[13px_14px]">
+        <section className="bg-[#FFFFFF] border-[0.5px] border-[rgba(26,23,20,0.12)] rounded-[12px] p-[13px_14px]">
           <SectionLabel>UP NEXT</SectionLabel>
           {upNext.length === 0 ? (
-            <p className="font-['Space_Grotesk'] text-[13px] text-[#8C857D]">Nothing scheduled. Time to plan some content.</p>
+            <p className="font-['Space_Grotesk'] text-[13px] text-[#94A3B8]">Nothing scheduled. Time to plan some content.</p>
           ) : (
             <ul className="space-y-2">
               {upNext.map((post) => (
@@ -155,19 +155,19 @@ export default async function DashboardPage() {
                         className="inline-block w-[3px] h-8 rounded-r-[2px] shrink-0"
                         style={{ backgroundColor: getPillarColor(post.pillar) }}
                       />
-                      <span className="font-['Space_Grotesk'] text-[13px] font-medium text-[#1A1714] truncate group-hover:text-[#EB5E55] transition-colors duration-100">
+                      <span className="font-['Space_Grotesk'] text-[13px] font-medium text-[#0F172A] truncate group-hover:text-[#6366F1] transition-colors duration-100">
                         {post.title}
                       </span>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
-                      <span className="font-['Space_Grotesk'] text-[10px] font-medium text-[#8C857D] bg-[#F4F2EF] border-[0.5px] border-[rgba(26,23,20,0.12)] rounded-[3px] px-[7px] py-[2px] capitalize tracking-[0.05em]">
+                      <span className="font-['Space_Grotesk'] text-[10px] font-medium text-[#94A3B8] bg-[#F8FAFC] border-[0.5px] border-[rgba(26,23,20,0.12)] rounded-[3px] px-[7px] py-[2px] capitalize tracking-[0.05em]">
                         {post.platform}
                       </span>
                       <span className={`inline-flex items-center px-[7px] py-[2px] rounded-[3px] font-['Space_Grotesk'] text-[10px] font-medium tracking-[0.01em] ${STATUS_BADGE[post.status]}`}>
                         {STATUS_LABELS[post.status]}
                       </span>
                       {post.scheduled_date && (
-                        <span className="font-['Space_Grotesk'] text-[11px] text-[#8C857D]">{formatDateShort(post.scheduled_date)}</span>
+                        <span className="font-['Space_Grotesk'] text-[11px] text-[#94A3B8]">{formatDateShort(post.scheduled_date)}</span>
                       )}
                     </div>
                   </Link>
@@ -182,15 +182,15 @@ export default async function DashboardPage() {
       </div>
 
       {/* Backlog */}
-      <section className="bg-[#FAFAF8] border-[0.5px] border-[rgba(26,23,20,0.12)] rounded-[12px] p-[13px_14px]">
+      <section className="bg-[#FFFFFF] border-[0.5px] border-[rgba(26,23,20,0.12)] rounded-[12px] p-[13px_14px]">
         <div className="flex items-center justify-between mb-3">
           <SectionLabel className="mb-0">BACKLOG</SectionLabel>
-          <Link href="/ideas" className="font-['Space_Grotesk'] text-[11px] text-[#8C857D] hover:text-[#EB5E55] transition-colors duration-100 flex items-center gap-1">
+          <Link href="/ideas" className="font-['Space_Grotesk'] text-[11px] text-[#94A3B8] hover:text-[#6366F1] transition-colors duration-100 flex items-center gap-1">
             View all <ArrowRight size={12} />
           </Link>
         </div>
         {backlog.length === 0 ? (
-          <p className="font-['Space_Grotesk'] text-[13px] text-[#8C857D]">Nothing queued. Add an idea before you forget it.</p>
+          <p className="font-['Space_Grotesk'] text-[13px] text-[#94A3B8]">Nothing queued. Add an idea before you forget it.</p>
         ) : (
           <ul className="space-y-2">
             {backlog.map((idea) => (
@@ -200,7 +200,7 @@ export default async function DashboardPage() {
                     className="inline-block w-[6px] h-[6px] rounded-full shrink-0"
                     style={{ backgroundColor: getPillarColor(idea.pillar) }}
                   />
-                  <span className="font-['Space_Grotesk'] text-[13px] text-[#1A1714] truncate">{idea.idea}</span>
+                  <span className="font-['Space_Grotesk'] text-[13px] text-[#0F172A] truncate">{idea.idea}</span>
                 </div>
                 <span
                   className="inline-flex items-center px-[7px] py-[2px] rounded-[3px] font-['Space_Grotesk'] text-[10px] font-medium capitalize shrink-0 tracking-[0.01em]"
@@ -229,10 +229,10 @@ export default async function DashboardPage() {
       </section>
 
       {/* Recent Activity */}
-      <section className="bg-[#FAFAF8] border-[0.5px] border-[rgba(26,23,20,0.12)] rounded-[12px] p-[13px_14px]">
+      <section className="bg-[#FFFFFF] border-[0.5px] border-[rgba(26,23,20,0.12)] rounded-[12px] p-[13px_14px]">
         <SectionLabel>RECENT ACTIVITY</SectionLabel>
         {recentActivity.length === 0 ? (
-          <p className="font-['Space_Grotesk'] text-[13px] text-[#8C857D]">No recent activity.</p>
+          <p className="font-['Space_Grotesk'] text-[13px] text-[#94A3B8]">No recent activity.</p>
         ) : (
           <ul className="space-y-2">
             {recentActivity.map((post) => (
@@ -242,13 +242,13 @@ export default async function DashboardPage() {
                     className="inline-block w-[6px] h-[6px] rounded-full shrink-0"
                     style={{ backgroundColor: getPillarColor(post.pillar) }}
                   />
-                  <span className="font-['Space_Grotesk'] text-[13px] text-[#1A1714] truncate">{post.title}</span>
+                  <span className="font-['Space_Grotesk'] text-[13px] text-[#0F172A] truncate">{post.title}</span>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   <span className={`inline-flex items-center px-[7px] py-[2px] rounded-[3px] font-['Space_Grotesk'] text-[10px] font-medium tracking-[0.01em] ${STATUS_BADGE[post.status]}`}>
                     {STATUS_LABELS[post.status]}
                   </span>
-                  <span className="font-['Space_Grotesk'] text-[11px] text-[#8C857D]">{formatRelative(post.updated_at)}</span>
+                  <span className="font-['Space_Grotesk'] text-[11px] text-[#94A3B8]">{formatRelative(post.updated_at)}</span>
                 </div>
               </li>
             ))}
@@ -265,7 +265,7 @@ export default async function DashboardPage() {
 
 function SectionLabel({ children, className = '' }: { children: React.ReactNode; className?: string }) {
   return (
-    <p className={`font-['Space_Grotesk'] font-medium text-[10px] uppercase tracking-[0.10em] text-[#8C857D] mb-3 ${className}`}>
+    <p className={`font-['Space_Grotesk'] font-medium text-[10px] uppercase tracking-[0.10em] text-[#94A3B8] mb-3 ${className}`}>
       {children}
     </p>
   );
@@ -283,12 +283,12 @@ function StatCard({
   accent?: boolean;
 }) {
   return (
-    <div className="bg-[#FAFAF8] border-[0.5px] border-[rgba(26,23,20,0.12)] rounded-[12px] p-[13px_14px]">
+    <div className="bg-[#FFFFFF] border-[0.5px] border-[rgba(26,23,20,0.12)] rounded-[12px] p-[13px_14px]">
       <div className="flex items-center gap-3 mb-1">
-        <Icon size={16} className="text-[#8C857D]" />
-        <span className={`font-['Space_Grotesk'] text-[22px] font-medium ${accent ? 'text-[#EB5E55]' : 'text-[#1A1714]'}`}>{value}</span>
+        <Icon size={16} className="text-[#94A3B8]" />
+        <span className={`font-['Space_Grotesk'] text-[22px] font-medium ${accent ? 'text-[#6366F1]' : 'text-[#0F172A]'}`}>{value}</span>
       </div>
-      <p className="font-['Space_Grotesk'] text-[11px] text-[#8C857D]">{label}</p>
+      <p className="font-['Space_Grotesk'] text-[11px] text-[#94A3B8]">{label}</p>
     </div>
   );
 }
@@ -305,10 +305,10 @@ function QuickAction({
   return (
     <Link
       href={href}
-      className="flex flex-col items-center gap-2 bg-[#F4F2EF] border-[0.5px] border-[rgba(26,23,20,0.12)] rounded-[7px] p-[10px_14px] hover:border-[rgba(26,23,20,0.25)] transition-colors duration-100 group"
+      className="flex flex-col items-center gap-2 bg-[#F8FAFC] border-[0.5px] border-[rgba(26,23,20,0.12)] rounded-[7px] p-[10px_14px] hover:border-[rgba(26,23,20,0.25)] transition-colors duration-100 group"
     >
-      <Icon size={18} className="text-[#8C857D] group-hover:text-[#4A4540] transition-colors duration-100" />
-      <span className="font-['Space_Grotesk'] text-[11px] text-[#4A4540] group-hover:text-[#1A1714] transition-colors duration-100 text-center">
+      <Icon size={18} className="text-[#94A3B8] group-hover:text-[#475569] transition-colors duration-100" />
+      <span className="font-['Space_Grotesk'] text-[11px] text-[#475569] group-hover:text-[#0F172A] transition-colors duration-100 text-center">
         {label}
       </span>
     </Link>

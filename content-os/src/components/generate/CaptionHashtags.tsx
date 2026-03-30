@@ -120,7 +120,7 @@ No labels. Just caption, blank line, hashtags.`;
   return (
     <div className="space-y-5">
       <div>
-        <label className="block font-['Space_Grotesk'] text-[13px] text-[#4A4540] mb-2">
+        <label className="block font-['Space_Grotesk'] text-[13px] text-[#475569] mb-2">
           Script or video idea
         </label>
         <textarea
@@ -128,17 +128,17 @@ No labels. Just caption, blank line, hashtags.`;
           onChange={(e) => setScript(e.target.value)}
           rows={5}
           placeholder="Paste your script or describe the video idea..."
-          className="w-full bg-[#F4F2EF] border-[0.5px] border-[rgba(26,23,20,0.12)] rounded-[7px] px-4 py-3 font-['Space_Grotesk'] text-[13px] text-[#1A1714] placeholder:text-[#8C857D] focus:outline-none focus:border-[rgba(26,23,20,0.40)] resize-none transition-colors duration-100"
+          className="w-full bg-[#F8FAFC] border-[0.5px] border-[rgba(26,23,20,0.12)] rounded-[7px] px-4 py-3 font-['Space_Grotesk'] text-[13px] text-[#0F172A] placeholder:text-[#94A3B8] focus:outline-none focus:border-[rgba(26,23,20,0.40)] resize-none transition-colors duration-100"
         />
       </div>
 
       <div className="flex items-center gap-4">
-        <label className="flex items-center gap-2 font-['Space_Grotesk'] text-[13px] text-[#1A1714] cursor-pointer">
+        <label className="flex items-center gap-2 font-['Space_Grotesk'] text-[13px] text-[#0F172A] cursor-pointer">
           <input
             type="checkbox"
             checked={useSaved}
             onChange={(e) => setUseSaved(e.target.checked)}
-            className="accent-[#EB5E55]"
+            className="accent-[#6366F1]"
           />
           Use saved hashtag set
         </label>
@@ -146,7 +146,7 @@ No labels. Just caption, blank line, hashtags.`;
           <select
             value={selectedSet}
             onChange={(e) => setSelectedSet(e.target.value)}
-            className="bg-[#F4F2EF] border-[0.5px] border-[rgba(26,23,20,0.12)] rounded-[7px] px-3 py-2 font-['Space_Grotesk'] text-[13px] text-[#1A1714] focus:outline-none focus:border-[rgba(26,23,20,0.40)] transition-colors duration-100"
+            className="bg-[#F8FAFC] border-[0.5px] border-[rgba(26,23,20,0.12)] rounded-[7px] px-3 py-2 font-['Space_Grotesk'] text-[13px] text-[#0F172A] focus:outline-none focus:border-[rgba(26,23,20,0.40)] transition-colors duration-100"
           >
             <option value="">Select a set</option>
             {savedSets.map((s) => (
@@ -162,7 +162,7 @@ No labels. Just caption, blank line, hashtags.`;
         Generate
       </Button>
 
-      {error && <p className="font-['Space_Grotesk'] text-[13px] text-[#EB5E55]">{error}</p>}
+      {error && <p className="font-['Space_Grotesk'] text-[13px] text-[#6366F1]">{error}</p>}
 
       <GenerateOutput text={output} loading={loading} />
 
@@ -172,7 +172,7 @@ No labels. Just caption, blank line, hashtags.`;
             value={saveSetName}
             onChange={(e) => setSaveSetName(e.target.value)}
             placeholder="Set name"
-            className="bg-[#F4F2EF] border-[0.5px] border-[rgba(26,23,20,0.12)] rounded-[7px] px-3 py-2 font-['Space_Grotesk'] text-[13px] text-[#1A1714] placeholder:text-[#8C857D] focus:outline-none focus:border-[rgba(26,23,20,0.40)] transition-colors duration-100"
+            className="bg-[#F8FAFC] border-[0.5px] border-[rgba(26,23,20,0.12)] rounded-[7px] px-3 py-2 font-['Space_Grotesk'] text-[13px] text-[#0F172A] placeholder:text-[#94A3B8] focus:outline-none focus:border-[rgba(26,23,20,0.40)] transition-colors duration-100"
           />
           <Button
             variant="secondary"

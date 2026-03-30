@@ -138,20 +138,20 @@ export default function PostEditorDrawer({ post, series, onClose, onSave, onDele
     setForm((f) => ({ ...f, [key]: value }));
   }
 
-  const inputClass = "w-full bg-[#F4F2EF] border-[0.5px] border-[#1A1714]/12 rounded-[7px] px-3 py-2 text-[13px] text-[#1A1714] focus:outline-none focus:border-[#1A1714]/40 transition-colors";
-  const labelClass = "text-[11px] text-[#8C857D] mb-1 block font-medium tracking-[0.05em]";
+  const inputClass = "w-full bg-[#F8FAFC] border-[0.5px] border-[#0F172A]/12 rounded-[7px] px-3 py-2 text-[13px] text-[#0F172A] focus:outline-none focus:border-[#0F172A]/40 transition-colors";
+  const labelClass = "text-[11px] text-[#94A3B8] mb-1 block font-medium tracking-[0.05em]";
 
   return (
     <>
       {/* Backdrop */}
-      <div className="fixed inset-0 z-[60] bg-[#1A1714]/20" onClick={onClose} />
+      <div className="fixed inset-0 z-[60] bg-[#0F172A]/20" onClick={onClose} />
 
       {/* Drawer */}
-      <div className="fixed top-0 right-0 bottom-0 z-[65] w-full sm:w-[480px] bg-[#FAFAF8] border-l-[0.5px] border-[#1A1714]/12 overflow-y-auto flex flex-col">
+      <div className="fixed top-0 right-0 bottom-0 z-[65] w-full sm:w-[480px] bg-[#FFFFFF] border-l-[0.5px] border-[#0F172A]/12 overflow-y-auto flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b-[0.5px] border-[#1A1714]/12 shrink-0">
-          <h2 className="font-heading text-[18px] font-[700] text-[#1A1714]">Edit Post</h2>
-          <button onClick={onClose} className="text-[#8C857D] hover:text-[#1A1714] transition-colors">
+        <div className="flex items-center justify-between p-4 border-b-[0.5px] border-[#0F172A]/12 shrink-0">
+          <h2 className="font-heading text-[18px] font-[700] text-[#0F172A]">Edit Post</h2>
+          <button onClick={onClose} className="text-[#94A3B8] hover:text-[#0F172A] transition-colors">
             <X size={18} />
           </button>
         </div>
@@ -321,14 +321,14 @@ export default function PostEditorDrawer({ post, series, onClose, onSave, onDele
             <button
               type="button"
               onClick={() => handleRegenerate('caption')}
-              className="flex items-center justify-center gap-1.5 px-3 py-2 text-[11px] text-[#1A1714] bg-[#F4F2EF] border-[0.5px] border-[#1A1714]/12 rounded-[7px] hover:border-[#1A1714]/25 transition-colors"
+              className="flex items-center justify-center gap-1.5 px-3 py-2 text-[11px] text-[#0F172A] bg-[#F8FAFC] border-[0.5px] border-[#0F172A]/12 rounded-[7px] hover:border-[#0F172A]/25 transition-colors"
             >
               <Wand2 size={14} /> Regenerate Caption
             </button>
             <button
               type="button"
               onClick={() => handleRegenerate('hook')}
-              className="flex items-center justify-center gap-1.5 px-3 py-2 text-[11px] text-[#1A1714] bg-[#F4F2EF] border-[0.5px] border-[#1A1714]/12 rounded-[7px] hover:border-[#1A1714]/25 transition-colors"
+              className="flex items-center justify-center gap-1.5 px-3 py-2 text-[11px] text-[#0F172A] bg-[#F8FAFC] border-[0.5px] border-[#0F172A]/12 rounded-[7px] hover:border-[#0F172A]/25 transition-colors"
             >
               <Wand2 size={14} /> Regenerate Hook
             </button>
@@ -340,13 +340,13 @@ export default function PostEditorDrawer({ post, series, onClose, onSave, onDele
                   toast('Script copied for repurpose');
                 }
               }}
-              className="flex items-center justify-center gap-1.5 px-3 py-2 text-[11px] text-[#1A1714] bg-[#F4F2EF] border-[0.5px] border-[#1A1714]/12 rounded-[7px] hover:border-[#1A1714]/25 transition-colors"
+              className="flex items-center justify-center gap-1.5 px-3 py-2 text-[11px] text-[#0F172A] bg-[#F8FAFC] border-[0.5px] border-[#0F172A]/12 rounded-[7px] hover:border-[#0F172A]/25 transition-colors"
             >
               <Copy size={14} /> Repurpose
             </button>
             <Link
               href={`/teleprompter?postId=${post.id}`}
-              className="flex items-center justify-center gap-1.5 px-3 py-2 text-[11px] text-[#1A1714] bg-[#F4F2EF] border-[0.5px] border-[#1A1714]/12 rounded-[7px] hover:border-[#1A1714]/25 transition-colors"
+              className="flex items-center justify-center gap-1.5 px-3 py-2 text-[11px] text-[#0F172A] bg-[#F8FAFC] border-[0.5px] border-[#0F172A]/12 rounded-[7px] hover:border-[#0F172A]/25 transition-colors"
             >
               <MonitorPlay size={14} /> Open Teleprompter
             </Link>
@@ -354,7 +354,7 @@ export default function PostEditorDrawer({ post, series, onClose, onSave, onDele
 
           {/* Publish section divider */}
           <div className="pt-3">
-            <span className="text-[10px] font-medium tracking-[0.10em] uppercase text-[#8C857D]">
+            <span className="text-[10px] font-medium tracking-[0.10em] uppercase text-[#94A3B8]">
               PUBLISH
             </span>
           </div>
@@ -376,14 +376,14 @@ export default function PostEditorDrawer({ post, series, onClose, onSave, onDele
             type="button"
             onClick={handleDelete}
             disabled={deleting}
-            className="flex items-center gap-1.5 text-[11px] text-[#EB5E55] hover:opacity-80 transition-opacity mt-2"
+            className="flex items-center gap-1.5 text-[11px] text-[#6366F1] hover:opacity-80 transition-opacity mt-2"
           >
             <Trash2 size={14} /> Delete Post
           </button>
         </div>
 
         {/* Status pipeline bar at bottom */}
-        <div className="shrink-0 border-t-[0.5px] border-[#1A1714]/12 p-4">
+        <div className="shrink-0 border-t-[0.5px] border-[#0F172A]/12 p-4">
           <StatusPipeline current={form.status} onChange={handleStatusChange} />
         </div>
       </div>

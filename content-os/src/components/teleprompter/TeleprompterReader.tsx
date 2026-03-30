@@ -133,7 +133,7 @@ export default function TeleprompterReader({ script, onExit }: TeleprompterReade
       <div className="fixed left-0 right-0 top-0 z-[60]" style={{ height: 3, backgroundColor: 'rgba(255,255,255,0.1)' }}>
         <div
           className="h-full transition-all duration-100"
-          style={{ width: `${progress}%`, backgroundColor: '#EB5E55' }}
+          style={{ width: `${progress}%`, backgroundColor: '#6366F1' }}
         />
       </div>
 
@@ -226,7 +226,7 @@ export default function TeleprompterReader({ script, onExit }: TeleprompterReade
               onClick={(e) => { e.stopPropagation(); togglePlayPause(); }}
               className="font-body rounded-full px-6 py-2 text-[13px] font-[600] text-white"
               style={{
-                backgroundColor: !isPlaying ? '#EB5E55' : 'rgba(255,255,255,0.15)',
+                backgroundColor: !isPlaying ? '#6366F1' : 'rgba(255,255,255,0.15)',
               }}
             >
               {isPlaying ? 'Pause' : 'Resume'}
@@ -251,14 +251,14 @@ export default function TeleprompterReader({ script, onExit }: TeleprompterReade
           width: 16px;
           height: 16px;
           border-radius: 50%;
-          background: #eb5e55;
+          background: #6366F1;
           cursor: pointer;
         }
         .teleprompter-slider::-moz-range-thumb {
           width: 16px;
           height: 16px;
           border-radius: 50%;
-          background: #eb5e55;
+          background: #6366F1;
           cursor: pointer;
           border: none;
         }

@@ -13,7 +13,7 @@ interface PillarBadgeProps {
 }
 
 export default function PillarBadge({ pillar, showLabel = true, color, label }: PillarBadgeProps) {
-  const resolvedColor = color ?? PILLAR_COLORS[pillar as Pillar] ?? '#8C857D';
+  const resolvedColor = color ?? PILLAR_COLORS[pillar as Pillar] ?? '#94A3B8';
   const resolvedLabel =
     label ??
     PILLAR_LABELS[pillar as Pillar] ??

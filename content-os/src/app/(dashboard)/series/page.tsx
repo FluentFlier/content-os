@@ -200,12 +200,12 @@ export default function SeriesPage() {
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="font-heading text-[22px] font-[800] text-[#1A1714] leading-[1.2] tracking-[-0.02em]">
+        <h1 className="font-heading text-[22px] font-[800] text-[#0F172A] leading-[1.2] tracking-[-0.02em]">
           Series
         </h1>
         <button
           onClick={() => router.push("/generate?tab=series")}
-          className="flex items-center gap-1.5 bg-[#EB5E55] hover:opacity-90 text-white text-[13px] font-medium px-5 py-[10px] rounded-[7px] transition-opacity"
+          className="flex items-center gap-1.5 bg-[#6366F1] hover:opacity-90 text-white text-[13px] font-medium px-5 py-[10px] rounded-[7px] transition-opacity"
         >
           <Plus size={16} />
           Create Series
@@ -216,24 +216,24 @@ export default function SeriesPage() {
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-[10px]">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="bg-[#F4F2EF] rounded-[12px] p-4 animate-pulse space-y-3">
-              <div className="h-5 w-2/3 bg-[#EDECEA] rounded" />
-              <div className="h-4 w-1/2 bg-[#EDECEA] rounded" />
+            <div key={i} className="bg-[#F8FAFC] rounded-[12px] p-4 animate-pulse space-y-3">
+              <div className="h-5 w-2/3 bg-[#F1F5F9] rounded" />
+              <div className="h-4 w-1/2 bg-[#F1F5F9] rounded" />
               <div className="flex gap-2">
-                <div className="h-6 w-16 bg-[#EDECEA] rounded" />
-                <div className="h-6 w-16 bg-[#EDECEA] rounded" />
+                <div className="h-6 w-16 bg-[#F1F5F9] rounded" />
+                <div className="h-6 w-16 bg-[#F1F5F9] rounded" />
               </div>
             </div>
           ))}
         </div>
       ) : seriesList.length === 0 ? (
         <div className="flex flex-col items-center gap-4 py-16">
-          <p className="text-[#8C857D] text-[13px]">
+          <p className="text-[#94A3B8] text-[13px]">
             No series yet. Plan your first multi-part series.
           </p>
           <button
             onClick={() => router.push("/generate?tab=series")}
-            className="flex items-center gap-1.5 bg-[#EB5E55] hover:opacity-90 text-white text-[13px] font-medium px-5 py-[10px] rounded-[7px] transition-opacity"
+            className="flex items-center gap-1.5 bg-[#6366F1] hover:opacity-90 text-white text-[13px] font-medium px-5 py-[10px] rounded-[7px] transition-opacity"
           >
             <Plus size={16} />
             Plan a Series

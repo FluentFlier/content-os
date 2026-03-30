@@ -7,3 +7,5 @@ node_modules/
 .swarm/
 .claude-flow/
 .mcp.json
+.vercel
+.gstack/

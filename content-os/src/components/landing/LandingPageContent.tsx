@@ -84,7 +84,7 @@ export default function LandingPageContent({ loggedIn }: Props) {
             ) : (
               <>
                 <Link href="/login" className="text-[13px] text-text-tertiary hover:text-text-primary transition-colors">Sign in</Link>
-                <Link href="/login?mode=signup" className="px-5 py-2 text-[13px] font-semibold rounded-md bg-text-primary text-bg-primary hover:opacity-90 transition-all">Get Started</Link>
+                <Link href="/login" className="px-5 py-2 text-[13px] font-semibold rounded-md bg-text-primary text-bg-primary hover:opacity-90 transition-all">Get Started</Link>
               </>
             )}
           </div>
@@ -112,7 +112,7 @@ export default function LandingPageContent({ loggedIn }: Props) {
 
           <Fade delay={280}>
             <div className="flex flex-wrap items-center gap-3 mt-9">
-              <Link href="/login?mode=signup"
+              <Link href="/login"
                 className="group relative inline-flex items-center gap-2 px-7 py-3.5 text-[14px] font-semibold rounded-lg bg-text-primary text-bg-primary overflow-hidden transition-all hover:scale-[1.02] active:scale-[0.98]">
                 <span className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(110deg, transparent 30%, rgba(99,102,241,0.15) 50%, transparent 70%)', backgroundSize: '200% 100%', animation: 'shimmer 3s infinite' }} />
                 <span className="relative">Start creating</span>
@@ -190,7 +190,7 @@ export default function LandingPageContent({ loggedIn }: Props) {
               <span className="bg-clip-text text-transparent" style={{ backgroundImage: 'linear-gradient(135deg, #818CF8, #C084FC, #22D3EE)' }}>more content?</span>
             </h2>
             <p className="text-[16px] text-text-secondary mt-5 mb-9 max-w-md mx-auto">Free to use. Profile setup takes under a minute.</p>
-            <Link href="/login?mode=signup"
+            <Link href="/login"
               className="group relative inline-flex items-center gap-2 px-8 py-3.5 text-[15px] font-semibold rounded-lg bg-text-primary text-bg-primary overflow-hidden transition-all hover:scale-[1.02] active:scale-[0.98]">
               <span className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(110deg, transparent 30%, rgba(99,102,241,0.15) 50%, transparent 70%)', backgroundSize: '200% 100%', animation: 'shimmer 3s infinite' }} />
               <span className="relative">Get Started</span>

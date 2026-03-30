@@ -1,59 +1,38 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from 'next/server';
 
-const PROTECTED_ROUTES = [
-  "/dashboard",
-  "/generate",
-  "/library",
-  "/calendar",
-  "/story-bank",
-  "/ideas",
-  "/series",
-  "/analytics",
-  "/settings",
-  "/teleprompter",
-  "/onboarding",
+const PROTECTED = [
+  '/dashboard',
+  '/generate',
+  '/library',
+  '/calendar',
+  '/story-bank',
+  '/ideas',
+  '/series',
+  '/analytics',
+  '/settings',
+  '/teleprompter',
+  '/onboarding',
 ];
 
-export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-  const token = request.cookies.get("insforge-access-token")?.value;
+export function middleware(request: NextRequest): NextResponse {
+  const token = request.cookies.get('dispatch-token')?.value;
+  const isProtected = PROTECTED.some(p => request.nextUrl.pathname.startsWith(p));
 
-  // Root "/" is now the public content studio - no redirect
-  if (pathname === "/") {
-    return NextResponse.next();
+  if (!token && isProtected) {
+    return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  // If on login page with valid token, redirect to dashboard
-  if (pathname === "/login" && token) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+  if (token && request.nextUrl.pathname === '/login') {
+    return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
-  // Protect app routes
-  const isProtected = PROTECTED_ROUTES.some(
-    (route) => pathname === route || pathname.startsWith(route + "/")
-  );
-
-  if (isProtected && !token) {
-    return NextResponse.redirect(new URL("/login", request.url));
-  }
-
-  return NextResponse.next();
+  const response = NextResponse.next();
+  response.headers.set('x-pathname', request.nextUrl.pathname);
+  return response;
 }
 
 export const config = {
   matcher: [
-    "/",
-    "/login",
-    "/dashboard/:path*",
-    "/generate/:path*",
-    "/library/:path*",
-    "/calendar/:path*",
-    "/story-bank/:path*",
-    "/ideas/:path*",
-    "/series/:path*",
-    "/analytics/:path*",
-    "/settings/:path*",
-    "/teleprompter/:path*",
-    "/onboarding/:path*",
+    '/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 };

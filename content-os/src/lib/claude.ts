@@ -1,46 +1,106 @@
-import { createClient } from "@insforge/sdk";
+import { getServerClient } from './insforge/server';
 
-const DEFAULT_MODEL = "anthropic/claude-sonnet-4.5";
+/**
+ * Default template used to seed new creator profiles during onboarding.
+ * Never rendered directly in AI calls - use buildSystemPrompt() instead.
+ */
+export const DEFAULT_SYSTEM_PROMPT_TEMPLATE = `You are a content strategist. You help creators write authentic, specific content for their social media. Follow the creator's voice and context provided below. Never use em dashes. If no creator context is provided, write direct, honest, punchy content.
 
-const BASE_SYSTEM_PROMPT = `You are a content strategist. Help create engaging, authentic content based on the creator's voice and identity. No em dashes anywhere. Ever.`;
+RULES:
+- No em dashes anywhere. Ever.
+- No corporate speak or influencer fluff
+- Never genericize a specific detail
+- If a 16 year old cannot follow an explanation, simplify more
+- Short punchy sentences
+- Talk TO the viewer, not AT them`;
 
-export const AVAILABLE_MODELS = [
-  { id: "anthropic/claude-sonnet-4.5", label: "Claude Sonnet 4.5", provider: "Anthropic" },
-  { id: "openai/gpt-4o-mini", label: "GPT-4o Mini", provider: "OpenAI" },
-  { id: "google/gemini-3-pro-image-preview", label: "Gemini 3 Pro", provider: "Google" },
-  { id: "deepseek/deepseek-v3.2", label: "DeepSeek V3.2", provider: "DeepSeek" },
-  { id: "x-ai/grok-4.1-fast", label: "Grok 4.1 Fast", provider: "xAI" },
-  { id: "minimax/minimax-m2.1", label: "MiniMax M2.1", provider: "MiniMax" },
-];
+export interface CreatorProfileForPrompt {
+  display_name: string;
+  bio?: string;
+  content_pillars?: Array<{ name: string; description?: string; promptTemplate?: string }>;
+  voice_description?: string;
+  voice_rules?: string;
+}
 
-function getInsforgeServer() {
-  const url = process.env.NEXT_PUBLIC_INSFORGE_URL;
-  const anonKey = process.env.NEXT_PUBLIC_INSFORGE_ANON_KEY;
-
-  if (!url || !anonKey) {
-    throw new Error("Missing InsForge env vars for AI gateway");
+/**
+ * Builds a personalized system prompt from the user's creator profile.
+ * Falls back to the default template if no profile is provided.
+ */
+export function buildSystemPrompt(
+  profile?: CreatorProfileForPrompt | null,
+  contextAdditions?: string
+): string {
+  if (!profile) {
+    const base = DEFAULT_SYSTEM_PROMPT_TEMPLATE;
+    if (contextAdditions) {
+      return `${base}\n\nADDITIONAL CONTEXT:\n${contextAdditions}`;
+    }
+    return base;
   }
 
-  return createClient({ baseUrl: url, anonKey });
+  const parts: string[] = [];
+
+  parts.push(
+    `You are a content strategist for ${profile.display_name}. You help them write authentic, specific content for their social media. Follow their voice and context closely. Never use em dashes.`
+  );
+
+  parts.push(`\nRULES:
+- No em dashes anywhere. Ever.
+- No corporate speak or influencer fluff
+- Never genericize a specific detail
+- If a 16 year old cannot follow an explanation, simplify more
+- Short punchy sentences
+- Talk TO the viewer, not AT them`);
+
+  if (profile.bio) {
+    parts.push(`\nCREATOR BIO:\n${profile.bio}`);
+  }
+
+  if (profile.voice_description) {
+    parts.push(`\nVOICE:\n${profile.voice_description}`);
+  }
+
+  if (profile.voice_rules) {
+    parts.push(`\nVOICE RULES (MUST FOLLOW):\n${profile.voice_rules}`);
+  }
+
+  if (profile.content_pillars && profile.content_pillars.length > 0) {
+    const pillarLines = profile.content_pillars.map((p) => {
+      let line = `- ${p.name}`;
+      if (p.description) line += `: ${p.description}`;
+      return line;
+    });
+    parts.push(`\nCONTENT PILLARS:\n${pillarLines.join('\n')}`);
+  }
+
+  if (contextAdditions) {
+    parts.push(`\nADDITIONAL CONTEXT:\n${contextAdditions}`);
+  }
+
+  return parts.join('\n');
 }
 
 export async function generateContent(
   prompt: string,
-  systemPromptOverride?: string,
-  model?: string
+  contextAdditions?: string,
+  systemOverride?: string,
+  profile?: CreatorProfileForPrompt | null
 ): Promise<string> {
-  const systemPrompt = systemPromptOverride || BASE_SYSTEM_PROMPT;
-  const selectedModel = model || DEFAULT_MODEL;
-  const client = getInsforgeServer();
+  const systemPrompt = systemOverride
+    ? systemOverride
+    : buildSystemPrompt(profile, contextAdditions);
 
+  const client = getServerClient();
   const completion = await client.ai.chat.completions.create({
-    model: selectedModel,
+    model: 'anthropic/claude-sonnet-4-20250514',
     messages: [
-      { role: "system", content: systemPrompt },
-      { role: "user", content: prompt },
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: prompt },
     ],
     maxTokens: 2048,
   });
 
-  return completion.choices[0]?.message?.content || "";
+  const content = completion.choices?.[0]?.message?.content;
+  if (!content) throw new Error('Empty response from InsForge AI');
+  return content;
 }

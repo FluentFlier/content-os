@@ -1,0 +1,74 @@
+{
+  "milestone": "bug-fixes",
+  "round": 1,
+  "status": "fail",
+  "assertionsSummary": {
+    "total": 12,
+    "passed": 1,
+    "failed": 0,
+    "blocked": 11
+  },
+  "passedAssertions": [
+    "VAL-FIX-012"
+  ],
+  "failedAssertions": [],
+  "blockedAssertions": [
+    {
+      "id": "VAL-FIX-001",
+      "blockedBy": "Blocked by environment misconfiguration: required NEXT_PUBLIC InsForge env variables are missing in running app session."
+    },
+    {
+      "id": "VAL-FIX-002",
+      "blockedBy": "Blocked by missing NEXT_PUBLIC_INSFORGE_URL or NEXT_PUBLIC_INSFORGE_ANON_KEY."
+    },
+    {
+      "id": "VAL-FIX-003",
+      "blockedBy": "Blocked by missing NEXT_PUBLIC InsForge env vars."
+    },
+    {
+      "id": "VAL-FIX-004",
+      "blockedBy": "Blocked by missing NEXT_PUBLIC InsForge env vars."
+    },
+    {
+      "id": "VAL-FIX-005",
+      "blockedBy": "Blocked by missing NEXT_PUBLIC InsForge env vars."
+    },
+    {
+      "id": "VAL-FIX-006",
+      "blockedBy": "Blocked by missing NEXT_PUBLIC InsForge env vars."
+    },
+    {
+      "id": "VAL-FIX-010",
+      "blockedBy": "Blocked by missing NEXT_PUBLIC InsForge env vars and inability to authenticate/use library UI."
+    },
+    {
+      "id": "VAL-FIX-007",
+      "blockedBy": "Cannot validate heading fonts because required InsForge env variables are missing and dashboard/login do not render testable UI."
+    },
+    {
+      "id": "VAL-FIX-011",
+      "blockedBy": "Prompt caching behavior could not be validated because /dashboard never loaded due missing NEXT_PUBLIC_INSFORGE_URL/NEXT_PUBLIC_INSFORGE_ANON_KEY runtime dependency."
+    },
+    {
+      "id": "VAL-FIX-008",
+      "blockedBy": "Blocked by authentication: no valid user session token available for /api/posts in this isolation context."
+    },
+    {
+      "id": "VAL-FIX-009",
+      "blockedBy": "Blocked by authentication gate; validation branch could not be reached without a valid authenticated session."
+    }
+  ],
+  "appliedUpdates": [
+    {
+      "target": "user-testing.md",
+      "description": "Added flow-validator isolation guidance for agent-browser and curl surfaces and clarified evidence expectations.",
+      "source": "setup"
+    },
+    {
+      "target": "user-testing.md",
+      "description": "Documented runtime blocker pattern from flow reports: missing NEXT_PUBLIC InsForge variables blocks browser flows and authenticated API assertions.",
+      "source": "flow-report"
+    }
+  ],
+  "previousRound": null
+}

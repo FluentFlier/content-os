@@ -1,0 +1,95 @@
+{
+  "groupId": "browser-font-cache",
+  "testedAt": "2026-03-30T07:22:50Z",
+  "isolation": {
+    "missionDir": "/Users/anirudhmanjesh/.factory/missions/fbcce583-7257-4bc1-9707-8c0ee4dcc7ec",
+    "appUrl": "http://localhost:3000",
+    "sessionNamespace": "5f4692c39ef3__u2",
+    "dedicatedAccountAlias": "validator.fontcache+bugfix@dispatch.test"
+  },
+  "toolsUsed": [
+    "agent-browser"
+  ],
+  "assertions": [
+    {
+      "id": "VAL-FIX-007",
+      "title": "All headings render in Syne font",
+      "status": "blocked",
+      "steps": [
+        {
+          "action": "Navigate to /dashboard and load page",
+          "expected": "Dashboard renders headings to validate computed font-family starts with Syne",
+          "observed": "Route redirected to /login and page stayed in Loading state with runtime errors"
+        },
+        {
+          "action": "Check browser errors on /login",
+          "expected": "No blocking runtime errors",
+          "observed": "Repeated error: Missing NEXT_PUBLIC_INSFORGE_URL or NEXT_PUBLIC_INSFORGE_ANON_KEY"
+        },
+        {
+          "action": "Run computed-style collection for heading selectors",
+          "expected": "Heading elements present with Syne font-family",
+          "observed": "headingCount = 0; no heading/font-heading elements available to validate"
+        }
+      ],
+      "evidence": {
+        "screenshots": [
+          "bug-fixes/browser-font-cache/VAL-FIX-007-blocked-login-error.png"
+        ],
+        "consoleErrors": "bug-fixes/browser-font-cache/VAL-FIX-007-console-errors.txt",
+        "network": "Not applicable due blocker before dashboard render",
+        "computedStyle": "bug-fixes/browser-font-cache/VAL-FIX-007-font-computed-style.json"
+      },
+      "issues": "Cannot validate heading fonts because required InsForge env variables are missing and dashboard/login do not render testable UI."
+    },
+    {
+      "id": "VAL-FIX-011",
+      "title": "TodaysPrompt caches result across navigations",
+      "status": "blocked",
+      "steps": [
+        {
+          "action": "Navigate /dashboard -> /calendar -> /dashboard",
+          "expected": "First /dashboard visit triggers one POST /api/generate and second visit reuses cache with no new call",
+          "observed": "Each protected route redirected to /login due runtime env error before dashboard content loaded"
+        },
+        {
+          "action": "Capture network requests filtered by /api/generate",
+          "expected": "Exactly one /api/generate request across re-navigation",
+          "observed": "No requests captured because dashboard never reached executable prompt flow"
+        }
+      ],
+      "evidence": {
+        "screenshots": [
+          "bug-fixes/browser-font-cache/VAL-FIX-011-blocked-dashboard-redirect.png"
+        ],
+        "consoleErrors": "bug-fixes/browser-font-cache/VAL-FIX-011-console-errors.txt",
+        "network": "bug-fixes/browser-font-cache/VAL-FIX-011-network-generate-requests.txt",
+        "networkAll": "bug-fixes/browser-font-cache/VAL-FIX-011-network-all-requests.txt",
+        "finalUrl": "bug-fixes/browser-font-cache/VAL-FIX-011-final-url.txt"
+      },
+      "issues": "Prompt caching behavior could not be validated because /dashboard never loaded due missing NEXT_PUBLIC_INSFORGE_URL/NEXT_PUBLIC_INSFORGE_ANON_KEY runtime dependency."
+    }
+  ],
+  "frictions": [
+    {
+      "description": "When the app fails during bootstrap, interactive snapshot only shows the dev overlay control and not the intended UI.",
+      "resolved": true,
+      "resolution": "Captured annotated screenshots, console logs, computed-style dump, and network logs as blocker evidence.",
+      "affectedAssertions": [
+        "VAL-FIX-007",
+        "VAL-FIX-011"
+      ]
+    }
+  ],
+  "blockers": [
+    {
+      "description": "Runtime configuration missing: NEXT_PUBLIC_INSFORGE_URL and NEXT_PUBLIC_INSFORGE_ANON_KEY are not available to the running app instance, causing auth/dashboard flows to fail before assertions can be exercised.",
+      "affectedAssertions": [
+        "VAL-FIX-007",
+        "VAL-FIX-011"
+      ],
+      "quickFixAttempted": "Retried navigation/reload across /login, /dashboard, and /calendar; verified repeated identical runtime error and persistent redirect to /login."
+    }
+  ],
+  "summary": "Tested 2 assigned assertions: 0 passed, 0 failed, 2 blocked by missing InsForge public env vars in the active app runtime."
+}

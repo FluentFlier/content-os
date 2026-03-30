@@ -1,0 +1,209 @@
+{
+  "groupId": "browser-core",
+  "testedAt": "2026-03-30T07:23:08Z",
+  "isolation": {
+    "missionDir": "/Users/anirudhmanjesh/.factory/missions/fbcce583-7257-4bc1-9707-8c0ee4dcc7ec",
+    "appUrl": "http://localhost:3000",
+    "sessionNamespace": "5f4692c39ef3__u1",
+    "testAccount": "validator.core+bugfix@dispatch.test"
+  },
+  "toolsUsed": ["agent-browser"],
+  "assertions": [
+    {
+      "id": "VAL-FIX-001",
+      "title": "Settings page loads without crash for new users",
+      "status": "blocked",
+      "steps": [
+        {
+          "action": "Navigate to /settings",
+          "expected": "Settings page renders all form sections",
+          "observed": "Redirected to /login and page stuck on loading screen"
+        },
+        {
+          "action": "Check browser error panel",
+          "expected": "No uncaught JS exceptions",
+          "observed": "Repeated runtime error: Missing NEXT_PUBLIC_INSFORGE_URL or NEXT_PUBLIC_INSFORGE_ANON_KEY"
+        }
+      ],
+      "evidence": {
+        "screenshots": ["bug-fixes/browser-core/VAL-FIX-001-settings.png"],
+        "consoleErrors": "Missing NEXT_PUBLIC_INSFORGE_URL or NEXT_PUBLIC_INSFORGE_ANON_KEY",
+        "network": "GET /settings -> redirected to /login; Next.js error overlay requests to /__nextjs_original-stack-frame"
+      },
+      "issues": "Blocked by environment misconfiguration: required NEXT_PUBLIC InsForge env variables are missing in running app session."
+    },
+    {
+      "id": "VAL-FIX-002",
+      "title": "Login page respects ?mode=signup query parameter",
+      "status": "blocked",
+      "steps": [
+        {
+          "action": "Navigate to /login?mode=signup",
+          "expected": "Signup form visible with Name field and Create account button",
+          "observed": "Page remains on loading screen with runtime error overlay"
+        },
+        {
+          "action": "Check browser error panel",
+          "expected": "Login/signup UI renders without JS exceptions",
+          "observed": "Runtime error: Missing NEXT_PUBLIC_INSFORGE_URL or NEXT_PUBLIC_INSFORGE_ANON_KEY"
+        }
+      ],
+      "evidence": {
+        "screenshots": [
+          "bug-fixes/browser-core/VAL-FIX-002-signup-query-final.png",
+          "bug-fixes/browser-core/VAL-FIX-002-signup-query-loading-with-errors.png"
+        ],
+        "consoleErrors": "Missing NEXT_PUBLIC_INSFORGE_URL or NEXT_PUBLIC_INSFORGE_ANON_KEY",
+        "network": "GET /login?mode=signup plus repeated /__nextjs_original-stack-frame fetches from runtime error overlay"
+      },
+      "issues": "Blocked by missing NEXT_PUBLIC_INSFORGE_URL or NEXT_PUBLIC_INSFORGE_ANON_KEY."
+    },
+    {
+      "id": "VAL-FIX-003",
+      "title": "Series page Create Series navigates to Generate with Series tab active",
+      "status": "blocked",
+      "steps": [
+        {
+          "action": "Navigate to /series",
+          "expected": "Series page loads and Create Series can be clicked",
+          "observed": "Redirected to /login and page does not render interactive auth form"
+        },
+        {
+          "action": "Check browser error panel",
+          "expected": "No runtime exceptions",
+          "observed": "Runtime error: Missing NEXT_PUBLIC_INSFORGE_URL or NEXT_PUBLIC_INSFORGE_ANON_KEY"
+        }
+      ],
+      "evidence": {
+        "screenshots": ["bug-fixes/browser-core/VAL-FIX-003-series.png"],
+        "consoleErrors": "Missing NEXT_PUBLIC_INSFORGE_URL or NEXT_PUBLIC_INSFORGE_ANON_KEY",
+        "network": "GET /series -> redirected to /login; no actionable UI loaded"
+      },
+      "issues": "Blocked by missing NEXT_PUBLIC InsForge env vars."
+    },
+    {
+      "id": "VAL-FIX-004",
+      "title": "Ideas Convert to Script carries generated text to Generate page",
+      "status": "blocked",
+      "steps": [
+        {
+          "action": "Navigate to /ideas",
+          "expected": "Ideas page loads with Convert to Script action",
+          "observed": "Redirected to /login; loading screen with runtime error"
+        },
+        {
+          "action": "Check browser errors",
+          "expected": "No JS exceptions",
+          "observed": "Runtime error: Missing NEXT_PUBLIC_INSFORGE_URL or NEXT_PUBLIC_INSFORGE_ANON_KEY"
+        }
+      ],
+      "evidence": {
+        "screenshots": ["bug-fixes/browser-core/VAL-FIX-004-ideas.png"],
+        "consoleErrors": "Missing NEXT_PUBLIC_INSFORGE_URL or NEXT_PUBLIC_INSFORGE_ANON_KEY",
+        "network": "GET /ideas -> redirected to /login"
+      },
+      "issues": "Blocked by missing NEXT_PUBLIC InsForge env vars."
+    },
+    {
+      "id": "VAL-FIX-005",
+      "title": "Story Bank Convert to Post button is clickable and creates a post",
+      "status": "blocked",
+      "steps": [
+        {
+          "action": "Navigate to /story-bank",
+          "expected": "Story Bank loads with expandable story cards and Convert to Post button",
+          "observed": "Redirected to /login; loading screen with runtime error"
+        },
+        {
+          "action": "Check browser errors",
+          "expected": "No runtime exceptions",
+          "observed": "Runtime error: Missing NEXT_PUBLIC_INSFORGE_URL or NEXT_PUBLIC_INSFORGE_ANON_KEY"
+        }
+      ],
+      "evidence": {
+        "screenshots": ["bug-fixes/browser-core/VAL-FIX-005-story-bank.png"],
+        "consoleErrors": "Missing NEXT_PUBLIC_INSFORGE_URL or NEXT_PUBLIC_INSFORGE_ANON_KEY",
+        "network": "GET /story-bank -> redirected to /login"
+      },
+      "issues": "Blocked by missing NEXT_PUBLIC InsForge env vars."
+    },
+    {
+      "id": "VAL-FIX-006",
+      "title": "Mobile nav includes Story Bank, Ideas, Series, and Analytics",
+      "status": "blocked",
+      "steps": [
+        {
+          "action": "Set viewport to 390x844 and navigate to /dashboard",
+          "expected": "Bottom mobile navigation renders and destinations are reachable",
+          "observed": "Redirected to /login; loading screen blocks navigation validation"
+        },
+        {
+          "action": "Check browser errors",
+          "expected": "No uncaught JS exceptions",
+          "observed": "Runtime error: Missing NEXT_PUBLIC_INSFORGE_URL or NEXT_PUBLIC_INSFORGE_ANON_KEY"
+        }
+      ],
+      "evidence": {
+        "screenshots": ["bug-fixes/browser-core/VAL-FIX-006-mobile-nav.png"],
+        "consoleErrors": "Missing NEXT_PUBLIC_INSFORGE_URL or NEXT_PUBLIC_INSFORGE_ANON_KEY",
+        "network": "GET /dashboard -> redirected to /login"
+      },
+      "issues": "Blocked by missing NEXT_PUBLIC InsForge env vars."
+    },
+    {
+      "id": "VAL-FIX-010",
+      "title": "Library bulk delete and status change use API routes",
+      "status": "blocked",
+      "steps": [
+        {
+          "action": "Navigate to /library",
+          "expected": "Library loads and allows selecting posts for bulk actions",
+          "observed": "Redirected to /login; UI not usable"
+        },
+        {
+          "action": "Inspect network activity for /api/posts during attempted validation",
+          "expected": "Bulk actions trigger /api/posts requests",
+          "observed": "No /api/posts requests captured because bulk-action UI could not be reached"
+        }
+      ],
+      "evidence": {
+        "screenshots": ["bug-fixes/browser-core/VAL-FIX-010-library.png"],
+        "consoleErrors": "Missing NEXT_PUBLIC_INSFORGE_URL or NEXT_PUBLIC_INSFORGE_ANON_KEY",
+        "network": "No /api/posts requests captured; runtime error overlay requests dominate network log"
+      },
+      "issues": "Blocked by missing NEXT_PUBLIC InsForge env vars and inability to authenticate/use library UI."
+    }
+  ],
+  "frictions": [
+    {
+      "description": "Runtime error overlay appears immediately with a persistent loading screen, preventing interaction with auth and protected-page flows.",
+      "resolved": false,
+      "resolution": null,
+      "affectedAssertions": [
+        "VAL-FIX-001",
+        "VAL-FIX-002",
+        "VAL-FIX-003",
+        "VAL-FIX-004",
+        "VAL-FIX-005",
+        "VAL-FIX-006",
+        "VAL-FIX-010"
+      ]
+    }
+  ],
+  "blockers": [
+    {
+      "description": "Missing required frontend env vars in running app: NEXT_PUBLIC_INSFORGE_URL and/or NEXT_PUBLIC_INSFORGE_ANON_KEY.",
+      "affectedAssertions": [
+        "VAL-FIX-001",
+        "VAL-FIX-002",
+        "VAL-FIX-003",
+        "VAL-FIX-004",
+        "VAL-FIX-005",
+        "VAL-FIX-006",
+        "VAL-FIX-010"
+      ],
+      "quickFixAttempted": "Retried navigation across all assigned routes, cleared and rechecked errors, reloaded login route with query param, and captured network/error logs. Block persisted."
+    }
+  ],
+  "summary": "Tested 7 assigned assertions; all 7 are blocked by missing NEXT_PUBLIC InsForge environment variables causing runtime errors and preventing interactive flow validation."
+}

@@ -1,0 +1,174 @@
+{
+  "groupId": "api-shell",
+  "testedAt": "2026-03-30T07:23:40Z",
+  "isolation": {
+    "missionDir": "/Users/anirudhmanjesh/.factory/missions/fbcce583-7257-4bc1-9707-8c0ee4dcc7ec",
+    "repoRoot": "/Users/anirudhmanjesh/hackathons/content-os",
+    "appUrl": "http://localhost:3000",
+    "assertionIds": [
+      "VAL-FIX-008",
+      "VAL-FIX-009",
+      "VAL-FIX-012"
+    ],
+    "dedicatedTestRecords": {
+      "createdIds": [],
+      "note": "No records were created because /api/posts was auth-gated (401 Unauthorized) for all test requests."
+    }
+  },
+  "toolsUsed": [
+    "curl",
+    "shell",
+    "npm"
+  ],
+  "assertions": [
+    {
+      "id": "VAL-FIX-008",
+      "title": "Creating a post with a custom pillar name succeeds",
+      "status": "blocked",
+      "steps": [
+        {
+          "action": "POST /api/posts with pillar=personal-growth and valid post payload",
+          "expected": "201 Created with created post using custom pillar",
+          "observed": "401 Unauthorized with body {\"error\":\"Unauthorized\"}"
+        },
+        {
+          "action": "Set dispatch-token cookie via POST /api/auth then retry POST /api/posts",
+          "expected": "Authenticated request proceeds to post creation",
+          "observed": "Still 401 Unauthorized, indicating missing valid InsForge-backed auth token"
+        }
+      ],
+      "evidence": {
+        "requestResponse": [
+          {
+            "method": "POST",
+            "path": "/api/posts",
+            "statusCode": 401,
+            "curlExitCode": 0,
+            "requestBodyPath": "bug-fixes/api-shell/VAL-FIX-008-request.json",
+            "responseHeadersPath": "bug-fixes/api-shell/VAL-FIX-008-response.headers.txt",
+            "responseBodyPath": "bug-fixes/api-shell/VAL-FIX-008-response.body.json",
+            "statusPath": "bug-fixes/api-shell/VAL-FIX-008-response.status.txt",
+            "exitCodePath": "bug-fixes/api-shell/VAL-FIX-008-response.exitcode.txt",
+            "responseSnippet": "{\"error\":\"Unauthorized\"}"
+          },
+          {
+            "method": "POST",
+            "path": "/api/auth then /api/posts with cookie jar",
+            "statusCode": 401,
+            "curlExitCode": 0,
+            "requestBodyPath": "bug-fixes/api-shell/auth-dummy-token-request.json",
+            "responseHeadersPath": "bug-fixes/api-shell/authenticated-attempt-posts-response.headers.txt",
+            "responseBodyPath": "bug-fixes/api-shell/authenticated-attempt-posts-response.body.json",
+            "statusPath": "bug-fixes/api-shell/authenticated-attempt-posts-response.status.txt",
+            "exitCodePath": "bug-fixes/api-shell/authenticated-attempt-posts-response.exitcode.txt",
+            "responseSnippet": "{\"error\":\"Unauthorized\"}"
+          }
+        ],
+        "createdRecordIds": []
+      },
+      "issues": "Blocked by authentication: no valid user session token available for /api/posts in this isolation context."
+    },
+    {
+      "id": "VAL-FIX-009",
+      "title": "POST /api/posts rejects invalid and extra fields",
+      "status": "blocked",
+      "steps": [
+        {
+          "action": "POST /api/posts with missing required title",
+          "expected": "400 validation error",
+          "observed": "401 Unauthorized before validation"
+        },
+        {
+          "action": "POST /api/posts with extra unknown field",
+          "expected": "400 validation error",
+          "observed": "401 Unauthorized before validation"
+        }
+      ],
+      "evidence": {
+        "requestResponse": [
+          {
+            "method": "POST",
+            "path": "/api/posts",
+            "statusCode": 401,
+            "curlExitCode": 0,
+            "requestBodyPath": "bug-fixes/api-shell/VAL-FIX-009-missing-title-request.json",
+            "responseHeadersPath": "bug-fixes/api-shell/VAL-FIX-009-missing-title-response.headers.txt",
+            "responseBodyPath": "bug-fixes/api-shell/VAL-FIX-009-missing-title-response.body.json",
+            "statusPath": "bug-fixes/api-shell/VAL-FIX-009-missing-title-response.status.txt",
+            "exitCodePath": "bug-fixes/api-shell/VAL-FIX-009-missing-title-response.exitcode.txt",
+            "responseSnippet": "{\"error\":\"Unauthorized\"}"
+          },
+          {
+            "method": "POST",
+            "path": "/api/posts",
+            "statusCode": 401,
+            "curlExitCode": 0,
+            "requestBodyPath": "bug-fixes/api-shell/VAL-FIX-009-extra-field-request.json",
+            "responseHeadersPath": "bug-fixes/api-shell/VAL-FIX-009-extra-field-response.headers.txt",
+            "responseBodyPath": "bug-fixes/api-shell/VAL-FIX-009-extra-field-response.body.json",
+            "statusPath": "bug-fixes/api-shell/VAL-FIX-009-extra-field-response.status.txt",
+            "exitCodePath": "bug-fixes/api-shell/VAL-FIX-009-extra-field-response.exitcode.txt",
+            "responseSnippet": "{\"error\":\"Unauthorized\"}"
+          }
+        ]
+      },
+      "issues": "Blocked by authentication gate; validation branch could not be reached without a valid authenticated session."
+    },
+    {
+      "id": "VAL-FIX-012",
+      "title": "Build succeeds after removing dead dependencies",
+      "status": "pass",
+      "steps": [
+        {
+          "action": "Run npm run build from repo root",
+          "expected": "Build exits 0 with successful compile and no module-not-found errors",
+          "observed": "Exit code 0; log contains 'Compiled successfully' and no 'Module not found' lines"
+        },
+        {
+          "action": "Scan src/ for @anthropic-ai/sdk and @insforge/nextjs imports",
+          "expected": "No matches",
+          "observed": "rg exit code 1 (no matches found)"
+        }
+      ],
+      "evidence": {
+        "build": {
+          "command": "cd /Users/anirudhmanjesh/hackathons/content-os && npm run build",
+          "exitCode": 0,
+          "logPath": "bug-fixes/api-shell/VAL-FIX-012-build.log",
+          "exitCodePath": "bug-fixes/api-shell/VAL-FIX-012-build.exitcode.txt",
+          "keyOutputSnippet": "✓ Compiled successfully"
+        },
+        "importScan": {
+          "command": "rg -n '@anthropic-ai/sdk|@insforge/nextjs' /Users/anirudhmanjesh/hackathons/content-os/src",
+          "exitCode": 1,
+          "outputPath": "bug-fixes/api-shell/VAL-FIX-012-import-scan.txt",
+          "exitCodePath": "bug-fixes/api-shell/VAL-FIX-012-import-scan.exitcode.txt",
+          "keyOutputSnippet": "no matches found"
+        }
+      },
+      "issues": null
+    }
+  ],
+  "frictions": [
+    {
+      "description": "API assertions requiring authenticated /api/posts access could not reach business-validation logic because no valid InsForge-backed auth token was available in this isolated curl run.",
+      "resolved": false,
+      "resolution": "Tried setting dispatch-token via local /api/auth endpoint and retrying /api/posts; still returned 401.",
+      "affectedAssertions": [
+        "VAL-FIX-008",
+        "VAL-FIX-009"
+      ]
+    }
+  ],
+  "blockers": [
+    {
+      "description": "Authentication gate blocked /api/posts assertions.",
+      "affectedAssertions": [
+        "VAL-FIX-008",
+        "VAL-FIX-009"
+      ],
+      "quickFixAttempted": "POST /api/auth with dummy token to set dispatch-token cookie, then retried /api/posts with cookie jar; response remained 401 Unauthorized with body {\"error\":\"Unauthorized\"}."
+    }
+  ],
+  "summary": "Tested 3 assertions: 1 passed (VAL-FIX-012), 2 blocked by auth (VAL-FIX-008, VAL-FIX-009)."
+}

@@ -1,0 +1,21 @@
+{
+  "featureId": "fix-pillar-init-and-cache-scoping",
+  "reviewedAt": "2026-03-30T13:22:28Z",
+  "commitId": "14d5961a8d48033e102675099ebfdc96b6df2291",
+  "transcriptSkeletonReviewed": true,
+  "diffReviewed": true,
+  "status": "pass",
+  "codeReview": {
+    "summary": "This fix adequately addresses the two remaining blockers from the prior failed review. `usePillars` now defers cache reads until after authenticated user resolution, and the pillar-selection state in ScriptGenerator, Ideas, and GenerateOutput now initializes safely and syncs after async pillar loading.",
+    "issues": []
+  },
+  "sharedStateObservations": [
+    {
+      "area": "skills",
+      "observation": "UI-verification procedure in `fullstack-worker` is still not being followed for UI-affecting component changes.",
+      "evidence": "`fullstack-worker` requires `agent-browser` for UI verification (`.factory/skills/fullstack-worker/SKILL.md:23,33,52`), but fix transcript skeleton for session `437514da-80bd-4558-b0ba-ad8052837b50` contains no `agent-browser` usage (`hasAgentBrowser: false`)."
+    }
+  ],
+  "addressesFailureFrom": ".factory/validation/multi-user-landing/scrutiny/reviews/fix-multi-user-scrutiny-blocking.json",
+  "summary": "Reviewed fix feature `fix-pillar-init-and-cache-scoping` against prior failure `fix-multi-user-scrutiny-blocking`. The new commit resolves both remaining blocking findings: async pillar initialization is now synchronized in all specified components, and user-scoped cache access in `usePillars` now occurs only after resolved current user ID."
+}

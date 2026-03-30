@@ -1,0 +1,39 @@
+{
+  "featureId": "fix-multi-user-scrutiny-blocking",
+  "reviewedAt": "2026-03-30T13:12:07Z",
+  "commitId": "05642d5536e0f4d403456bf293bcfaaa2dffd696",
+  "transcriptSkeletonReviewed": true,
+  "diffReviewed": true,
+  "status": "fail",
+  "codeReview": {
+    "summary": "The fix correctly resolves the onboarding redirect header mismatch and landing-page auth detection, but one prior blocking area remains unresolved: pillar defaults can still stick to legacy values before custom pillars load, so dynamic-pillar behavior is still not reliably correct for custom users.",
+    "issues": [
+      {
+        "file": "src/components/generate/ScriptGenerator.tsx",
+        "line": 87,
+        "severity": "blocking",
+        "description": "`pillar` is initialized once from `pillarList[0]` and never re-synced after async pillar loading. `usePillars()` boots with defaults when cache is cold (`src/hooks/usePillars.ts:92`), and defaults are ordered with `'hot-take'` first (`src/lib/constants.ts:2`). For users with custom pillars, generation can remain on legacy/default pillar state unless manually changed, so the prior blocking fallback behavior is not fully eliminated. Same one-time initialization pattern remains in Ideas (`src/app/(dashboard)/ideas/page.tsx:26`) and Save-to-Library modal (`src/components/generate/GenerateOutput.tsx:73`)."
+      },
+      {
+        "file": "src/hooks/usePillars.ts",
+        "line": 90,
+        "severity": "blocking",
+        "description": "Cache bootstrapping still uses `_lastUserId` before confirming the currently authenticated user, so first render may hydrate with a previous user's cached pillars in same-tab account switches. This violates the intent of strictly user-scoped pillar cache behavior (`_lastUserId` read at line 90, set at line 106)."
+      }
+    ]
+  },
+  "sharedStateObservations": [
+    {
+      "area": "skills",
+      "observation": "UI verification procedure in `fullstack-worker` is still not being followed for UI-affecting fixes.",
+      "evidence": "Skill requires agent-browser/manual UI verification (`.factory/skills/fullstack-worker/SKILL.md:23,33,50-52`), but fix transcript skeleton contains no `agent-browser` usage (`worker-transcripts.jsonl` session `e836cb59-7168-4dd7-b528-85f247c938e1`, `contains(\"agent-browser\") == false`)."
+    },
+    {
+      "area": "conventions",
+      "observation": "Mutation-boundary convention remains unenforced in touched generation flows.",
+      "evidence": "Mission AGENTS requires mutations via API routes only (`/Users/anirudhmanjesh/.factory/missions/fbcce583-7257-4bc1-9707-8c0ee4dcc7ec/AGENTS.md`, Data Access). `GenerateOutput` still performs direct client DB insert (`src/components/generate/GenerateOutput.tsx:85,89-90`)."
+    }
+  ],
+  "addressesFailureFrom": ".factory/validation/multi-user-landing/scrutiny/reviews/multi-user-system-prompt-and-onboarding.json; .factory/validation/multi-user-landing/scrutiny/reviews/dynamic-pillars-and-remove-hardcoded-refs.json; .factory/validation/multi-user-landing/scrutiny/reviews/build-landing-page.json",
+  "summary": "Fix commit 05642d5 resolves the onboarding redirect and landing auth blockers from prior scrutiny, but dynamic-pillar blocker remains due to one-time pillar state initialization and `_lastUserId` bootstrap behavior that can still surface legacy or cross-user pillar state."
+}

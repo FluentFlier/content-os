@@ -1,0 +1,57 @@
+{
+  "featureId": "dynamic-pillars-and-remove-hardcoded-refs",
+  "reviewedAt": "2026-03-30T12:56:54Z",
+  "commitId": "fdff2e112df7fe155629cbb4547edac54e23cec2",
+  "transcriptSkeletonReviewed": true,
+  "diffReviewed": true,
+  "status": "fail",
+  "codeReview": {
+    "summary": "The feature introduces a dynamic `usePillars()` source and removes hardcoded personal references from `src/`, but multiple pillar flows still fall back to hardcoded default pillar values and one cache design causes cross-user pillar leakage risk.",
+    "issues": [
+      {
+        "file": "content-os/src/hooks/usePillars.ts",
+        "line": 81,
+        "severity": "blocking",
+        "description": "`usePillars` caches pillar data in a single module-level `_cache` without user scoping. Because the hook returns cached data before checking `getCurrentUser()` (`line 106`), switching accounts in the same client session can show the previous user's custom pillars."
+      },
+      {
+        "file": "content-os/src/components/generate/ScriptGenerator.tsx",
+        "line": 87,
+        "severity": "blocking",
+        "description": "Selected pillar initializes from `pillarList[0] ?? 'hot-take'` before async custom pillars load, and is never reconciled after list changes. For custom-pillar users this can leave `pillar='hot-take'`, causing generation to use hardcoded legacy prompts (`line 9`) instead of user-defined pillars."
+      },
+      {
+        "file": "content-os/src/app/(dashboard)/library/page.tsx",
+        "line": 137,
+        "severity": "blocking",
+        "description": "Library `handleNewPost` still hardcodes `pillar: 'hot-take'`, so creating a post can immediately reintroduce a legacy pillar for users with custom pillar definitions."
+      },
+      {
+        "file": "content-os/src/app/(dashboard)/ideas/page.tsx",
+        "line": 26,
+        "severity": "blocking",
+        "description": "Ideas quick-add defaults to `pillarList[0] ?? 'hot-take'` at initial render and does not re-sync when custom pillars load, so submissions can persist `hot-take` even when user-defined pillars exist."
+      },
+      {
+        "file": "content-os/src/components/generate/StoryMine.tsx",
+        "line": 49,
+        "severity": "non_blocking",
+        "description": "StoryMine prompt still hardcodes legacy pillar taxonomy (`hot-take/hackathon/founder/...`), and conversion fallback still uses `'hot-take'` (`line 133`). Related hardcoded defaults also remain in `SeriesPlanner` (`content-os/src/components/generate/SeriesPlanner.tsx:75,109`) and Story Bank conversion (`content-os/src/app/(dashboard)/story-bank/page.tsx:81`)."
+      }
+    ]
+  },
+  "sharedStateObservations": [
+    {
+      "area": "skills",
+      "observation": "Skill procedure and worker behavior are out of sync for UI verification expectations.",
+      "evidence": "`fullstack-worker` requires agent-browser/manual UI checks for UI features (`content-os/.factory/skills/fullstack-worker/SKILL.md`, sections \"Required Skills\" and \"Manual verification\"), but this worker handoff reports command-only verification and the transcript skeleton filter for this session shows no `agent-browser` usage."
+    },
+    {
+      "area": "conventions",
+      "observation": "Mutation-boundary rule is documented but not enforced in feature work; direct client-side writes continue to be introduced in modified files.",
+      "evidence": "Mission AGENTS and architecture both state mutations should go through API routes (`/Users/anirudhmanjesh/.factory/missions/fbcce583-7257-4bc1-9707-8c0ee4dcc7ec/AGENTS.md` Data Access section, `content-os/.factory/library/architecture.md` Key Invariants). This feature still writes directly via client SDK in `content-os/src/components/generate/GenerateOutput.tsx:89-90` and `content-os/src/components/generate/SeriesPlanner.tsx:70-71,120-121`."
+    }
+  ],
+  "addressesFailureFrom": null,
+  "summary": "Review failed. Dynamic pillar plumbing is present in many surfaces and personal-name grep checks are clean, but blocking hardcoded pillar defaults remain in Generate/Library/Ideas flows and the global pillar cache is not user-scoped."
+}

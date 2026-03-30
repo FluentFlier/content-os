@@ -1,0 +1,39 @@
+{
+  "featureId": "build-landing-page",
+  "reviewedAt": "2026-03-30T12:53:56Z",
+  "commitId": "c50af2b",
+  "transcriptSkeletonReviewed": true,
+  "diffReviewed": true,
+  "status": "fail",
+  "codeReview": {
+    "summary": "The landing page rebuild largely matches the required sections, copy, styling, and CTA routes, but it misses a core requirement for authenticated users: showing a reliable 'Go to Dashboard' path. Auth state is derived from document.cookie even though the auth cookie is httpOnly.",
+    "issues": [
+      {
+        "file": "src/app/page.tsx",
+        "line": 213,
+        "severity": "blocking",
+        "description": "Authenticated-state detection uses `document.cookie.includes('dispatch-token')`, but `dispatch-token` is set as `httpOnly` in `src/app/api/auth/route.ts` (line 13). The browser cannot read that cookie from client JS, so `loggedIn` stays false and the authenticated-only 'Go to Dashboard' link path is not reliably shown."
+      },
+      {
+        "file": "src/app/page.tsx",
+        "line": 41,
+        "severity": "non_blocking",
+        "description": "All major sections start at `opacity: 0` and rely on IntersectionObserver to become visible. In environments where observers do not fire (some automation/full-page capture paths or unsupported browsers), content can remain hidden; add a graceful fallback or no-JS-safe default visibility."
+      }
+    ]
+  },
+  "sharedStateObservations": [
+    {
+      "area": "conventions",
+      "observation": "Auth-aware UI checks should not rely on `document.cookie` for `dispatch-token`; this cookie is httpOnly by design.",
+      "evidence": "src/app/page.tsx:213 reads `document.cookie`; src/app/api/auth/route.ts:13 sets `httpOnly: true`; .factory/library/architecture.md:84 documents dispatch-token as httpOnly."
+    },
+    {
+      "area": "skills",
+      "observation": "The landing-page-worker skill mandates fade-in-on-scroll animations but does not require a fallback strategy for automation/no-observer contexts, which led to hidden section confusion during worker verification.",
+      "evidence": ".factory/skills/landing-page-worker/SKILL.md:48 mandates 'Animations: fade-in on scroll only'; worker transcript skeleton (build-landing-page session) explicitly notes sections staying hidden until manual scroll."
+    }
+  ],
+  "addressesFailureFrom": null,
+  "summary": "Review failed due to a blocking auth-state bug: the page uses client-side cookie inspection for an httpOnly auth cookie, so authenticated-user-specific UI behavior is not dependable."
+}

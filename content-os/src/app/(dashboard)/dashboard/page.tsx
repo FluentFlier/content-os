@@ -1,24 +1,22 @@
-"use client";
-
-import { useEffect, useState, useCallback } from "react";
-import Link from "next/link";
-import type { LucideIcon } from "lucide-react";
+import Link from 'next/link';
+import type { LucideIcon } from 'lucide-react';
 import {
-  RefreshCw,
+  CalendarClock,
+  Layers,
+  CheckCircle2,
+  Flame,
   Wand2,
   BookOpen,
   PlusCircle,
   Lightbulb,
   ArrowRight,
-  Flame,
-  CalendarClock,
-  CheckCircle2,
-  Layers,
-} from "lucide-react";
-import { getInsforge } from "@/lib/insforge/client";
-import type { Post, ContentIdea, Priority } from "@/types/database";
-import StatusBadge from "@/components/StatusBadge";
-import PillarDot from "@/components/PillarDot";
+} from 'lucide-react';
+import { getServerClient, getAuthenticatedUser } from '@/lib/insforge/server';
+import type { Post, ContentIdea } from '@/lib/types';
+import type { Pillar, Priority, Status } from '@/lib/constants';
+import { PILLAR_COLORS, STATUS_BADGE, STATUS_LABELS } from '@/lib/constants';
+import { formatDateShort, formatRelative } from '@/lib/utils';
+import TodaysPrompt from '@/components/dashboard/TodaysPrompt';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -31,31 +29,22 @@ function getWeekBounds(): { start: string; end: string } {
   const monday = new Date(now);
   monday.setDate(now.getDate() - diffToMonday);
   monday.setHours(0, 0, 0, 0);
-
   const sunday = new Date(monday);
   sunday.setDate(monday.getDate() + 6);
   sunday.setHours(23, 59, 59, 999);
-
   return {
     start: monday.toISOString().slice(0, 10),
     end: sunday.toISOString().slice(0, 10),
   };
 }
 
-function todayISO(): string {
-  return new Date().toISOString().slice(0, 10);
-}
-
 function computeStreak(postedDates: string[]): number {
   if (postedDates.length === 0) return 0;
-
   const unique = Array.from(new Set(postedDates)).sort().reverse();
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-
   let streak = 0;
-  let cursor = new Date(today);
-
+  const cursor = new Date(today);
   for (let i = 0; i < 365; i++) {
     const dateStr = cursor.toISOString().slice(0, 10);
     if (unique.includes(dateStr)) {
@@ -65,304 +54,115 @@ function computeStreak(postedDates: string[]): number {
     }
     cursor.setDate(cursor.getDate() - 1);
   }
-
   return streak;
 }
 
-function timeAgo(dateStr: string): string {
-  const now = Date.now();
-  const then = new Date(dateStr).getTime();
-  const diffSec = Math.floor((now - then) / 1000);
-
-  if (diffSec < 60) return "just now";
-  const diffMin = Math.floor(diffSec / 60);
-  if (diffMin < 60) return `${diffMin}m ago`;
-  const diffHr = Math.floor(diffMin / 60);
-  if (diffHr < 24) return `${diffHr}h ago`;
-  const diffDay = Math.floor(diffHr / 24);
-  if (diffDay < 30) return `${diffDay}d ago`;
-  return `${Math.floor(diffDay / 30)}mo ago`;
-}
-
-function formatScheduledDate(dateStr: string): string {
-  const d = new Date(dateStr + "T00:00:00");
-  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-}
-
 const PRIORITY_COLORS: Record<Priority, string> = {
-  high: "#EB5E55",
-  medium: "#F5C842",
-  low: "#5A5047",
+  high: '#EB5E55',
+  medium: '#F5C842',
+  low: '#5A5047',
 };
 
 // ---------------------------------------------------------------------------
-// Skeleton helpers
+// Page (Server Component)
 // ---------------------------------------------------------------------------
 
-function Skeleton({ className }: { className?: string }) {
-  return (
-    <div className={`animate-pulse bg-surface rounded ${className ?? ""}`} />
-  );
-}
+export default async function DashboardPage() {
+  const user = await getAuthenticatedUser();
 
-function StatCardSkeleton() {
-  return (
-    <div className="bg-surface border border-border rounded-lg p-5">
-      <Skeleton className="h-8 w-16 mb-2" />
-      <Skeleton className="h-4 w-24" />
-    </div>
-  );
-}
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <p className="font-['Space_Grotesk'] text-[13px] text-[#8C857D]">Please sign in to view your dashboard.</p>
+      </div>
+    );
+  }
 
-// ---------------------------------------------------------------------------
-// Page
-// ---------------------------------------------------------------------------
+  const client = getServerClient();
+  const uid = user.id;
+  const { start, end } = getWeekBounds();
+  const today = new Date().toISOString().slice(0, 10);
 
-export default function DashboardPage() {
-  const [loading, setLoading] = useState(true);
-  const [userId, setUserId] = useState<string | null>(null);
+  // Fire all queries in parallel
+  const [weekPostsRes, pipelineRes, postedRes, streakRes, upNextRes, recentRes, ideasRes, weekScheduleRes] =
+    await Promise.all([
+      client.database.from('posts').select('id').eq('user_id', uid).eq('status', 'posted').gte('posted_date', start).lte('posted_date', end),
+      client.database.from('posts').select('id').eq('user_id', uid).neq('status', 'posted').neq('status', 'idea'),
+      client.database.from('posts').select('id').eq('user_id', uid).eq('status', 'posted'),
+      client.database.from('posts').select('posted_date').eq('user_id', uid).not('posted_date', 'is', null).order('posted_date', { ascending: false }),
+      client.database.from('posts').select('*').eq('user_id', uid).gte('scheduled_date', today).neq('status', 'posted').order('scheduled_date', { ascending: true }).limit(3),
+      client.database.from('posts').select('*').eq('user_id', uid).order('updated_at', { ascending: false }).limit(5),
+      client.database.from('content_ideas').select('*').eq('user_id', uid).eq('converted', false).order('priority', { ascending: true }).limit(3),
+      client.database.from('posts').select('title, pillar, status').eq('user_id', uid).gte('scheduled_date', start).lte('scheduled_date', end),
+    ]);
 
-  // Data
-  const [postsThisWeek, setPostsThisWeek] = useState(0);
-  const [inPipeline, setInPipeline] = useState(0);
-  const [totalPosted, setTotalPosted] = useState(0);
-  const [streak, setStreak] = useState(0);
-  const [upNext, setUpNext] = useState<Post[]>([]);
-  const [recentActivity, setRecentActivity] = useState<Post[]>([]);
-  const [backlog, setBacklog] = useState<ContentIdea[]>([]);
+  const postsThisWeek = weekPostsRes.data?.length ?? 0;
+  const inPipeline = pipelineRes.data?.length ?? 0;
+  const totalPosted = postedRes.data?.length ?? 0;
 
-  // AI prompt
-  const [aiSuggestion, setAiSuggestion] = useState("");
-  const [aiLoading, setAiLoading] = useState(false);
+  const dates = (streakRes.data ?? [])
+    .map((r: { posted_date: string | null }) => r.posted_date)
+    .filter(Boolean) as string[];
+  const streak = computeStreak(dates);
 
-  // --------------------------------------------------
-  // Fetch all dashboard data
-  // --------------------------------------------------
-  const fetchData = useCallback(async () => {
-    try {
-      const insforge = getInsforge();
-      const { data: userData } = await insforge.auth.getCurrentUser();
-      const uid = userData?.user?.id;
-      if (!uid) return;
-      setUserId(uid);
+  const upNext = (upNextRes.data as Post[]) ?? [];
+  const recentActivity = (recentRes.data as Post[]) ?? [];
+  const backlog = (ideasRes.data as ContentIdea[]) ?? [];
 
-      const { start, end } = getWeekBounds();
-      const today = todayISO();
+  // Build summary for AI prompt
+  const weekPosts = weekScheduleRes.data ?? [];
+  const postsSummary =
+    weekPosts.length > 0
+      ? weekPosts
+          .map((p: { title: string; pillar: string; status: string }) => `"${p.title}" (${p.pillar}, ${p.status})`)
+          .join(', ')
+      : 'No posts this week yet.';
 
-      // Fire all queries in parallel
-      const [
-        weekPostsRes,
-        pipelineRes,
-        postedRes,
-        streakRes,
-        upNextRes,
-        recentRes,
-        ideasRes,
-      ] = await Promise.all([
-        // Posts this week
-        insforge.database
-          .from("posts")
-          .select("id")
-          .eq("user_id", uid)
-          .eq("status", "posted")
-          .gte("posted_date", start)
-          .lte("posted_date", end),
-
-        // In pipeline
-        insforge.database
-          .from("posts")
-          .select("id")
-          .eq("user_id", uid)
-          .neq("status", "posted")
-          .neq("status", "idea"),
-
-        // Total posted
-        insforge.database
-          .from("posts")
-          .select("id")
-          .eq("user_id", uid)
-          .eq("status", "posted"),
-
-        // All posted dates for streak
-        insforge.database
-          .from("posts")
-          .select("posted_date")
-          .eq("user_id", uid)
-          .not("posted_date", "is", null)
-          .order("posted_date", { ascending: false }),
-
-        // Up next
-        insforge.database
-          .from("posts")
-          .select("*")
-          .eq("user_id", uid)
-          .gte("scheduled_date", today)
-          .neq("status", "posted")
-          .order("scheduled_date", { ascending: true })
-          .limit(3),
-
-        // Recent activity
-        insforge.database
-          .from("posts")
-          .select("*")
-          .eq("user_id", uid)
-          .order("updated_at", { ascending: false })
-          .limit(5),
-
-        // Backlog ideas
-        insforge.database
-          .from("content_ideas")
-          .select("*")
-          .eq("user_id", uid)
-          .eq("converted", false)
-          .order("priority", { ascending: true })
-          .limit(3),
-      ]);
-
-      setPostsThisWeek(weekPostsRes.data?.length ?? 0);
-      setInPipeline(pipelineRes.data?.length ?? 0);
-      setTotalPosted(postedRes.data?.length ?? 0);
-
-      const dates = (streakRes.data ?? [])
-        .map((r: { posted_date: string | null }) => r.posted_date)
-        .filter(Boolean) as string[];
-      setStreak(computeStreak(dates));
-
-      setUpNext((upNextRes.data as Post[]) ?? []);
-      setRecentActivity((recentRes.data as Post[]) ?? []);
-      setBacklog((ideasRes.data as ContentIdea[]) ?? []);
-    } catch (err) {
-      console.error("Dashboard fetch error:", err);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  // --------------------------------------------------
-  // Fetch AI suggestion
-  // --------------------------------------------------
-  const fetchAiSuggestion = useCallback(async () => {
-    setAiLoading(true);
-    try {
-      const insforge = getInsforge();
-      const { data: userData } = await insforge.auth.getCurrentUser();
-      const uid = userData?.user?.id;
-      if (!uid) return;
-
-      const { start, end } = getWeekBounds();
-
-      const { data: weekPosts } = await insforge.database
-        .from("posts")
-        .select("title, pillar, status")
-        .eq("user_id", uid)
-        .gte("created_at", start)
-        .lte("created_at", end);
-
-      const postsSummary =
-        weekPosts && weekPosts.length > 0
-          ? weekPosts
-              .map(
-                (p: { title: string; pillar: string; status: string }) =>
-                  `- "${p.title}" (${p.pillar}, ${p.status})`
-              )
-              .join("\n")
-          : "No posts this week yet.";
-
-      const prompt = `Here are my posts this week:\n${postsSummary}\n\nWhich content pillar or angle am I missing? Suggest one specific content idea I should create next. Be concise (2-3 sentences max). Do not use em dashes.`;
-
-      const res = await fetch("/api/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt }),
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        setAiSuggestion(data.text ?? "Could not generate a suggestion.");
-      } else {
-        setAiSuggestion("Could not generate a suggestion right now. Try again later.");
-      }
-    } catch {
-      setAiSuggestion("Could not generate a suggestion right now. Try again later.");
-    } finally {
-      setAiLoading(false);
-    }
-  }, []);
-
-  // --------------------------------------------------
-  // Mount
-  // --------------------------------------------------
-  useEffect(() => {
-    fetchData();
-    fetchAiSuggestion();
-  }, [fetchData, fetchAiSuggestion]);
-
-  // --------------------------------------------------
-  // Render
-  // --------------------------------------------------
   return (
     <div className="max-w-5xl mx-auto space-y-8">
       {/* Greeting */}
-      <h1 className="font-heading text-3xl md:text-4xl font-bold text-text-primary pt-2">
+      <h1 className="font-display font-[800] text-[21px] text-[#1A1714] tracking-[-0.02em] leading-[1.2] pt-2">
         What are we building today?
       </h1>
 
       {/* Stats Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {loading ? (
-          <>
-            <StatCardSkeleton />
-            <StatCardSkeleton />
-            <StatCardSkeleton />
-            <StatCardSkeleton />
-          </>
-        ) : (
-          <>
-            <StatCard icon={CalendarClock} value={postsThisWeek} label="Posts this week" />
-            <StatCard icon={Layers} value={inPipeline} label="In pipeline" />
-            <StatCard icon={CheckCircle2} value={totalPosted} label="Total posted" />
-            <StatCard icon={Flame} value={streak} label="Day streak" />
-          </>
-        )}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <StatCard icon={CalendarClock} value={postsThisWeek} label="Posts this week" accent={false} />
+        <StatCard icon={Layers} value={inPipeline} label="In pipeline" accent={false} />
+        <StatCard icon={CheckCircle2} value={totalPosted} label="Total posted" accent={false} />
+        <StatCard icon={Flame} value={streak} label="Day streak" accent />
       </div>
 
       {/* Middle row: Up Next + Today's Prompt */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
         {/* Up Next */}
-        <section className="bg-surface border border-border rounded-lg p-5">
-          <h2 className="font-heading text-lg font-semibold text-text-primary mb-4">
-            Up Next
-          </h2>
-          {loading ? (
-            <div className="space-y-3">
-              <Skeleton className="h-12 w-full" />
-              <Skeleton className="h-12 w-full" />
-              <Skeleton className="h-12 w-full" />
-            </div>
-          ) : upNext.length === 0 ? (
-            <p className="text-text-muted text-sm">
-              Nothing scheduled. Time to plan some content!
-            </p>
+        <section className="bg-[#FAFAF8] border-[0.5px] border-[rgba(26,23,20,0.12)] rounded-[12px] p-[13px_14px]">
+          <SectionLabel>UP NEXT</SectionLabel>
+          {upNext.length === 0 ? (
+            <p className="font-['Space_Grotesk'] text-[13px] text-[#8C857D]">Nothing scheduled. Time to plan some content.</p>
           ) : (
-            <ul className="space-y-3">
+            <ul className="space-y-2">
               {upNext.map((post) => (
                 <li key={post.id}>
-                  <Link
-                    href="/library"
-                    className="flex items-center justify-between gap-3 group"
-                  >
+                  <Link href="/library" className="flex items-center justify-between gap-3 group">
                     <div className="flex items-center gap-3 min-w-0">
-                      <PillarDot pillar={post.pillar} />
-                      <span className="text-sm text-text-primary truncate group-hover:text-coral transition-colors">
+                      <span
+                        className="inline-block w-[3px] h-8 rounded-r-[2px] shrink-0"
+                        style={{ backgroundColor: PILLAR_COLORS[post.pillar] }}
+                      />
+                      <span className="font-['Space_Grotesk'] text-[13px] font-medium text-[#1A1714] truncate group-hover:text-[#EB5E55] transition-colors duration-100">
                         {post.title}
                       </span>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
-                      <StatusBadge status={post.status} />
+                      <span className="font-['Space_Grotesk'] text-[10px] font-medium text-[#8C857D] bg-[#F4F2EF] border-[0.5px] border-[rgba(26,23,20,0.12)] rounded-[3px] px-[7px] py-[2px] capitalize tracking-[0.05em]">
+                        {post.platform}
+                      </span>
+                      <span className={`inline-flex items-center px-[7px] py-[2px] rounded-[3px] font-['Space_Grotesk'] text-[10px] font-medium tracking-[0.01em] ${STATUS_BADGE[post.status]}`}>
+                        {STATUS_LABELS[post.status]}
+                      </span>
                       {post.scheduled_date && (
-                        <span className="text-xs text-text-muted">
-                          {formatScheduledDate(post.scheduled_date)}
-                        </span>
+                        <span className="font-['Space_Grotesk'] text-[11px] text-[#8C857D]">{formatDateShort(post.scheduled_date)}</span>
                       )}
                     </div>
                   </Link>
@@ -372,74 +172,33 @@ export default function DashboardPage() {
           )}
         </section>
 
-        {/* Today's Prompt */}
-        <section className="bg-surface border border-border rounded-lg p-5">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-heading text-lg font-semibold text-text-primary">
-              Today&apos;s Prompt
-            </h2>
-            <button
-              onClick={fetchAiSuggestion}
-              disabled={aiLoading}
-              className="text-text-muted hover:text-coral transition-colors disabled:opacity-50"
-              aria-label="Refresh suggestion"
-            >
-              <RefreshCw
-                size={16}
-                className={aiLoading ? "animate-spin" : ""}
-              />
-            </button>
-          </div>
-          {aiLoading ? (
-            <div className="space-y-2">
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-3/4" />
-              <Skeleton className="h-4 w-5/6" />
-            </div>
-          ) : (
-            <p className="text-sm text-text-primary leading-relaxed">
-              {aiSuggestion || "Click refresh to generate a content idea."}
-            </p>
-          )}
-        </section>
+        {/* Today's Prompt (Client Component) */}
+        <TodaysPrompt postsSummary={postsSummary} />
       </div>
 
       {/* Backlog */}
-      <section className="bg-surface border border-border rounded-lg p-5">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="font-heading text-lg font-semibold text-text-primary">
-            Backlog
-          </h2>
-          <Link
-            href="/ideas"
-            className="text-xs text-text-muted hover:text-coral transition-colors flex items-center gap-1"
-          >
+      <section className="bg-[#FAFAF8] border-[0.5px] border-[rgba(26,23,20,0.12)] rounded-[12px] p-[13px_14px]">
+        <div className="flex items-center justify-between mb-3">
+          <SectionLabel className="mb-0">BACKLOG</SectionLabel>
+          <Link href="/ideas" className="font-['Space_Grotesk'] text-[11px] text-[#8C857D] hover:text-[#EB5E55] transition-colors duration-100 flex items-center gap-1">
             View all <ArrowRight size={12} />
           </Link>
         </div>
-        {loading ? (
-          <div className="space-y-3">
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
-          </div>
-        ) : backlog.length === 0 ? (
-          <p className="text-text-muted text-sm">No ideas in the backlog yet.</p>
+        {backlog.length === 0 ? (
+          <p className="font-['Space_Grotesk'] text-[13px] text-[#8C857D]">Nothing queued. Add an idea before you forget it.</p>
         ) : (
-          <ul className="space-y-3">
+          <ul className="space-y-2">
             {backlog.map((idea) => (
-              <li
-                key={idea.id}
-                className="flex items-center justify-between gap-3"
-              >
+              <li key={idea.id} className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3 min-w-0">
-                  <PillarDot pillar={idea.pillar} />
-                  <span className="text-sm text-text-primary truncate">
-                    {idea.idea}
-                  </span>
+                  <span
+                    className="inline-block w-[6px] h-[6px] rounded-full shrink-0"
+                    style={{ backgroundColor: PILLAR_COLORS[idea.pillar] }}
+                  />
+                  <span className="font-['Space_Grotesk'] text-[13px] text-[#1A1714] truncate">{idea.idea}</span>
                 </div>
                 <span
-                  className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium capitalize shrink-0"
+                  className="inline-flex items-center px-[7px] py-[2px] rounded-[3px] font-['Space_Grotesk'] text-[10px] font-medium capitalize shrink-0 tracking-[0.01em]"
                   style={{
                     backgroundColor: `${PRIORITY_COLORS[idea.priority]}20`,
                     color: PRIORITY_COLORS[idea.priority],
@@ -455,64 +214,36 @@ export default function DashboardPage() {
 
       {/* Quick Actions */}
       <section>
-        <h2 className="font-heading text-lg font-semibold text-text-primary mb-4">
-          Quick Actions
-        </h2>
+        <SectionLabel>QUICK ACTIONS</SectionLabel>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <QuickAction
-            href="/generate"
-            icon={Wand2}
-            label="Generate Script"
-          />
-          <QuickAction
-            href="/generate?tab=story-mine"
-            icon={BookOpen}
-            label="Mine a Story"
-          />
-          <QuickAction
-            href="/library?action=new"
-            icon={PlusCircle}
-            label="Log a Post"
-          />
-          <QuickAction
-            href="/ideas"
-            icon={Lightbulb}
-            label="Add Idea"
-          />
+          <QuickAction href="/generate" icon={Wand2} label="Generate Script" />
+          <QuickAction href="/generate?tab=story-mine" icon={BookOpen} label="Mine a Story" />
+          <QuickAction href="/library?action=new" icon={PlusCircle} label="Log a Post" />
+          <QuickAction href="/ideas" icon={Lightbulb} label="Add Idea" />
         </div>
       </section>
 
       {/* Recent Activity */}
-      <section className="bg-surface border border-border rounded-lg p-5">
-        <h2 className="font-heading text-lg font-semibold text-text-primary mb-4">
-          Recent Activity
-        </h2>
-        {loading ? (
-          <div className="space-y-3">
-            {[...Array(5)].map((_, i) => (
-              <Skeleton key={i} className="h-10 w-full" />
-            ))}
-          </div>
-        ) : recentActivity.length === 0 ? (
-          <p className="text-text-muted text-sm">No recent activity.</p>
+      <section className="bg-[#FAFAF8] border-[0.5px] border-[rgba(26,23,20,0.12)] rounded-[12px] p-[13px_14px]">
+        <SectionLabel>RECENT ACTIVITY</SectionLabel>
+        {recentActivity.length === 0 ? (
+          <p className="font-['Space_Grotesk'] text-[13px] text-[#8C857D]">No recent activity.</p>
         ) : (
-          <ul className="space-y-3">
+          <ul className="space-y-2">
             {recentActivity.map((post) => (
-              <li
-                key={post.id}
-                className="flex items-center justify-between gap-3"
-              >
+              <li key={post.id} className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3 min-w-0">
-                  <PillarDot pillar={post.pillar} />
-                  <span className="text-sm text-text-primary truncate">
-                    {post.title}
-                  </span>
+                  <span
+                    className="inline-block w-[6px] h-[6px] rounded-full shrink-0"
+                    style={{ backgroundColor: PILLAR_COLORS[post.pillar] }}
+                  />
+                  <span className="font-['Space_Grotesk'] text-[13px] text-[#1A1714] truncate">{post.title}</span>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
-                  <StatusBadge status={post.status} />
-                  <span className="text-xs text-text-muted">
-                    {timeAgo(post.updated_at)}
+                  <span className={`inline-flex items-center px-[7px] py-[2px] rounded-[3px] font-['Space_Grotesk'] text-[10px] font-medium tracking-[0.01em] ${STATUS_BADGE[post.status]}`}>
+                    {STATUS_LABELS[post.status]}
                   </span>
+                  <span className="font-['Space_Grotesk'] text-[11px] text-[#8C857D]">{formatRelative(post.updated_at)}</span>
                 </div>
               </li>
             ))}
@@ -527,22 +258,32 @@ export default function DashboardPage() {
 // Sub-components
 // ---------------------------------------------------------------------------
 
+function SectionLabel({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+  return (
+    <p className={`font-['Space_Grotesk'] font-medium text-[10px] uppercase tracking-[0.10em] text-[#8C857D] mb-3 ${className}`}>
+      {children}
+    </p>
+  );
+}
+
 function StatCard({
   icon: Icon,
   value,
   label,
+  accent = false,
 }: {
   icon: LucideIcon;
   value: number;
   label: string;
+  accent?: boolean;
 }) {
   return (
-    <div className="bg-surface border border-border rounded-lg p-5">
+    <div className="bg-[#FAFAF8] border-[0.5px] border-[rgba(26,23,20,0.12)] rounded-[12px] p-[13px_14px]">
       <div className="flex items-center gap-3 mb-1">
-        <Icon size={18} className="text-text-muted" />
-        <span className="text-3xl font-bold text-text-primary">{value}</span>
+        <Icon size={16} className="text-[#8C857D]" />
+        <span className={`font-['Space_Grotesk'] text-[22px] font-medium ${accent ? 'text-[#EB5E55]' : 'text-[#1A1714]'}`}>{value}</span>
       </div>
-      <p className="text-sm text-text-muted">{label}</p>
+      <p className="font-['Space_Grotesk'] text-[11px] text-[#8C857D]">{label}</p>
     </div>
   );
 }
@@ -559,13 +300,10 @@ function QuickAction({
   return (
     <Link
       href={href}
-      className="flex flex-col items-center gap-2 bg-surface border border-border rounded-lg p-4 hover:border-coral/50 hover:bg-coral/5 transition-colors group"
+      className="flex flex-col items-center gap-2 bg-[#F4F2EF] border-[0.5px] border-[rgba(26,23,20,0.12)] rounded-[7px] p-[10px_14px] hover:border-[rgba(26,23,20,0.25)] transition-colors duration-100 group"
     >
-      <Icon
-        size={22}
-        className="text-text-muted group-hover:text-coral transition-colors"
-      />
-      <span className="text-xs text-text-muted group-hover:text-text-primary transition-colors text-center">
+      <Icon size={18} className="text-[#8C857D] group-hover:text-[#4A4540] transition-colors duration-100" />
+      <span className="font-['Space_Grotesk'] text-[11px] text-[#4A4540] group-hover:text-[#1A1714] transition-colors duration-100 text-center">
         {label}
       </span>
     </Link>

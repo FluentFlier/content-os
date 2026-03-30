@@ -39,7 +39,7 @@ export default function GeneratePage() {
     <Suspense
       fallback={
         <div className="space-y-6">
-          <h1 className="font-['Syne'] font-[800] text-[21px] text-[#1A1714] tracking-[-0.02em] leading-[1.2]">
+          <h1 className="font-display font-[800] text-[21px] text-[#1A1714] tracking-[-0.02em] leading-[1.2]">
             Generate
           </h1>
           <div className="bg-[#FAFAF8] border-[0.5px] border-[rgba(26,23,20,0.12)] rounded-[12px] p-[13px_14px]">
@@ -124,7 +124,7 @@ function GeneratePageInner() {
 
   return (
     <div className="space-y-6">
-      <h1 className="font-['Syne'] font-[800] text-[21px] text-[#1A1714] tracking-[-0.02em] leading-[1.2]">Generate</h1>
+      <h1 className="font-display font-[800] text-[21px] text-[#1A1714] tracking-[-0.02em] leading-[1.2]">Generate</h1>
 
       {/* Tab bar */}
       <div ref={tabBarRef} className="-mx-4 px-4 md:mx-0 md:px-0">

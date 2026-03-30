@@ -2,35 +2,50 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --bg-primary: #FAFAF8;
+  --bg-secondary: #F4F2EF;
+  --bg-tertiary: #EDECEA;
+  --text-primary: #1A1714;
+  --text-secondary: #4A4540;
+  --text-tertiary: #8C857D;
+  --border-default: rgba(26, 23, 20, 0.12);
+  --border-hover: rgba(26, 23, 20, 0.25);
+  --border-active: rgba(26, 23, 20, 0.40);
+  --coral: #EB5E55;
+  --coral-light: #FAECE7;
+  --coral-dark: #993C1D;
+}
+
+* { box-sizing: border-box; }
+
 body {
-  background-color: #FAFAFA;
-  color: #171717;
-  font-family: 'Inter', system-ui, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'Space Grotesk', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  font-size: 13px;
+  line-height: 1.55;
 }
 
-h1, h2, h3, h4, h5, h6 {
-  font-family: 'Instrument Serif', Georgia, serif;
+h1, h2, h3, h4, h5, h6, .font-display, .font-heading {
+  font-family: 'Syne', system-ui, sans-serif;
+  line-height: 1.2;
 }
 
-::-webkit-scrollbar {
-  width: 4px;
+::selection {
+  background: rgba(235, 94, 85, 0.15);
+  color: var(--text-primary);
 }
 
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #D4D4D4;
-  border-radius: 2px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #A3A3A3;
-}
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-default); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border-hover); }
 
 textarea:focus, input:focus, select:focus {
   outline: none;
+  border-color: var(--border-active);
 }
 
 @keyframes slide-in-right {
@@ -39,10 +54,14 @@ textarea:focus, input:focus, select:focus {
 }
 
 .animate-slide-in {
-  animation: slide-in-right 0.25s ease-out;
+  animation: slide-in-right 0.15s ease-out;
 }
 
-::selection {
-  background: rgba(23, 23, 23, 0.08);
-  color: #171717;
+@keyframes pulse-skeleton {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.7; }
+}
+
+.animate-skeleton {
+  animation: pulse-skeleton 1.5s ease-in-out infinite;
 }

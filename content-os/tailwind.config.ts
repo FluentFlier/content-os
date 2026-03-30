@@ -1,49 +1,58 @@
-import type { Config } from "tailwindcss";
+import type { Config } from 'tailwindcss';
 
 const config: Config = {
   content: [
-    "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
-    "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
-    "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
+    './src/app/**/*.{ts,tsx}',
+    './src/components/**/*.{ts,tsx}',
+    './src/lib/**/*.{ts,tsx}',
   ],
   theme: {
     extend: {
       colors: {
-        bg: "#FAFAFA",
-        surface: "#FFFFFF",
-        "surface-hover": "#F5F5F5",
-        border: "#E5E5E5",
-        "border-bright": "#D4D4D4",
-        "text-primary": "#171717",
-        "text-secondary": "#404040",
-        "text-muted": "#A3A3A3",
-        accent: "#171717",
-        "accent-hover": "#404040",
-        green: "#16A34A",
-        blue: "#2563EB",
-        coral: "#DC2626",
-        amber: "#D97706",
-        purple: "#7C3AED",
-        yellow: "#CA8A04",
+        bg: {
+          primary: '#FAFAF8',
+          secondary: '#F4F2EF',
+          tertiary: '#EDECEA',
+        },
+        text: {
+          primary: '#1A1714',
+          secondary: '#4A4540',
+          tertiary: '#8C857D',
+        },
+        border: {
+          DEFAULT: 'rgba(26, 23, 20, 0.12)',
+          hover: 'rgba(26, 23, 20, 0.25)',
+          active: 'rgba(26, 23, 20, 0.40)',
+        },
+        coral: {
+          DEFAULT: '#EB5E55',
+          light: '#FAECE7',
+          dark: '#993C1D',
+        },
+        pillar: {
+          'hot-take': '#EB5E55',
+          hackathon: '#F5C842',
+          founder: '#4D96FF',
+          explainer: '#C77DFF',
+          origin: '#5CB85C',
+          research: '#F5C842',
+        },
       },
       fontFamily: {
-        display: ['"Instrument Serif"', "Georgia", "serif"],
-        body: ['"Inter"', "system-ui", "sans-serif"],
-        mono: ['"JetBrains Mono"', "monospace"],
+        display: ['Syne', 'system-ui', 'sans-serif'],
+        heading: ['Syne', 'system-ui', 'sans-serif'],
+        body: ['Space Grotesk', 'system-ui', 'sans-serif'],
       },
-      animation: {
-        "fade-in": "fadeIn 0.3s ease-out",
-        "slide-up": "slideUp 0.4s ease-out",
+      borderRadius: {
+        'lg': '12px',
+        'md': '7px',
+        'badge': '3px',
+        'pill': '20px',
       },
-      keyframes: {
-        fadeIn: {
-          "0%": { opacity: "0" },
-          "100%": { opacity: "1" },
-        },
-        slideUp: {
-          "0%": { opacity: "0", transform: "translateY(8px)" },
-          "100%": { opacity: "1", transform: "translateY(0)" },
-        },
+      borderWidth: {
+        'thin': '0.5px',
+        'accent': '3px',
+        'nav': '2px',
       },
     },
   },

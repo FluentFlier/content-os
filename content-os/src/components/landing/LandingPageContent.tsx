@@ -1,9 +1,14 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import Link from 'next/link';
 
-/* ---------- intersection observer fade-in ---------- */
+/* ================================================================
+   DISPATCH LANDING PAGE - "Terminal Luxe"
+   Dark, editorial, glass effects, grain texture
+   ================================================================ */
+
+/* ---------- intersection observer ---------- */
 function useFadeIn(delay = 0): React.RefObject<HTMLDivElement> {
   const ref = useRef<HTMLDivElement>(null!);
   useEffect(() => {
@@ -19,7 +24,7 @@ function useFadeIn(delay = 0): React.RefObject<HTMLDivElement> {
           io.unobserve(el);
         }
       },
-      { threshold: 0.1 },
+      { threshold: 0.08 },
     );
     io.observe(el);
     return () => io.disconnect();
@@ -27,81 +32,103 @@ function useFadeIn(delay = 0): React.RefObject<HTMLDivElement> {
   return ref;
 }
 
-function FadeIn({ children, className = '', delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) {
+function Fade({ children, className = '', delay = 0 }: {
+  children: React.ReactNode; className?: string; delay?: number;
+}) {
   const ref = useFadeIn(delay);
   return (
     <div
       ref={ref}
       className={className}
-      style={{ opacity: 0, transform: 'translateY(24px)', transition: 'opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1)' }}
+      style={{ opacity: 0, transform: 'translateY(20px)', transition: `opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1) ${delay}ms, transform 0.7s cubic-bezier(0.16, 1, 0.3, 1) ${delay}ms` }}
     >
       {children}
     </div>
   );
 }
 
-/* ---------- animated counter ---------- */
-function Counter({ target, suffix = '' }: { target: number; suffix?: string }) {
-  const [count, setCount] = useState(0);
-  const ref = useRef<HTMLSpanElement>(null!);
+/* ---------- spotlight cursor glow ---------- */
+function useSpotlight() {
+  const ref = useRef<HTMLDivElement>(null!);
+  const handleMove = useCallback((e: MouseEvent) => {
+    if (!ref.current) return;
+    ref.current.style.setProperty('--mx', `${e.clientX}px`);
+    ref.current.style.setProperty('--my', `${e.clientY}px`);
+  }, []);
   useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const io = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) {
-        let start = 0;
-        const step = Math.max(1, Math.floor(target / 40));
-        const timer = setInterval(() => {
-          start += step;
-          if (start >= target) { setCount(target); clearInterval(timer); }
-          else setCount(start);
-        }, 30);
-        io.unobserve(el);
-      }
-    }, { threshold: 0.5 });
-    io.observe(el);
-    return () => io.disconnect();
-  }, [target]);
-  return <span ref={ref}>{count}{suffix}</span>;
+    window.addEventListener('mousemove', handleMove);
+    return () => window.removeEventListener('mousemove', handleMove);
+  }, [handleMove]);
+  return ref;
+}
+
+/* ---------- animated number ---------- */
+function Num({ n, label }: { n: string; label: string }) {
+  return (
+    <div className="text-center">
+      <div style={{ fontFamily: "'Instrument Serif', serif", fontSize: '42px', color: '#FAFAFA', lineHeight: 1 }}>{n}</div>
+      <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10px', color: '#52525B', letterSpacing: '0.12em', textTransform: 'uppercase', marginTop: '6px' }}>{label}</div>
+    </div>
+  );
 }
 
 /* ---------- data ---------- */
 const features = [
-  { emoji: '✍️', title: '8 AI Writing Tools', desc: 'Scripts, hooks, captions, comment replies, repurposing, trend catching, and more. All trained on your voice.' },
-  { emoji: '📚', title: 'Content Library', desc: 'Every post tracked from idea to posted. Filter by pillar, status, platform. Bulk actions. Full pipeline.' },
-  { emoji: '📅', title: 'Smart Calendar', desc: 'Drag posts onto days. AI fills your week. See gaps before they become missed opportunities.' },
-  { emoji: '🎬', title: 'Video Studio', desc: 'Upload, preview, and template videos. Auto-captions and smart cuts when you connect a processing backend.' },
-  { emoji: '📤', title: 'Social Publishing', desc: 'Connect X, LinkedIn, Instagram, Threads. Publish from one place. Platform-specific formatting built in.' },
-  { emoji: '📊', title: 'Analytics + Reviews', desc: 'Weekly AI reviews. Pillar breakdowns. Posting streaks. Performance logs. Know what actually works.' },
+  { tag: 'GENERATE', title: 'AI that writes like you', desc: 'Eight tools trained on your voice. Scripts, hooks, captions, replies, repurposing. Not generic copy.', icon: '01' },
+  { tag: 'ORGANIZE', title: 'Pipeline, not chaos', desc: 'Every post tracked from idea through scripted, filmed, edited, to posted. Filter. Search. Bulk edit.', icon: '02' },
+  { tag: 'SCHEDULE', title: 'Calendar with drag-and-drop', desc: 'Drop posts on days. AI suggests your week. See gaps before they cost you momentum.', icon: '03' },
+  { tag: 'PUBLISH', title: 'Four platforms, one click', desc: 'X, LinkedIn, Instagram, Threads. Connect once, publish everywhere with platform-aware formatting.', icon: '04' },
+  { tag: 'ANALYZE', title: 'Know what ships', desc: 'Weekly AI reviews. Pillar breakdowns. Performance logs. Pattern detection across your content.', icon: '05' },
+  { tag: 'EDIT', title: 'Video studio built in', desc: 'Upload, template, and prepare videos. Auto-captions and smart cuts ready when you plug in a backend.', icon: '06' },
 ];
 
-const steps = [
-  { n: '01', title: 'Define your voice', desc: 'Name, pillars, background, tone. The AI adapts to you.' },
-  { n: '02', title: 'Create and organize', desc: 'Generate content, organize in library, schedule on calendar.' },
-  { n: '03', title: 'Publish and learn', desc: 'Push to platforms. Track performance. Let AI spot patterns.' },
-];
-
+/* ---------- component ---------- */
 interface Props { loggedIn: boolean; }
 
 export default function LandingPageContent({ loggedIn }: Props) {
+  const spotlightRef = useSpotlight();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
   return (
-    <div className="min-h-screen bg-white font-body overflow-x-hidden">
+    <div
+      ref={spotlightRef}
+      className="relative min-h-screen overflow-x-hidden"
+      style={{
+        background: '#09090B',
+        fontFamily: "'DM Sans', sans-serif",
+        color: '#A1A1AA',
+        fontSize: '14px',
+        lineHeight: 1.6,
+      }}
+    >
+      {/* Grain texture overlay */}
+      <div className="fixed inset-0 pointer-events-none z-50 opacity-[0.03]" style={{
+        backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
+        backgroundRepeat: 'repeat',
+      }} />
+
+      {/* Cursor spotlight */}
+      <div className="fixed inset-0 pointer-events-none z-40 opacity-30" style={{
+        background: 'radial-gradient(600px circle at var(--mx, 50%) var(--my, 50%), rgba(99, 102, 241, 0.06), transparent 60%)',
+      }} />
+
       {/* ==================== Nav ==================== */}
-      <nav className="flex items-center justify-between px-6 py-5 max-w-6xl mx-auto">
-        <span className="font-display font-[800] text-[15px] tracking-[0.2em] text-text-primary">
+      <nav className="relative z-10 flex items-center justify-between px-6 sm:px-10 py-5 max-w-6xl mx-auto">
+        <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '12px', letterSpacing: '0.2em', color: '#FAFAFA', fontWeight: 500 }}>
           DISPATCH
         </span>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
           {loggedIn ? (
-            <Link href="/dashboard" className="rounded-md py-2 px-5 text-white text-[13px] font-semibold bg-[#6366F1] hover:bg-[#4F46E5] transition-all duration-150">
+            <Link href="/dashboard" className="px-5 py-2 text-[13px] font-medium text-[#09090B] rounded-md" style={{ background: '#FAFAFA' }}>
               Dashboard
             </Link>
           ) : (
             <>
-              <Link href="/login" className="rounded-md py-2 px-4 text-[13px] font-medium text-text-secondary hover:text-text-primary transition-colors">
+              <Link href="/login" className="text-[13px] text-[#71717A] hover:text-[#FAFAFA] transition-colors">
                 Sign in
               </Link>
-              <Link href="/login?mode=signup" className="rounded-md py-2 px-5 text-white text-[13px] font-semibold bg-[#6366F1] hover:bg-[#4F46E5] transition-all duration-150 shadow-sm shadow-[#6366F1]/25">
+              <Link href="/login?mode=signup" className="px-5 py-2 text-[13px] font-medium text-[#09090B] rounded-md transition-all hover:opacity-90" style={{ background: '#FAFAFA' }}>
                 Get Started
               </Link>
             </>
@@ -110,142 +137,167 @@ export default function LandingPageContent({ loggedIn }: Props) {
       </nav>
 
       {/* ==================== Hero ==================== */}
-      <section className="relative pt-16 sm:pt-28 pb-20 px-6 text-center overflow-hidden">
-        {/* Subtle gradient orb */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-gradient-to-b from-[#6366F1]/[0.06] to-transparent rounded-full blur-3xl pointer-events-none" />
+      <section className="relative z-10 pt-20 sm:pt-32 pb-24 px-6 sm:px-10 max-w-5xl mx-auto">
+        {/* Top gradient line */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[300px] h-[1px]" style={{ background: 'linear-gradient(90deg, transparent, rgba(99,102,241,0.4), transparent)' }} />
 
-        <FadeIn className="relative">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#EEF2FF] border border-[#6366F1]/10 mb-6">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#6366F1] animate-pulse" />
-            <span className="text-[11px] font-semibold text-[#6366F1] uppercase tracking-[0.08em]">Now in public beta</span>
+        <Fade>
+          <div className="flex items-center gap-2 mb-8">
+            <div className="w-1.5 h-1.5 rounded-full bg-[#22C55E] animate-pulse" />
+            <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '11px', letterSpacing: '0.1em', color: '#52525B' }}>
+              PUBLIC BETA
+            </span>
           </div>
-        </FadeIn>
+        </Fade>
 
-        <FadeIn delay={80}>
-          <h1 className="font-display font-[800] text-[40px] sm:text-[56px] md:text-[64px] tracking-[-0.04em] text-text-primary leading-[1.05] max-w-3xl mx-auto">
+        <Fade delay={100}>
+          <h1 style={{ fontFamily: "'Instrument Serif', serif", fontSize: 'clamp(40px, 7vw, 72px)', color: '#FAFAFA', lineHeight: 1.05, letterSpacing: '-0.03em', fontWeight: 400 }}>
             Your content,<br />
-            <span className="bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] bg-clip-text text-transparent">dispatched.</span>
+            <em style={{ fontStyle: 'italic', color: '#818CF8' }}>dispatched.</em>
           </h1>
-        </FadeIn>
+        </Fade>
 
-        <FadeIn delay={160}>
-          <p className="mt-5 text-[16px] sm:text-[18px] text-text-secondary max-w-xl mx-auto leading-relaxed">
-            The command center for creators who ship. AI writing, content pipeline, scheduling, and multi-platform publishing in one workspace.
+        <Fade delay={200}>
+          <p className="mt-6 max-w-lg" style={{ fontSize: '16px', color: '#71717A', lineHeight: 1.7 }}>
+            The command center for creators who ship consistently. AI writing tools, content pipeline, scheduling, and multi-platform publishing. One workspace. No switching.
           </p>
-        </FadeIn>
+        </Fade>
 
-        <FadeIn delay={240}>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-8">
+        <Fade delay={300}>
+          <div className="flex flex-wrap items-center gap-3 mt-8">
             <Link
               href="/login?mode=signup"
-              className="group rounded-lg py-3 px-7 text-white text-[14px] font-semibold bg-[#6366F1] hover:bg-[#4F46E5] transition-all duration-200 flex items-center gap-2 shadow-lg shadow-[#6366F1]/20 hover:shadow-[#6366F1]/30 hover:-translate-y-0.5"
+              className="group inline-flex items-center gap-2 px-6 py-3 text-[14px] font-medium text-[#09090B] rounded-md transition-all hover:scale-[1.02] active:scale-[0.98]"
+              style={{ background: '#FAFAFA' }}
             >
               Start creating
-              <svg className="w-4 h-4 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+              <svg className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
             </Link>
-            <Link
-              href="#features"
-              className="rounded-lg py-3 px-7 text-[14px] font-medium text-text-secondary hover:text-text-primary transition-colors"
-            >
-              See how it works
+            <Link href="#features" className="px-6 py-3 text-[14px] text-[#71717A] hover:text-[#FAFAFA] transition-colors">
+              See features
             </Link>
           </div>
-        </FadeIn>
+        </Fade>
 
-        {/* Stats bar */}
-        <FadeIn delay={350}>
-          <div className="flex items-center justify-center gap-8 sm:gap-12 mt-14 text-center">
-            {[
-              { value: 8, suffix: '', label: 'AI writing tools' },
-              { value: 4, suffix: '', label: 'Connected platforms' },
-              { value: 5, suffix: '', label: 'Pipeline stages' },
-            ].map((s, i) => (
-              <div key={i}>
-                <div className="font-display font-[800] text-[28px] sm:text-[32px] text-text-primary tracking-tight">
-                  <Counter target={s.value} suffix={s.suffix} />
-                </div>
-                <div className="text-[11px] text-text-tertiary uppercase tracking-[0.08em] mt-0.5">{s.label}</div>
-              </div>
-            ))}
+        {/* Stats row */}
+        <Fade delay={450}>
+          <div className="flex items-center gap-10 sm:gap-16 mt-20 pt-10" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+            <Num n="8" label="AI tools" />
+            <Num n="4" label="Platforms" />
+            <Num n="5" label="Pipeline stages" />
           </div>
-        </FadeIn>
+        </Fade>
       </section>
 
       {/* ==================== Features ==================== */}
-      <section id="features" className="max-w-5xl mx-auto px-6 pb-24">
-        <FadeIn>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#6366F1] mb-3 text-center">Everything you need</p>
-          <h2 className="font-display text-center mb-12 font-[800] text-[28px] sm:text-[36px] text-text-primary tracking-[-0.03em]">
-            One workspace. Zero context-switching.
-          </h2>
-        </FadeIn>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <section id="features" className="relative z-10 px-6 sm:px-10 pb-24 max-w-5xl mx-auto">
+        <Fade>
+          <div className="mb-14">
+            <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '11px', letterSpacing: '0.12em', color: '#818CF8' }}>FEATURES</span>
+            <h2 className="mt-3" style={{ fontFamily: "'Instrument Serif', serif", fontSize: 'clamp(28px, 4vw, 40px)', color: '#FAFAFA', lineHeight: 1.15, letterSpacing: '-0.02em', fontWeight: 400 }}>
+              Everything to go from<br /><em style={{ fontStyle: 'italic' }}>idea to posted.</em>
+            </h2>
+          </div>
+        </Fade>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {features.map((f, i) => (
-            <FadeIn key={i} delay={i * 60}>
-              <div className="group rounded-xl p-5 border border-transparent bg-[#F8FAFC] hover:bg-white hover:border-[#E2E8F0] hover:shadow-lg hover:shadow-[#6366F1]/[0.04] transition-all duration-300 hover:-translate-y-0.5 h-full">
-                <span className="text-[24px] block mb-3">{f.emoji}</span>
-                <h3 className="font-display text-[15px] font-[700] text-text-primary mb-1.5">{f.title}</h3>
-                <p className="text-[13px] text-text-secondary leading-relaxed">{f.desc}</p>
+            <Fade key={i} delay={i * 70}>
+              <div
+                className="group relative rounded-xl p-6 transition-all duration-300 hover:scale-[1.01] cursor-default h-full"
+                style={{
+                  background: 'rgba(255,255,255,0.02)',
+                  border: '1px solid rgba(255,255,255,0.05)',
+                  backdropFilter: 'blur(8px)',
+                }}
+                onMouseEnter={e => {
+                  (e.currentTarget as HTMLDivElement).style.background = 'rgba(255,255,255,0.04)';
+                  (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(129,140,248,0.15)';
+                }}
+                onMouseLeave={e => {
+                  (e.currentTarget as HTMLDivElement).style.background = 'rgba(255,255,255,0.02)';
+                  (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(255,255,255,0.05)';
+                }}
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10px', letterSpacing: '0.14em', color: '#818CF8' }}>
+                    {f.tag}
+                  </span>
+                  <span style={{ fontFamily: "'Instrument Serif', serif", fontSize: '24px', color: 'rgba(255,255,255,0.06)', lineHeight: 1 }}>
+                    {f.icon}
+                  </span>
+                </div>
+                <h3 className="mb-2" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '16px', color: '#FAFAFA', fontWeight: 600 }}>
+                  {f.title}
+                </h3>
+                <p style={{ fontSize: '13px', color: '#71717A', lineHeight: 1.65 }}>
+                  {f.desc}
+                </p>
               </div>
-            </FadeIn>
+            </Fade>
           ))}
         </div>
       </section>
 
       {/* ==================== How It Works ==================== */}
-      <section className="bg-[#F8FAFC] py-20 px-6">
-        <div className="max-w-3xl mx-auto">
-          <FadeIn>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#6366F1] mb-3 text-center">How it works</p>
-            <h2 className="font-display text-center mb-14 font-[800] text-[28px] sm:text-[36px] text-text-primary tracking-[-0.03em]">
-              Three steps to shipping consistently.
-            </h2>
-          </FadeIn>
-          <div className="space-y-8">
-            {steps.map((s, i) => (
-              <FadeIn key={i} delay={i * 100}>
-                <div className="flex items-start gap-5">
-                  <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] flex items-center justify-center text-white font-display font-[700] text-[14px] shadow-md shadow-[#6366F1]/20">
-                    {s.n}
-                  </div>
-                  <div>
-                    <h3 className="font-display text-[16px] font-[700] text-text-primary mb-1">{s.title}</h3>
-                    <p className="text-[14px] text-text-secondary leading-relaxed">{s.desc}</p>
-                  </div>
-                </div>
-              </FadeIn>
-            ))}
-          </div>
+      <section className="relative z-10 px-6 sm:px-10 py-24 max-w-5xl mx-auto" style={{ borderTop: '1px solid rgba(255,255,255,0.04)' }}>
+        <Fade>
+          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '11px', letterSpacing: '0.12em', color: '#818CF8' }}>WORKFLOW</span>
+          <h2 className="mt-3 mb-16" style={{ fontFamily: "'Instrument Serif', serif", fontSize: 'clamp(28px, 4vw, 40px)', color: '#FAFAFA', lineHeight: 1.15, letterSpacing: '-0.02em', fontWeight: 400 }}>
+            Three steps. <em style={{ fontStyle: 'italic' }}>That&apos;s it.</em>
+          </h2>
+        </Fade>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {[
+            { step: '01', title: 'Define your voice', desc: 'Pillars, tone, background. The AI learns you, not the other way around.' },
+            { step: '02', title: 'Create and organize', desc: 'Generate scripts. Organize in library. Drag posts onto your calendar.' },
+            { step: '03', title: 'Publish and learn', desc: 'Push to all platforms. Track performance. AI spots what works.' },
+          ].map((s, i) => (
+            <Fade key={i} delay={i * 120}>
+              <div>
+                <span style={{ fontFamily: "'Instrument Serif', serif", fontSize: '48px', color: 'rgba(129,140,248,0.15)', lineHeight: 1, display: 'block', marginBottom: '12px' }}>
+                  {s.step}
+                </span>
+                <h3 className="mb-2" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '16px', color: '#FAFAFA', fontWeight: 600 }}>
+                  {s.title}
+                </h3>
+                <p style={{ fontSize: '13px', color: '#71717A', lineHeight: 1.65 }}>
+                  {s.desc}
+                </p>
+              </div>
+            </Fade>
+          ))}
         </div>
       </section>
 
       {/* ==================== CTA ==================== */}
-      <section className="relative text-center py-24 px-6 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-white via-[#EEF2FF]/40 to-white pointer-events-none" />
-        <FadeIn className="relative">
-          <h2 className="font-display font-[800] text-[32px] sm:text-[42px] text-text-primary tracking-[-0.03em] leading-tight">
-            Ready to ship<br />
-            <span className="bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] bg-clip-text text-transparent">more content?</span>
+      <section className="relative z-10 text-center py-28 px-6">
+        {/* Gradient glow behind CTA */}
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[300px] rounded-full pointer-events-none" style={{ background: 'radial-gradient(ellipse, rgba(99,102,241,0.08), transparent 70%)' }} />
+
+        <Fade className="relative">
+          <h2 style={{ fontFamily: "'Instrument Serif', serif", fontSize: 'clamp(32px, 5vw, 52px)', color: '#FAFAFA', lineHeight: 1.1, letterSpacing: '-0.03em', fontWeight: 400 }}>
+            Ready to ship<br /><em style={{ fontStyle: 'italic', color: '#818CF8' }}>more content?</em>
           </h2>
-          <p className="text-[15px] text-text-secondary mt-4 mb-8 max-w-md mx-auto">
-            Free to use. Set up your profile in under a minute. Start generating content immediately.
+          <p className="mt-4 mb-8 mx-auto max-w-md" style={{ fontSize: '15px', color: '#71717A' }}>
+            Free to use. Profile setup takes under a minute.
           </p>
           <Link
             href="/login?mode=signup"
-            className="group inline-flex items-center rounded-lg py-3 px-8 text-white text-[15px] font-semibold bg-[#6366F1] hover:bg-[#4F46E5] transition-all duration-200 gap-2 shadow-lg shadow-[#6366F1]/20 hover:shadow-[#6366F1]/30 hover:-translate-y-0.5"
+            className="group inline-flex items-center gap-2 px-7 py-3 text-[14px] font-medium text-[#09090B] rounded-md transition-all hover:scale-[1.02] active:scale-[0.98]"
+            style={{ background: '#FAFAFA' }}
           >
-            Get Started Free
-            <svg className="w-4 h-4 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+            Get Started
+            <svg className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
           </Link>
-        </FadeIn>
+        </Fade>
       </section>
 
       {/* ==================== Footer ==================== */}
-      <footer className="border-t border-[#E2E8F0] py-8 px-6">
-        <div className="max-w-5xl mx-auto flex items-center justify-between">
-          <span className="font-display font-[800] text-[11px] tracking-[0.2em] text-text-tertiary">DISPATCH</span>
-          <p className="text-[11px] text-text-tertiary">&copy; {new Date().getFullYear()} Dispatch</p>
-        </div>
+      <footer className="relative z-10 px-6 sm:px-10 py-8 max-w-6xl mx-auto flex items-center justify-between" style={{ borderTop: '1px solid rgba(255,255,255,0.04)' }}>
+        <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10px', letterSpacing: '0.2em', color: '#3F3F46' }}>DISPATCH</span>
+        <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10px', color: '#3F3F46' }}>&copy; {new Date().getFullYear()}</span>
       </footer>
     </div>
   );

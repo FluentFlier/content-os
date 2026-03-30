@@ -120,8 +120,23 @@ export default function AnalyticsPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64 text-[#8C857D] text-[13px]">
-        Loading analytics...
+      <div className="space-y-10 pb-20">
+        <div className="h-7 w-32 bg-[#F4F2EF] rounded-[7px] animate-pulse" />
+        {/* Log Performance skeleton */}
+        <div className="bg-[#FAFAF8] border-[0.5px] border-[#1A1714]/12 rounded-[12px] p-6 space-y-4">
+          <div className="h-5 w-40 bg-[#EDECEA] rounded animate-pulse" />
+          <div className="h-10 w-full bg-[#EDECEA] rounded-[7px] animate-pulse" />
+        </div>
+        {/* Performance Overview skeleton */}
+        <div className="bg-[#FAFAF8] border-[0.5px] border-[#1A1714]/12 rounded-[12px] p-6 space-y-4">
+          <div className="h-5 w-48 bg-[#EDECEA] rounded animate-pulse" />
+          <div className="h-[300px] bg-[#EDECEA] rounded-[12px] animate-pulse" />
+        </div>
+        {/* Weekly Review skeleton */}
+        <div className="bg-[#FAFAF8] border-[0.5px] border-[#1A1714]/12 rounded-[12px] p-6 space-y-4">
+          <div className="h-5 w-36 bg-[#EDECEA] rounded animate-pulse" />
+          <div className="h-20 bg-[#EDECEA] rounded-[12px] animate-pulse" />
+        </div>
       </div>
     );
   }

@@ -276,6 +276,15 @@ export default function StoryBankPage() {
               ? "Mine your first memory. The best content comes from real moments."
               : "No stories match your filters."}
           </p>
+          {stories.length === 0 && (
+            <a
+              href="/generate?tab=story-mine"
+              className="mt-3 flex items-center gap-1.5 bg-[#EB5E55] text-white text-[13px] font-medium px-5 py-[10px] rounded-[7px] hover:opacity-90 transition-opacity"
+            >
+              <Pickaxe className="w-4 h-4" />
+              Mine a Story
+            </a>
+          )}
         </div>
       ) : (
         <StoryGrid

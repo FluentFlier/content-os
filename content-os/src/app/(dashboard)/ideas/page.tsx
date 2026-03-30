@@ -285,8 +285,14 @@ export default function IdeasPage() {
 
       {/* Ideas list */}
       {loading ? (
-        <div className="text-[#8C857D] text-[13px] py-12 text-center">
-          Loading ideas...
+        <div className="space-y-2">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="flex items-center gap-3 px-3 py-3 bg-[#F4F2EF] rounded-[7px] animate-pulse">
+              <div className="w-4 h-4 rounded bg-[#EDECEA] shrink-0" />
+              <div className="flex-1 h-4 bg-[#EDECEA] rounded" />
+              <div className="w-16 h-5 bg-[#EDECEA] rounded shrink-0" />
+            </div>
+          ))}
         </div>
       ) : filtered.length === 0 ? (
         <div className="text-[#8C857D] text-[13px] py-12 text-center">

@@ -283,12 +283,12 @@ export default function LibraryPage() {
             {posts.length === 0 ? 'Nothing scripted yet. Generate a script or convert an idea.' : 'No posts match your filters.'}
           </p>
           {posts.length === 0 && (
-            <button
-              onClick={handleNewPost}
+            <a
+              href="/generate"
               className="flex items-center gap-1.5 bg-[#EB5E55] text-white text-[13px] font-medium px-5 py-[10px] rounded-[7px] hover:opacity-90 transition-opacity"
             >
-              <Plus className="w-4 h-4" /> New Post
-            </button>
+              <Plus className="w-4 h-4" /> Generate a Script
+            </a>
           )}
         </div>
       ) : view === 'card' ? (

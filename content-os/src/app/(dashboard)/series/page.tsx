@@ -214,8 +214,17 @@ export default function SeriesPage() {
 
       {/* Content */}
       {loading ? (
-        <div className="text-[#8C857D] text-[13px] py-12 text-center">
-          Loading series...
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-[10px]">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="bg-[#F4F2EF] rounded-[12px] p-4 animate-pulse space-y-3">
+              <div className="h-5 w-2/3 bg-[#EDECEA] rounded" />
+              <div className="h-4 w-1/2 bg-[#EDECEA] rounded" />
+              <div className="flex gap-2">
+                <div className="h-6 w-16 bg-[#EDECEA] rounded" />
+                <div className="h-6 w-16 bg-[#EDECEA] rounded" />
+              </div>
+            </div>
+          ))}
         </div>
       ) : seriesList.length === 0 ? (
         <div className="flex flex-col items-center gap-4 py-16">

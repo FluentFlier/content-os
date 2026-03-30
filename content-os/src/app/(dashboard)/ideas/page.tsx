@@ -23,7 +23,7 @@ export default function IdeasPage() {
 
   // Quick-add form state
   const [newIdea, setNewIdea] = useState("");
-  const [newPillar, setNewPillar] = useState<string>(pillarList[0]?.value ?? "hot-take");
+  const [newPillar, setNewPillar] = useState<string>(pillarList[0]?.value ?? "");
   const [newPriority, setNewPriority] = useState<Priority>("medium");
   const [adding, setAdding] = useState(false);
 

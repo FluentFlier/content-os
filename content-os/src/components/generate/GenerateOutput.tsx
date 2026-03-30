@@ -70,7 +70,7 @@ function SaveToLibraryModal({
   const { pillars: pillarList } = usePillars();
   const [title, setTitle] = useState('');
   const [platform, setPlatform] = useState<Platform>('instagram');
-  const [pillar, setPillar] = useState<string>(pillarList[0]?.value ?? 'hot-take');
+  const [pillar, setPillar] = useState<string>(pillarList[0]?.value ?? '');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 

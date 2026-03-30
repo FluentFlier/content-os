@@ -87,7 +87,7 @@ export function ScriptGenerator({
   const [pillar, setPillar] = useState<string>(
     initialPillar && pillarList.some((p) => p.value === initialPillar)
       ? initialPillar
-      : pillarList[0]?.value ?? 'hot-take',
+      : pillarList[0]?.value ?? '',
   );
   const [topic, setTopic] = useState(initialTopic);
   const [output, setOutput] = useState(initialResult);

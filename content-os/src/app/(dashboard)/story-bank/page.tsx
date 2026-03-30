@@ -78,7 +78,7 @@ export default function StoryBankPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title: story.mined_angle || "From Story Bank",
-          pillar: story.pillar || "hot-take",
+          pillar: story.pillar || pillarList[0]?.value || "general",
           script: story.mined_script,
           hook: story.mined_hook,
           caption: story.mined_caption_line,

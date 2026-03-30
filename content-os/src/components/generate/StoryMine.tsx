@@ -46,7 +46,7 @@ export function StoryMine() {
 MEMORY: ${memory.trim()}
 
 Return exactly:
-PILLAR: (hot-take / hackathon / founder / explainer / origin / research)
+PILLAR: Choose the best matching content pillar from the creator's pillars
 ANGLE: One sentence -- what makes this interesting to a stranger.
 HOOK: Exact first line to say on camera. No setup. Drop in.
 SCRIPT:
@@ -130,7 +130,7 @@ Use every specific detail from the memory. Never genericize. No em dashes.`;
         pillarMatch?.[1]?.trim().toLowerCase().replace(/\s+/g, '-') || null;
       const validPillar = pillarRaw && pillarValues.includes(pillarRaw)
         ? pillarRaw
-        : (pillarValues[0] ?? 'hot-take');
+        : (pillarValues[0] ?? '');
 
       const res = await fetch('/api/posts', {
         method: 'POST',

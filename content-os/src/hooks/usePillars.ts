@@ -77,28 +77,24 @@ interface UsePillarsReturn {
   pillarValues: string[];
 }
 
-// In-memory cache so multiple components on the same page don't re-fetch.
-let _cache: { pillars: PillarInfo[]; isCustom: boolean } | null = null;
+// In-memory cache scoped by user ID so different users see their own pillars.
+const _cacheMap = new Map<string, { pillars: PillarInfo[]; isCustom: boolean }>();
+let _lastUserId: string | null = null;
 
 /**
  * Hook that reads the current user's content pillars from creator_profile
  * and falls back to the default PILLARS constant when no custom pillars exist.
  */
 export function usePillars(): UsePillarsReturn {
+  // Try to read from the last known user's cache for initial state
+  const cachedEntry = _lastUserId ? _cacheMap.get(_lastUserId) : null;
   const [pillars, setPillars] = useState<PillarInfo[]>(
-    _cache?.pillars ?? fromDefaults(),
+    cachedEntry?.pillars ?? fromDefaults(),
   );
-  const [isCustom, setIsCustom] = useState(_cache?.isCustom ?? false);
-  const [loading, setLoading] = useState(!_cache);
+  const [isCustom, setIsCustom] = useState(cachedEntry?.isCustom ?? false);
+  const [loading, setLoading] = useState(!cachedEntry);
 
   useEffect(() => {
-    if (_cache) {
-      setPillars(_cache.pillars);
-      setIsCustom(_cache.isCustom);
-      setLoading(false);
-      return;
-    }
-
     let cancelled = false;
     (async () => {
       try {
@@ -106,10 +102,22 @@ export function usePillars(): UsePillarsReturn {
         const { data: userData } = await insforge.auth.getCurrentUser();
         if (!userData?.user || cancelled) return;
 
+        const userId = userData.user.id;
+        _lastUserId = userId;
+
+        // Check user-scoped cache
+        const cached = _cacheMap.get(userId);
+        if (cached) {
+          setPillars(cached.pillars);
+          setIsCustom(cached.isCustom);
+          setLoading(false);
+          return;
+        }
+
         const { data: profile } = await insforge.database
           .from('creator_profile')
           .select('content_pillars')
-          .eq('user_id', userData.user.id)
+          .eq('user_id', userId)
           .single();
 
         if (cancelled) return;
@@ -122,21 +130,27 @@ export function usePillars(): UsePillarsReturn {
 
           if (Array.isArray(raw) && raw.length > 0 && raw[0]?.name) {
             const custom = fromCustomPillars(raw as ContentPillarConfig[]);
-            _cache = { pillars: custom, isCustom: true };
+            _cacheMap.set(userId, { pillars: custom, isCustom: true });
             setPillars(custom);
             setIsCustom(true);
             setLoading(false);
             return;
           }
         }
-      } catch {
-        // Fall back to defaults on error
-      }
-      if (!cancelled) {
-        _cache = { pillars: fromDefaults(), isCustom: false };
-        setPillars(_cache.pillars);
+
+        // No custom pillars, use defaults
+        const defaults = { pillars: fromDefaults(), isCustom: false };
+        _cacheMap.set(userId, defaults);
+        setPillars(defaults.pillars);
         setIsCustom(false);
         setLoading(false);
+      } catch {
+        // Fall back to defaults on error
+        if (!cancelled) {
+          setPillars(fromDefaults());
+          setIsCustom(false);
+          setLoading(false);
+        }
       }
     })();
 
@@ -181,7 +195,9 @@ export function usePillars(): UsePillarsReturn {
 
 /**
  * Invalidate the in-memory pillar cache (call after profile updates).
+ * Clears all user caches to ensure fresh data on next fetch.
  */
 export function invalidatePillarCache(): void {
-  _cache = null;
+  _cacheMap.clear();
+  _lastUserId = null;
 }

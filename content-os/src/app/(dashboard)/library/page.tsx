@@ -134,7 +134,7 @@ export default function LibraryPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         title: 'Untitled',
-        pillar: 'hot-take',
+        pillar: pillarList[0]?.value || 'general',
         platform: 'instagram',
         status: 'idea',
       }),

@@ -19,7 +19,10 @@ export default async function DashboardLayout({
   const pathname = headersList.get('x-pathname') || '';
 
   // Check onboarding: skip for /onboarding and /settings routes
-  const skipOnboarding = pathname === '/onboarding' || pathname.startsWith('/settings');
+  const skipOnboarding =
+    pathname === '/onboarding' ||
+    pathname.startsWith('/onboarding') ||
+    pathname.startsWith('/settings');
   if (!skipOnboarding) {
     let hasProfile = false;
     try {

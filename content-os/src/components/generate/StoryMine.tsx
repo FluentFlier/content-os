@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { useToast } from '@/components/ui/Toast';
 import { GenerateOutput } from './GenerateOutput';
 import { getInsforgeClient } from '@/lib/insforge/client';
-import { ALL_PILLARS, type Pillar } from '@/types/database';
+import { usePillars } from '@/hooks/usePillars';
 
 async function callGenerate(prompt: string): Promise<string> {
   const res = await fetch('/api/generate', {
@@ -25,6 +25,7 @@ async function callGenerate(prompt: string): Promise<string> {
 export function StoryMine() {
   const router = useRouter();
   const { toast } = useToast();
+  const { pillarValues } = usePillars();
   const [memory, setMemory] = useState('');
   const [output, setOutput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -86,7 +87,7 @@ Use every specific detail from the memory. Never genericize. No em dashes.`;
 
       const pillarRaw =
         pillarMatch?.[1]?.trim().toLowerCase().replace(/\s+/g, '-') || null;
-      const validPillar = ALL_PILLARS.includes(pillarRaw as Pillar)
+      const validPillar = pillarRaw && pillarValues.includes(pillarRaw)
         ? pillarRaw
         : null;
 
@@ -127,9 +128,9 @@ Use every specific detail from the memory. Never genericize. No em dashes.`;
 
       const pillarRaw =
         pillarMatch?.[1]?.trim().toLowerCase().replace(/\s+/g, '-') || null;
-      const validPillar = ALL_PILLARS.includes(pillarRaw as Pillar)
+      const validPillar = pillarRaw && pillarValues.includes(pillarRaw)
         ? pillarRaw
-        : 'hot-take';
+        : (pillarValues[0] ?? 'hot-take');
 
       const res = await fetch('/api/posts', {
         method: 'POST',

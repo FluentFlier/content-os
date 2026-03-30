@@ -9,10 +9,11 @@ import {
   Calendar as CalendarIcon,
 } from "lucide-react";
 import { getInsforge } from "@/lib/insforge/client";
-import type { Post, Pillar } from "@/types/database";
-import { PILLAR_COLORS, PILLAR_LABELS } from "@/types/database";
+import type { Post } from "@/lib/types";
+import { usePillars } from "@/hooks/usePillars";
 import PillarDot from "@/components/PillarDot";
-import StatusBadge from "@/components/StatusBadge";
+import CalendarGrid from "@/components/calendar/CalendarGrid";
+import CalendarBacklog from "@/components/calendar/CalendarBacklog";
 
 type ViewMode = "month" | "week";
 
@@ -20,24 +21,11 @@ type ViewMode = "month" | "week";
 /*  Helpers                                                            */
 /* ------------------------------------------------------------------ */
 
-function getCalendarDays(year: number, month: number): Date[] {
-  const firstDay = new Date(year, month, 1);
-  const lastDay = new Date(year, month + 1, 0);
-  const startDate = new Date(firstDay);
-  startDate.setDate(startDate.getDate() - startDate.getDay());
-  const days: Date[] = [];
-  const current = new Date(startDate);
-  while (current <= lastDay || days.length % 7 !== 0) {
-    days.push(new Date(current));
-    current.setDate(current.getDate() + 1);
-  }
-  return days;
-}
-
 function getWeekDays(baseDate: Date): Date[] {
   const start = new Date(baseDate);
   const dayOfWeek = start.getDay();
-  start.setDate(start.getDate() - dayOfWeek);
+  const diff = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+  start.setDate(start.getDate() - diff);
   const days: Date[] = [];
   for (let i = 0; i < 7; i++) {
     days.push(new Date(start));
@@ -53,40 +41,21 @@ function toDateKey(d: Date): string {
   return `${y}-${m}-${day}`;
 }
 
-function isSameDay(a: Date, b: Date): boolean {
-  return (
-    a.getFullYear() === b.getFullYear() &&
-    a.getMonth() === b.getMonth() &&
-    a.getDate() === b.getDate()
-  );
-}
-
-const MONTH_NAMES = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
-];
-
-const DAY_HEADERS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-
 function truncate(s: string, max: number): string {
   return s.length > max ? s.slice(0, max) + "..." : s;
 }
+
+const MONTH_NAMES = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
 
 /* ------------------------------------------------------------------ */
 /*  Page                                                               */
 /* ------------------------------------------------------------------ */
 
 export default function CalendarPage() {
+  const { getLabel, getColor } = usePillars();
   const today = useMemo(() => new Date(), []);
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
@@ -102,7 +71,7 @@ export default function CalendarPage() {
   const [backlogPickPost, setBacklogPickPost] = useState<Post | null>(null);
   const [fillWeekOpen, setFillWeekOpen] = useState(false);
   const [fillSuggestions, setFillSuggestions] = useState<
-    { postId: string; date: string; title: string; pillar: Pillar }[]
+    { postId: string; date: string; title: string; pillar: string }[]
   >([]);
   const [fillLoading, setFillLoading] = useState(false);
 
@@ -136,21 +105,8 @@ export default function CalendarPage() {
 
   /* ---- Derived data ---- */
 
-  const postsByDate = useMemo(() => {
-    const map: Record<string, Post[]> = {};
-    for (const p of posts) {
-      if (p.scheduled_date) {
-        const key = p.scheduled_date.slice(0, 10);
-        if (!map[key]) map[key] = [];
-        map[key].push(p);
-      }
-    }
-    return map;
-  }, [posts]);
-
   const backlog = useMemo(
-    () =>
-      posts.filter((p) => !p.scheduled_date && p.status !== "posted"),
+    () => posts.filter((p) => !p.scheduled_date && p.status !== "posted"),
     [posts]
   );
 
@@ -217,6 +173,10 @@ export default function CalendarPage() {
     }
   };
 
+  const handlePostClick = (post: Post) => {
+    window.location.href = "/library";
+  };
+
   /* ---- Fill This Week ---- */
 
   const handleFillWeek = async () => {
@@ -225,9 +185,7 @@ export default function CalendarPage() {
     setFillWeekOpen(true);
 
     try {
-      const weekDays = getWeekDays(
-        viewMode === "week" ? weekBase : today
-      );
+      const weekDays = getWeekDays(viewMode === "week" ? weekBase : today);
       const weekStart = toDateKey(weekDays[0]);
       const weekEnd = toDateKey(weekDays[6]);
 
@@ -278,7 +236,7 @@ Respond ONLY with a JSON array of objects: [{"postId":"...","date":"YYYY-MM-DD"}
           postId: string;
           date: string;
           title: string;
-          pillar: Pillar;
+          pillar: string;
         }[];
         setFillSuggestions(enriched);
       }
@@ -307,35 +265,25 @@ Respond ONLY with a JSON array of objects: [{"postId":"...","date":"YYYY-MM-DD"}
     await fetchPosts();
   };
 
-  /* ---- Render helpers ---- */
-
-  const calendarDays = useMemo(
-    () => getCalendarDays(currentYear, currentMonth),
-    [currentYear, currentMonth]
-  );
-
-  const weekDays = useMemo(() => getWeekDays(weekBase), [weekBase]);
-
   /* ---- Loading skeleton ---- */
 
   if (loading) {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <div className="h-8 w-40 bg-surface rounded animate-pulse" />
-          <div className="h-9 w-28 bg-surface rounded animate-pulse" />
+          <div className="h-8 w-40 bg-[#F4F2EF] rounded-[7px] animate-pulse" />
+          <div className="h-9 w-28 bg-[#F4F2EF] rounded-[7px] animate-pulse" />
         </div>
-        <div className="grid grid-cols-7 gap-1">
+        <div className="grid grid-cols-7 gap-px">
           {Array.from({ length: 35 }).map((_, i) => (
-            <div
-              key={i}
-              className="h-20 bg-surface rounded animate-pulse"
-            />
+            <div key={i} className="h-20 bg-[#F4F2EF] rounded animate-pulse" />
           ))}
         </div>
       </div>
     );
   }
+
+  const weekDaysForLabel = getWeekDays(weekBase);
 
   return (
     <div className="flex flex-col lg:flex-row gap-4 min-h-0">
@@ -343,7 +291,7 @@ Respond ONLY with a JSON array of objects: [{"postId":"...","date":"YYYY-MM-DD"}
       <div className="flex-1 space-y-4 min-w-0">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <h1 className="font-heading text-2xl font-bold text-text-primary">
+          <h1 className="font-heading text-[22px] font-[800] text-[#1A1714] leading-[1.2] tracking-[-0.02em]">
             Calendar
           </h1>
           <div className="flex items-center gap-2 flex-wrap">
@@ -351,242 +299,95 @@ Respond ONLY with a JSON array of objects: [{"postId":"...","date":"YYYY-MM-DD"}
             <div className="flex items-center gap-1">
               <button
                 onClick={viewMode === "month" ? goToPrevMonth : goToPrevWeek}
-                className="p-1.5 rounded border border-border text-text-muted hover:text-text-primary hover:border-text-muted transition-colors"
+                className="p-1.5 rounded-[7px] border-[0.5px] border-[#1A1714]/12 text-[#8C857D] hover:text-[#1A1714] hover:border-[#1A1714]/25 transition-colors"
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
-              <span className="text-sm text-text-primary font-medium min-w-[140px] text-center">
+              <span className="text-[13px] text-[#1A1714] font-medium min-w-[140px] text-center">
                 {viewMode === "month"
                   ? `${MONTH_NAMES[currentMonth]} ${currentYear}`
-                  : `Week of ${weekDays[0].toLocaleDateString("en-US", { month: "short", day: "numeric" })}`}
+                  : `Week of ${weekDaysForLabel[0].toLocaleDateString("en-US", { month: "short", day: "numeric" })}`}
               </span>
               <button
                 onClick={viewMode === "month" ? goToNextMonth : goToNextWeek}
-                className="p-1.5 rounded border border-border text-text-muted hover:text-text-primary hover:border-text-muted transition-colors"
+                className="p-1.5 rounded-[7px] border-[0.5px] border-[#1A1714]/12 text-[#8C857D] hover:text-[#1A1714] hover:border-[#1A1714]/25 transition-colors"
               >
                 <ChevronRight className="w-4 h-4" />
               </button>
             </div>
 
             {/* View toggle */}
-            <div className="flex border border-border rounded overflow-hidden">
+            <div className="flex border-[0.5px] border-[#1A1714]/12 rounded-[7px] overflow-hidden">
               <button
                 onClick={() => setViewMode("month")}
-                className={`px-3 py-1.5 text-xs font-medium transition-colors ${
+                className={`px-3 py-1.5 text-[11px] font-medium transition-colors ${
                   viewMode === "month"
-                    ? "bg-coral text-white"
-                    : "text-text-muted hover:text-text-primary"
+                    ? "bg-[#EB5E55] text-white"
+                    : "text-[#8C857D] hover:text-[#1A1714]"
                 }`}
               >
                 Month
               </button>
               <button
                 onClick={() => setViewMode("week")}
-                className={`px-3 py-1.5 text-xs font-medium transition-colors ${
+                className={`px-3 py-1.5 text-[11px] font-medium transition-colors ${
                   viewMode === "week"
-                    ? "bg-coral text-white"
-                    : "text-text-muted hover:text-text-primary"
+                    ? "bg-[#EB5E55] text-white"
+                    : "text-[#8C857D] hover:text-[#1A1714]"
                 }`}
               >
                 Week
               </button>
             </div>
-
-            {/* Fill This Week */}
-            <button
-              onClick={handleFillWeek}
-              disabled={backlog.length === 0}
-              className="flex items-center gap-1.5 bg-coral text-white text-sm font-medium px-3 py-1.5 rounded hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              <Sparkles className="w-4 h-4" />
-              Fill This Week
-            </button>
           </div>
         </div>
 
         {/* Backlog pick banner */}
         {backlogPickPost && (
-          <div className="flex items-center gap-2 bg-surface border border-coral/40 rounded-lg px-4 py-2 text-sm text-text-primary">
-            <CalendarIcon className="w-4 h-4 text-coral shrink-0" />
+          <div className="flex items-center gap-2 bg-[#FAFAF8] border-[0.5px] border-[#EB5E55]/40 rounded-[12px] px-4 py-2 text-[13px] text-[#1A1714]">
+            <CalendarIcon className="w-4 h-4 text-[#EB5E55] shrink-0" />
             Click a day to schedule{" "}
             <span className="font-medium">
               &quot;{truncate(backlogPickPost.title, 30)}&quot;
             </span>
             <button
               onClick={() => setBacklogPickPost(null)}
-              className="ml-auto text-text-muted hover:text-text-primary"
+              className="ml-auto text-[#8C857D] hover:text-[#1A1714]"
             >
               <X className="w-4 h-4" />
             </button>
           </div>
         )}
 
-        {/* ---- MONTH VIEW ---- */}
-        {viewMode === "month" && (
-          <div>
-            {/* Day headers */}
-            <div className="grid grid-cols-7 gap-px mb-px">
-              {DAY_HEADERS.map((d) => (
-                <div
-                  key={d}
-                  className="text-center text-xs font-medium text-text-muted py-2"
-                >
-                  {d}
-                </div>
-              ))}
-            </div>
-
-            {/* Day cells */}
-            <div className="grid grid-cols-7 gap-px bg-border rounded-lg overflow-hidden">
-              {calendarDays.map((day, i) => {
-                const key = toDateKey(day);
-                const isCurrentMonth = day.getMonth() === currentMonth;
-                const isToday = isSameDay(day, today);
-                const dayPosts = postsByDate[key] || [];
-
-                return (
-                  <div
-                    key={i}
-                    onClick={() => handleDayCellClick(day)}
-                    className={`bg-surface min-h-[80px] p-1.5 cursor-pointer transition-colors hover:bg-bg/60 ${
-                      isToday ? "ring-1 ring-inset ring-coral" : ""
-                    } ${backlogPickPost ? "hover:ring-1 hover:ring-coral/60" : ""}`}
-                  >
-                    <span
-                      className={`text-xs font-medium ${
-                        isCurrentMonth
-                          ? "text-text-primary"
-                          : "text-text-muted"
-                      }`}
-                    >
-                      {day.getDate()}
-                    </span>
-                    <div className="mt-0.5 space-y-0.5">
-                      {dayPosts.slice(0, 3).map((p) => (
-                        <div
-                          key={p.id}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            window.location.href = "/library";
-                          }}
-                          className="rounded px-1 py-0.5 text-[10px] leading-tight font-medium truncate cursor-pointer hover:opacity-80"
-                          style={{
-                            backgroundColor: `${PILLAR_COLORS[p.pillar]}25`,
-                            color: PILLAR_COLORS[p.pillar],
-                          }}
-                          title={`${p.title} (${PILLAR_LABELS[p.pillar]})`}
-                        >
-                          {truncate(p.title, 15)}
-                        </div>
-                      ))}
-                      {dayPosts.length > 3 && (
-                        <span className="text-[10px] text-text-muted">
-                          +{dayPosts.length - 3} more
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* ---- WEEK VIEW ---- */}
-        {viewMode === "week" && (
-          <div className="grid grid-cols-7 gap-px bg-border rounded-lg overflow-hidden">
-            {weekDays.map((day, i) => {
-              const key = toDateKey(day);
-              const isToday = isSameDay(day, today);
-              const dayPosts = postsByDate[key] || [];
-
-              return (
-                <div
-                  key={i}
-                  onClick={() => handleDayCellClick(day)}
-                  className={`bg-surface min-h-[200px] p-2 cursor-pointer transition-colors hover:bg-bg/60 ${
-                    isToday ? "ring-1 ring-inset ring-coral" : ""
-                  } ${backlogPickPost ? "hover:ring-1 hover:ring-coral/60" : ""}`}
-                >
-                  <div className="mb-2">
-                    <span className="text-[11px] text-text-muted font-medium">
-                      {DAY_HEADERS[i]}
-                    </span>
-                    <span
-                      className={`ml-1 text-sm font-medium ${
-                        isToday ? "text-coral" : "text-text-primary"
-                      }`}
-                    >
-                      {day.getDate()}
-                    </span>
-                  </div>
-                  <div className="space-y-1.5">
-                    {dayPosts.map((p) => (
-                      <div
-                        key={p.id}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          window.location.href = "/library";
-                        }}
-                        className="rounded-md border border-border bg-bg p-1.5 cursor-pointer hover:border-text-muted transition-colors"
-                      >
-                        <div className="flex items-center gap-1 mb-0.5">
-                          <PillarDot pillar={p.pillar} />
-                          <span className="text-xs text-text-primary font-medium truncate">
-                            {truncate(p.title, 20)}
-                          </span>
-                        </div>
-                        <StatusBadge status={p.status} />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
+        {/* Calendar Grid */}
+        <CalendarGrid
+          viewMode={viewMode}
+          currentYear={currentYear}
+          currentMonth={currentMonth}
+          weekBase={weekBase}
+          posts={posts}
+          today={today}
+          isPickMode={!!backlogPickPost}
+          onDayCellClick={handleDayCellClick}
+          onPostClick={handlePostClick}
+        />
       </div>
 
       {/* ---- Backlog sidebar ---- */}
-      <div className="lg:w-64 lg:border-l lg:border-border lg:pl-4 shrink-0">
-        <h2 className="font-heading text-lg font-semibold text-text-primary mb-3">
-          Backlog
-        </h2>
-        {backlog.length === 0 ? (
-          <p className="text-sm text-text-muted">
-            No unscheduled posts.
-          </p>
-        ) : (
-          <div className="space-y-2 max-h-[60vh] overflow-y-auto pr-1">
-            {backlog.map((p) => (
-              <div
-                key={p.id}
-                onClick={() => handleBacklogClick(p)}
-                className={`rounded-lg border p-2.5 cursor-pointer transition-colors ${
-                  backlogPickPost?.id === p.id
-                    ? "border-coral bg-coral/5"
-                    : "border-border bg-surface hover:border-text-muted"
-                }`}
-              >
-                <div className="flex items-center gap-1.5 mb-1">
-                  <PillarDot pillar={p.pillar} />
-                  <span className="text-sm text-text-primary font-medium truncate">
-                    {p.title}
-                  </span>
-                </div>
-                <StatusBadge status={p.status} />
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+      <CalendarBacklog
+        backlog={backlog}
+        selectedPostId={backlogPickPost?.id ?? null}
+        onPostClick={handleBacklogClick}
+        onFillWeek={handleFillWeek}
+        fillDisabled={backlog.length === 0}
+      />
 
       {/* ---- Schedule modal (click empty day) ---- */}
       {scheduleModalDate && !backlogPickPost && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-          <div className="bg-surface border border-border rounded-xl w-full max-w-md mx-4 max-h-[80vh] flex flex-col">
-            <div className="flex items-center justify-between p-4 border-b border-border">
-              <h3 className="font-heading text-lg font-semibold text-text-primary">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#1A1714]/30">
+          <div className="bg-[#FAFAF8] border-[0.5px] border-[#1A1714]/12 rounded-[12px] w-full max-w-md mx-4 max-h-[80vh] flex flex-col">
+            <div className="flex items-center justify-between p-4 border-b-[0.5px] border-[#1A1714]/12">
+              <h3 className="font-heading text-[16px] font-[700] text-[#1A1714]">
                 Schedule for{" "}
                 {scheduleModalDate.toLocaleDateString("en-US", {
                   month: "long",
@@ -596,14 +397,14 @@ Respond ONLY with a JSON array of objects: [{"postId":"...","date":"YYYY-MM-DD"}
               </h3>
               <button
                 onClick={() => setScheduleModalDate(null)}
-                className="text-text-muted hover:text-text-primary"
+                className="text-[#8C857D] hover:text-[#1A1714]"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
             <div className="p-4 overflow-y-auto flex-1">
               {backlog.length === 0 ? (
-                <p className="text-sm text-text-muted text-center py-8">
+                <p className="text-[13px] text-[#8C857D] text-center py-8">
                   No unscheduled posts available.
                 </p>
               ) : (
@@ -615,15 +416,14 @@ Respond ONLY with a JSON array of objects: [{"postId":"...","date":"YYYY-MM-DD"}
                         await schedulePost(p.id, scheduleModalDate);
                         setScheduleModalDate(null);
                       }}
-                      className="w-full text-left rounded-lg border border-border bg-bg p-3 hover:border-text-muted transition-colors"
+                      className="w-full text-left rounded-[12px] border-[0.5px] border-[#1A1714]/12 bg-[#FAFAF8] p-3 hover:border-[#1A1714]/25 transition-colors"
                     >
                       <div className="flex items-center gap-2 mb-1">
                         <PillarDot pillar={p.pillar} showLabel />
-                        <span className="text-sm text-text-primary font-medium truncate">
+                        <span className="text-[13px] text-[#1A1714] font-medium truncate">
                           {p.title}
                         </span>
                       </div>
-                      <StatusBadge status={p.status} />
                     </button>
                   ))}
                 </div>
@@ -635,10 +435,10 @@ Respond ONLY with a JSON array of objects: [{"postId":"...","date":"YYYY-MM-DD"}
 
       {/* ---- Fill This Week modal ---- */}
       {fillWeekOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-          <div className="bg-surface border border-border rounded-xl w-full max-w-lg mx-4">
-            <div className="flex items-center justify-between p-4 border-b border-border">
-              <h3 className="font-heading text-lg font-semibold text-text-primary">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#1A1714]/30">
+          <div className="bg-[#FAFAF8] border-[0.5px] border-[#1A1714]/12 rounded-[12px] w-full max-w-lg mx-4">
+            <div className="flex items-center justify-between p-4 border-b-[0.5px] border-[#1A1714]/12">
+              <h3 className="font-heading text-[16px] font-[700] text-[#1A1714]">
                 Fill This Week
               </h3>
               <button
@@ -646,7 +446,7 @@ Respond ONLY with a JSON array of objects: [{"postId":"...","date":"YYYY-MM-DD"}
                   setFillWeekOpen(false);
                   setFillSuggestions([]);
                 }}
-                className="text-text-muted hover:text-text-primary"
+                className="text-[#8C857D] hover:text-[#1A1714]"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -654,13 +454,13 @@ Respond ONLY with a JSON array of objects: [{"postId":"...","date":"YYYY-MM-DD"}
             <div className="p-4">
               {fillLoading ? (
                 <div className="flex flex-col items-center gap-3 py-8">
-                  <Sparkles className="w-6 h-6 text-coral animate-pulse" />
-                  <p className="text-sm text-text-muted">
+                  <Sparkles className="w-6 h-6 text-[#EB5E55] animate-pulse" />
+                  <p className="text-[13px] text-[#8C857D]">
                     AI is suggesting a schedule...
                   </p>
                 </div>
               ) : fillSuggestions.length === 0 ? (
-                <p className="text-sm text-text-muted text-center py-8">
+                <p className="text-[13px] text-[#8C857D] text-center py-8">
                   No suggestions generated. Try again or schedule manually.
                 </p>
               ) : (
@@ -668,18 +468,18 @@ Respond ONLY with a JSON array of objects: [{"postId":"...","date":"YYYY-MM-DD"}
                   {fillSuggestions.map((s) => (
                     <div
                       key={s.postId}
-                      className="flex items-center gap-3 rounded-lg border border-border bg-bg p-3"
+                      className="flex items-center gap-3 rounded-[12px] border-[0.5px] border-[#1A1714]/12 bg-[#FAFAF8] p-3"
                     >
                       <PillarDot pillar={s.pillar} />
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm text-text-primary font-medium truncate">
+                        <p className="text-[13px] text-[#1A1714] font-medium truncate">
                           {s.title}
                         </p>
-                        <p className="text-xs text-text-muted">
-                          {PILLAR_LABELS[s.pillar]}
+                        <p className="text-[11px] text-[#8C857D]">
+                          {getLabel(s.pillar)}
                         </p>
                       </div>
-                      <span className="text-xs text-text-muted whitespace-nowrap">
+                      <span className="text-[11px] text-[#8C857D] whitespace-nowrap">
                         {new Date(s.date + "T12:00:00").toLocaleDateString(
                           "en-US",
                           { weekday: "short", month: "short", day: "numeric" }
@@ -691,19 +491,19 @@ Respond ONLY with a JSON array of objects: [{"postId":"...","date":"YYYY-MM-DD"}
               )}
             </div>
             {fillSuggestions.length > 0 && !fillLoading && (
-              <div className="flex items-center justify-end gap-2 p-4 border-t border-border">
+              <div className="flex items-center justify-end gap-2 p-4 border-t-[0.5px] border-[#1A1714]/12">
                 <button
                   onClick={() => {
                     setFillWeekOpen(false);
                     setFillSuggestions([]);
                   }}
-                  className="px-4 py-1.5 text-sm text-text-muted hover:text-text-primary transition-colors"
+                  className="px-[14px] py-[7px] text-[13px] text-[#8C857D] hover:text-[#1A1714] border-[0.5px] border-[#1A1714]/12 rounded-[7px] transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={confirmFillWeek}
-                  className="px-4 py-1.5 text-sm font-medium bg-coral text-white rounded hover:opacity-90 transition-opacity"
+                  className="px-5 py-[10px] text-[13px] font-medium bg-[#EB5E55] text-white rounded-[7px] hover:opacity-90 transition-opacity"
                 >
                   Apply Schedule
                 </button>

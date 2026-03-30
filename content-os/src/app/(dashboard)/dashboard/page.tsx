@@ -15,6 +15,11 @@ import { getServerClient, getAuthenticatedUser } from '@/lib/insforge/server';
 import type { Post, ContentIdea } from '@/lib/types';
 import type { Pillar, Priority, Status } from '@/lib/constants';
 import { PILLAR_COLORS, STATUS_BADGE, STATUS_LABELS } from '@/lib/constants';
+
+/** Resolve a pillar color with graceful fallback for custom pillars. */
+function getPillarColor(pillar: string): string {
+  return PILLAR_COLORS[pillar as Pillar] ?? '#8C857D';
+}
 import { formatDateShort, formatRelative } from '@/lib/utils';
 import TodaysPrompt from '@/components/dashboard/TodaysPrompt';
 
@@ -148,7 +153,7 @@ export default async function DashboardPage() {
                     <div className="flex items-center gap-3 min-w-0">
                       <span
                         className="inline-block w-[3px] h-8 rounded-r-[2px] shrink-0"
-                        style={{ backgroundColor: PILLAR_COLORS[post.pillar] }}
+                        style={{ backgroundColor: getPillarColor(post.pillar) }}
                       />
                       <span className="font-['Space_Grotesk'] text-[13px] font-medium text-[#1A1714] truncate group-hover:text-[#EB5E55] transition-colors duration-100">
                         {post.title}
@@ -193,7 +198,7 @@ export default async function DashboardPage() {
                 <div className="flex items-center gap-3 min-w-0">
                   <span
                     className="inline-block w-[6px] h-[6px] rounded-full shrink-0"
-                    style={{ backgroundColor: PILLAR_COLORS[idea.pillar] }}
+                    style={{ backgroundColor: getPillarColor(idea.pillar) }}
                   />
                   <span className="font-['Space_Grotesk'] text-[13px] text-[#1A1714] truncate">{idea.idea}</span>
                 </div>
@@ -235,7 +240,7 @@ export default async function DashboardPage() {
                 <div className="flex items-center gap-3 min-w-0">
                   <span
                     className="inline-block w-[6px] h-[6px] rounded-full shrink-0"
-                    style={{ backgroundColor: PILLAR_COLORS[post.pillar] }}
+                    style={{ backgroundColor: getPillarColor(post.pillar) }}
                   />
                   <span className="font-['Space_Grotesk'] text-[13px] text-[#1A1714] truncate">{post.title}</span>
                 </div>

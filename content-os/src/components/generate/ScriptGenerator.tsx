@@ -1,18 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { GenerateOutput } from './GenerateOutput';
-import { getInsforgeClient } from '@/lib/insforge/client';
-import {
-  ALL_PILLARS,
-  PILLAR_COLORS,
-  PILLAR_LABELS,
-  type Pillar,
-  type ContentPillarConfig,
-} from '@/types/database';
+import { usePillars } from '@/hooks/usePillars';
 
-const PILLAR_PROMPTS: Record<Pillar, string> = {
+const PILLAR_PROMPTS: Record<string, string> = {
   'hot-take': `Generate a hot take Reel script.
 TOPIC (optional): [topic or "choose a strong angle based on the creator's real experience"]
 HOOK: One bold controversial sentence. Stop-scrolling.
@@ -89,60 +82,34 @@ export function ScriptGenerator({
   initialTopic = '',
   initialPillar = '',
 }: ScriptGeneratorProps) {
-  const [pillar, setPillar] = useState<Pillar>(
-    (ALL_PILLARS.includes(initialPillar as Pillar) ? initialPillar : 'hot-take') as Pillar,
+  const { pillars: pillarList, getLabel, getColor } = usePillars();
+
+  const [pillar, setPillar] = useState<string>(
+    initialPillar && pillarList.some((p) => p.value === initialPillar)
+      ? initialPillar
+      : pillarList[0]?.value ?? 'hot-take',
   );
   const [topic, setTopic] = useState(initialTopic);
   const [output, setOutput] = useState(initialResult);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [customPillars, setCustomPillars] = useState<ContentPillarConfig[] | null>(null);
-
-  useEffect(() => {
-    (async () => {
-      try {
-        const insforge = getInsforgeClient();
-        const { data: userData } = await insforge.auth.getCurrentUser();
-        if (!userData?.user) return;
-        const { data: profile } = await insforge.database
-          .from('creator_profile')
-          .select('content_pillars')
-          .eq('user_id', userData.user.id)
-          .single();
-        if (profile?.content_pillars) {
-          const pillars =
-            typeof profile.content_pillars === 'string'
-              ? JSON.parse(profile.content_pillars)
-              : profile.content_pillars;
-          if (Array.isArray(pillars) && pillars.length > 0) {
-            setCustomPillars(pillars);
-          }
-        }
-      } catch {
-        // fall back to defaults
-      }
-    })();
-  }, []);
 
   const generate = async () => {
     setLoading(true);
     setError('');
     setOutput('');
     try {
+      const info = pillarList.find((p) => p.value === pillar);
       let prompt: string;
-      if (customPillars) {
-        const cp = customPillars.find(
-          (c) => c.name.toLowerCase().replace(/\s+/g, '-') === pillar,
-        );
-        if (cp?.promptTemplate) {
-          prompt = cp.promptTemplate;
-        } else {
-          prompt =
-            PILLAR_PROMPTS[pillar] ||
-            `Write a script for a "${PILLAR_LABELS[pillar]}" post.`;
-        }
-      } else {
+      if (info?.promptTemplate) {
+        prompt = info.promptTemplate;
+      } else if (PILLAR_PROMPTS[pillar]) {
         prompt = PILLAR_PROMPTS[pillar];
+      } else {
+        prompt = `Write a script for a "${getLabel(pillar)}" post. The creator's voice only. Under 60 seconds when spoken. No em dashes.
+HOOK: One bold first line.
+BODY: 3-4 beats, each one sentence.
+CTA: One direct question.`;
       }
       if (topic.trim()) {
         prompt += `\n\nTopic: ${topic.trim()}`;
@@ -161,21 +128,20 @@ export function ScriptGenerator({
       <div>
         <label className="block font-['Space_Grotesk'] text-[13px] text-[#4A4540] mb-2">Content Pillar</label>
         <div className="flex flex-wrap gap-2">
-          {ALL_PILLARS.map((p) => (
+          {pillarList.map((p) => (
             <button
-              key={p}
-              onClick={() => setPillar(p)}
+              key={p.value}
+              onClick={() => setPillar(p.value)}
               className="px-4 py-1.5 rounded-[20px] font-['Space_Grotesk'] text-[13px] font-medium transition-all duration-100"
               style={{
-                backgroundColor:
-                  pillar === p ? '#F4F2EF' : '#F4F2EF',
-                color: pillar === p ? PILLAR_COLORS[p] : '#4A4540',
-                border: pillar === p
-                  ? `1.5px solid ${PILLAR_COLORS[p]}`
+                backgroundColor: '#F4F2EF',
+                color: pillar === p.value ? p.color : '#4A4540',
+                border: pillar === p.value
+                  ? `1.5px solid ${p.color}`
                   : '0.5px solid rgba(26,23,20,0.12)',
               }}
             >
-              {PILLAR_LABELS[p]}
+              {p.label}
             </button>
           ))}
         </div>

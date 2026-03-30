@@ -3,14 +3,16 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Grid3X3, List, Plus, Search, Trash2, ChevronDown } from 'lucide-react';
 import type { Post, Series } from '@/lib/types';
-import type { Pillar, Platform, Status } from '@/lib/constants';
-import { PILLARS, PILLAR_LABELS, PLATFORMS, STATUSES, STATUS_LABELS } from '@/lib/constants';
+import type { Platform, Status } from '@/lib/constants';
+import { PLATFORMS, STATUSES, STATUS_LABELS } from '@/lib/constants';
 import { getInsforgeClient } from '@/lib/insforge/client';
+import { usePillars } from '@/hooks/usePillars';
 import PostGrid from '@/components/library/PostGrid';
 import PostTable from '@/components/library/PostTable';
 import PostEditorDrawer from '@/components/library/PostEditorDrawer';
 
 export default function LibraryPage() {
+  const { pillars: pillarList, getLabel } = usePillars();
   const [posts, setPosts] = useState<Post[]>([]);
   const [series, setSeries] = useState<Series[]>([]);
   const [loading, setLoading] = useState(true);
@@ -21,7 +23,7 @@ export default function LibraryPage() {
 
   // Filters
   const [search, setSearch] = useState('');
-  const [pillarFilter, setPillarFilter] = useState<Pillar | 'all'>('all');
+  const [pillarFilter, setPillarFilter] = useState<string | 'all'>('all');
   const [platformFilter, setPlatformFilter] = useState<Platform | 'all'>('all');
   const [statusFilter, setStatusFilter] = useState<Status | 'all'>('all');
   const [seriesFilter, setSeriesFilter] = useState<string | 'all'>('all');
@@ -223,8 +225,8 @@ export default function LibraryPage() {
         <FilterDropdown
           label="Pillar"
           value={pillarFilter}
-          onChange={(v) => setPillarFilter(v as Pillar | 'all')}
-          options={[{ value: 'all', label: 'All' }, ...PILLARS.map((p) => ({ value: p, label: PILLAR_LABELS[p] }))]}
+          onChange={(v) => setPillarFilter(v)}
+          options={[{ value: 'all', label: 'All' }, ...pillarList.map((p) => ({ value: p.value, label: p.label }))]}
         />
         <FilterDropdown
           label="Platform"

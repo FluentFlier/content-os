@@ -16,22 +16,12 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { getInsforge } from "@/lib/insforge/client";
-import type {
-  Post,
-  Pillar,
-  HashtagSet,
-  WeeklyReview,
-} from "@/types/database";
-import {
-  ALL_PILLARS,
-  PILLAR_LABELS,
-  PILLAR_COLORS,
-} from "@/types/database";
+import type { Post, HashtagSet, WeeklyReview } from "@/lib/types";
+import { usePillars } from "@/hooks/usePillars";
 import PillarDot from "@/components/PillarDot";
 
 /* ------------------------------------------------------------------ */
 /*  Dynamic recharts imports (prevent SSR issues)                     */
-/*  Cast needed: recharts defaultProps types conflict with next/dynamic */
 /* ------------------------------------------------------------------ */
 
 // @ts-ignore recharts types incompatible with next/dynamic
@@ -61,12 +51,19 @@ function truncate(s: string, len: number) {
   return s.length > len ? s.slice(0, len) + "..." : s;
 }
 
+const CHART_TOOLTIP = {
+  backgroundColor: "#FAFAF8",
+  border: "0.5px solid rgba(26,23,20,0.12)",
+  color: "#1A1714",
+};
+
 const CHART_COLORS = {
-  primary: "#EB5E55",
-  secondary: "#F5C842",
-  grid: "#2A2218",
-  text: "#FAF6F1",
-  muted: "#5A5047",
+  coral: "#EB5E55",
+  yellow: "#F5C842",
+  green: "#5CB85C",
+  grid: "rgba(26,23,20,0.08)",
+  text: "#8C857D",
+  muted: "#8C857D",
 };
 
 /* ------------------------------------------------------------------ */
@@ -74,13 +71,12 @@ const CHART_COLORS = {
 /* ------------------------------------------------------------------ */
 
 export default function AnalyticsPage() {
+  const { pillars: pillarList, getLabel, getColor } = usePillars();
   const [userId, setUserId] = useState<string | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
   const [hashtagSets, setHashtagSets] = useState<HashtagSet[]>([]);
   const [reviews, setReviews] = useState<WeeklyReview[]>([]);
   const [loading, setLoading] = useState(true);
-
-  /* ---------- fetch all data ---------- */
 
   const fetchData = useCallback(async () => {
     try {
@@ -124,7 +120,7 @@ export default function AnalyticsPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64 text-text-muted">
+      <div className="flex items-center justify-center h-64 text-[#8C857D] text-[13px]">
         Loading analytics...
       </div>
     );
@@ -132,13 +128,13 @@ export default function AnalyticsPage() {
 
   return (
     <div className="space-y-10 pb-20">
-      <h1 className="font-heading text-3xl text-text-primary">Analytics</h1>
+      <h1 className="font-heading text-[22px] font-[800] text-[#1A1714] leading-[1.2] tracking-[-0.02em]">Analytics</h1>
 
       {/* Section 1 */}
       <LogPerformanceSection posts={posts} userId={userId} onSaved={fetchData} />
 
       {/* Section 2 */}
-      <PerformanceOverviewSection posts={posts} />
+      <PerformanceOverviewSection posts={posts} getLabel={getLabel} getColor={getColor} />
 
       {/* Section 3 */}
       <WeeklyReviewSection
@@ -153,6 +149,7 @@ export default function AnalyticsPage() {
         sets={hashtagSets}
         userId={userId}
         onSaved={fetchData}
+        pillarList={pillarList}
       />
     </div>
   );
@@ -181,7 +178,6 @@ function LogPerformanceSection({
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
 
-  // Populate fields when selecting a post
   useEffect(() => {
     const post = posts.find((p) => p.id === selectedPostId);
     if (post) {
@@ -225,15 +221,15 @@ function LogPerformanceSection({
   }
 
   return (
-    <section className="bg-surface border border-border rounded-xl p-6">
-      <h2 className="font-heading text-xl text-text-primary mb-4 flex items-center gap-2">
+    <section className="bg-[#FAFAF8] border-[0.5px] border-[#1A1714]/12 rounded-[12px] p-6">
+      <h2 className="font-heading text-[18px] font-[700] text-[#1A1714] mb-4 flex items-center gap-2">
         <BarChart3 size={20} /> Log Performance
       </h2>
 
       <div className="mb-4">
-        <label className="block text-sm text-text-muted mb-1">Select a posted post</label>
+        <label className="block text-sm text-[#8C857D] mb-1">Select a posted post</label>
         <select
-          className="w-full bg-bg border border-border rounded px-3 py-2 text-text-primary"
+          className="w-full bg-[#F4F2EF] border-[0.5px] border-[#1A1714]/12 rounded-[7px] px-3 py-2 text-[#1A1714]"
           value={selectedPostId}
           onChange={(e) => setSelectedPostId(e.target.value)}
         >
@@ -258,13 +254,13 @@ function LogPerformanceSection({
               { label: "Follows", value: followsGained, set: setFollowsGained },
             ].map((field) => (
               <div key={field.label}>
-                <label className="block text-xs text-text-muted mb-1">
+                <label className="block text-xs text-[#8C857D] mb-1">
                   {field.label}
                 </label>
                 <input
                   type="number"
                   min={0}
-                  className="w-24 bg-bg border border-border rounded px-2 py-1 text-text-primary"
+                  className="w-24 bg-[#F4F2EF] border-[0.5px] border-[#1A1714]/12 rounded-[7px] px-2 py-1 text-[#1A1714]"
                   value={field.value}
                   onChange={(e) => field.set(Number(e.target.value) || 0)}
                 />
@@ -275,13 +271,13 @@ function LogPerformanceSection({
           <button
             onClick={handleSave}
             disabled={saving}
-            className="bg-coral text-white px-4 py-2 rounded hover:opacity-90 disabled:opacity-50 flex items-center gap-2"
+            className="bg-[#EB5E55] text-white px-4 py-2 rounded hover:opacity-90 disabled:opacity-50 flex items-center gap-2"
           >
             <Save size={16} /> {saving ? "Saving..." : "Save"}
           </button>
 
           {message && (
-            <p className="mt-2 text-sm text-green">{message}</p>
+            <p className="mt-2 text-sm text-[#3B6D11]">{message}</p>
           )}
         </>
       )}
@@ -293,7 +289,15 @@ function LogPerformanceSection({
 /*  SECTION 2: Performance Overview                                   */
 /* ================================================================== */
 
-function PerformanceOverviewSection({ posts }: { posts: Post[] }) {
+function PerformanceOverviewSection({
+  posts,
+  getLabel,
+  getColor,
+}: {
+  posts: Post[];
+  getLabel: (v: string) => string;
+  getColor: (v: string) => string;
+}) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
@@ -333,9 +337,9 @@ function PerformanceOverviewSection({ posts }: { posts: Post[] }) {
   });
   const pillarData = Object.entries(pillarMap)
     .map(([pillar, { total, count }]) => ({
-      pillar: PILLAR_LABELS[pillar as Pillar] ?? pillar,
+      pillar: getLabel(pillar),
       avg: Math.round(total / count),
-      color: PILLAR_COLORS[pillar as Pillar] ?? CHART_COLORS.primary,
+      color: getColor(pillar),
     }))
     .sort((a, b) => b.avg - a.avg);
 
@@ -347,23 +351,23 @@ function PerformanceOverviewSection({ posts }: { posts: Post[] }) {
   if (!mounted) return null;
 
   return (
-    <section className="bg-surface border border-border rounded-xl p-6 space-y-8">
-      <h2 className="font-heading text-xl text-text-primary flex items-center gap-2">
+    <section className="bg-[#FAFAF8] border-[0.5px] border-[#1A1714]/12 rounded-[12px] p-6 space-y-8">
+      <h2 className="font-heading text-[18px] font-[700] text-[#1A1714] flex items-center gap-2">
         <TrendingUp size={20} /> Performance Overview
       </h2>
 
       {posts.length === 0 ? (
-        <p className="text-text-muted text-sm">
+        <p className="text-[#8C857D] text-sm">
           No posted posts with stats yet. Log performance above to see charts.
         </p>
       ) : (
         <>
           {/* Views by post */}
           <div>
-            <h3 className="text-sm text-text-muted mb-2 font-heading">
+            <h3 className="text-sm text-[#8C857D] mb-2 font-heading">
               Views by Post
             </h3>
-            <div className="bg-surface border border-border rounded-lg p-4">
+            <div className="bg-[#FAFAF8] border-[0.5px] border-[#1A1714]/12 rounded-[12px] p-4">
               <ResponsiveContainer width="100%" height={300}>
                 <BarChartComponent data={viewsData}>
                   <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.grid} />
@@ -375,14 +379,8 @@ function PerformanceOverviewSection({ posts }: { posts: Post[] }) {
                     height={80}
                   />
                   <YAxis tick={{ fill: CHART_COLORS.text, fontSize: 11 }} />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "#13100E",
-                      border: "1px solid #2A2218",
-                      color: "#FAF6F1",
-                    }}
-                  />
-                  <Bar dataKey="views" fill={CHART_COLORS.primary} radius={[4, 4, 0, 0]} />
+                  <Tooltip contentStyle={CHART_TOOLTIP} />
+                  <Bar dataKey="views" fill={CHART_COLORS.coral} radius={[4, 4, 0, 0]} />
                 </BarChartComponent>
               </ResponsiveContainer>
             </div>
@@ -390,10 +388,10 @@ function PerformanceOverviewSection({ posts }: { posts: Post[] }) {
 
           {/* Saves by post */}
           <div>
-            <h3 className="text-sm text-text-muted mb-2 font-heading">
+            <h3 className="text-sm text-[#8C857D] mb-2 font-heading">
               Saves by Post
             </h3>
-            <div className="bg-surface border border-border rounded-lg p-4">
+            <div className="bg-[#FAFAF8] border-[0.5px] border-[#1A1714]/12 rounded-[12px] p-4">
               <ResponsiveContainer width="100%" height={300}>
                 <BarChartComponent data={savesData}>
                   <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.grid} />
@@ -405,14 +403,8 @@ function PerformanceOverviewSection({ posts }: { posts: Post[] }) {
                     height={80}
                   />
                   <YAxis tick={{ fill: CHART_COLORS.text, fontSize: 11 }} />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "#13100E",
-                      border: "1px solid #2A2218",
-                      color: "#FAF6F1",
-                    }}
-                  />
-                  <Bar dataKey="saves" fill={CHART_COLORS.secondary} radius={[4, 4, 0, 0]} />
+                  <Tooltip contentStyle={CHART_TOOLTIP} />
+                  <Bar dataKey="saves" fill={CHART_COLORS.yellow} radius={[4, 4, 0, 0]} />
                 </BarChartComponent>
               </ResponsiveContainer>
             </div>
@@ -421,10 +413,10 @@ function PerformanceOverviewSection({ posts }: { posts: Post[] }) {
           {/* Follows gained over time */}
           {followsData.length > 0 && (
             <div>
-              <h3 className="text-sm text-text-muted mb-2 font-heading">
+              <h3 className="text-sm text-[#8C857D] mb-2 font-heading">
                 Follows Gained Over Time
               </h3>
-              <div className="bg-surface border border-border rounded-lg p-4">
+              <div className="bg-[#FAFAF8] border-[0.5px] border-[#1A1714]/12 rounded-[12px] p-4">
                 <ResponsiveContainer width="100%" height={300}>
                   <LineChartComponent data={followsData}>
                     <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.grid} />
@@ -433,19 +425,13 @@ function PerformanceOverviewSection({ posts }: { posts: Post[] }) {
                       tick={{ fill: CHART_COLORS.text, fontSize: 11 }}
                     />
                     <YAxis tick={{ fill: CHART_COLORS.text, fontSize: 11 }} />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: "#13100E",
-                        border: "1px solid #2A2218",
-                        color: "#FAF6F1",
-                      }}
-                    />
+                    <Tooltip contentStyle={CHART_TOOLTIP} />
                     <Line
                       type="monotone"
                       dataKey="follows"
-                      stroke={CHART_COLORS.primary}
+                      stroke={CHART_COLORS.green}
                       strokeWidth={2}
-                      dot={{ fill: CHART_COLORS.primary }}
+                      dot={{ fill: CHART_COLORS.green }}
                     />
                   </LineChartComponent>
                 </ResponsiveContainer>
@@ -453,56 +439,64 @@ function PerformanceOverviewSection({ posts }: { posts: Post[] }) {
             </div>
           )}
 
-          {/* Avg views per pillar */}
+          {/* Pillar breakdown table */}
           {pillarData.length > 0 && (
             <div>
-              <h3 className="text-sm text-text-muted mb-2 font-heading">
-                Average Views per Pillar
+              <h3 className="text-sm text-[#8C857D] mb-2 font-heading">
+                Pillar Breakdown
               </h3>
-              <div className="bg-surface border border-border rounded-lg p-4">
-                <ResponsiveContainer width="100%" height={Math.max(200, pillarData.length * 50)}>
-                  <BarChartComponent data={pillarData} layout="vertical">
-                    <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.grid} />
-                    <XAxis type="number" tick={{ fill: CHART_COLORS.text, fontSize: 11 }} />
-                    <YAxis
-                      type="category"
-                      dataKey="pillar"
-                      tick={{ fill: CHART_COLORS.text, fontSize: 12 }}
-                      width={90}
-                    />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: "#13100E",
-                        border: "1px solid #2A2218",
-                        color: "#FAF6F1",
-                      }}
-                    />
-                    <Bar dataKey="avg" fill={CHART_COLORS.primary} radius={[0, 4, 4, 0]} />
-                  </BarChartComponent>
-                </ResponsiveContainer>
+              <div className="bg-[#FAFAF8] border-[0.5px] border-[#1A1714]/12 rounded-[12px] overflow-hidden">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b-[0.5px] border-[#1A1714]/12">
+                      <th className="text-left px-4 py-2.5 text-[#8C857D] font-medium">Pillar</th>
+                      <th className="text-right px-4 py-2.5 text-[#8C857D] font-medium">Posts</th>
+                      <th className="text-right px-4 py-2.5 text-[#8C857D] font-medium">Avg Views</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {Object.entries(pillarMap).map(([pillar, { total, count }]) => (
+                      <tr key={pillar} className="border-b-[0.5px] border-[#1A1714]/12/50">
+                        <td className="px-4 py-2.5">
+                          <span className="flex items-center gap-2">
+                            <span
+                              className="w-2.5 h-2.5 rounded-full"
+                              style={{ backgroundColor: getColor(pillar) }}
+                            />
+                            <span className="text-[#1A1714]">
+                              {getLabel(pillar)}
+                            </span>
+                          </span>
+                        </td>
+                        <td className="text-right px-4 py-2.5 text-[#1A1714]">{count}</td>
+                        <td className="text-right px-4 py-2.5 text-[#1A1714]">{Math.round(total / count)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </div>
           )}
 
           {/* Top 5 by saves */}
           <div>
-            <h3 className="text-sm text-text-muted mb-2 font-heading">
+            <h3 className="text-sm text-[#8C857D] mb-2 font-heading">
               Best Performers (Top 5 by Saves)
             </h3>
             <div className="space-y-2">
               {topBySaves.map((p, i) => (
                 <div
                   key={p.id}
-                  className="flex items-center gap-3 bg-bg border border-border rounded-lg px-4 py-3"
+                  className="flex items-center gap-3 bg-[#F4F2EF] border-[0.5px] border-[#1A1714]/12 rounded-[12px] px-4 py-3"
                 >
-                  <span className="text-coral font-heading text-lg w-6">
+                  <span className="text-[#EB5E55] font-heading text-lg w-6">
                     {i + 1}
                   </span>
                   <div className="flex-1 min-w-0">
-                    <p className="text-text-primary text-sm truncate">
+                    <p className="text-[#1A1714] text-sm truncate">
                       {p.title}
                     </p>
-                    <p className="text-text-muted text-xs">
+                    <p className="text-[#8C857D] text-xs">
                       {p.views ?? 0} views / {p.saves ?? 0} saves
                     </p>
                   </div>
@@ -510,7 +504,7 @@ function PerformanceOverviewSection({ posts }: { posts: Post[] }) {
                 </div>
               ))}
               {topBySaves.length === 0 && (
-                <p className="text-text-muted text-sm">No data yet.</p>
+                <p className="text-[#8C857D] text-sm">No data yet.</p>
               )}
             </div>
           </div>
@@ -629,15 +623,15 @@ Give me exactly 3 blunt, actionable recommendations for next week. Be direct and
   }
 
   return (
-    <section className="bg-surface border border-border rounded-xl p-6 space-y-6">
+    <section className="bg-[#FAFAF8] border-[0.5px] border-[#1A1714]/12 rounded-[12px] p-6 space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="font-heading text-xl text-text-primary flex items-center gap-2">
+        <h2 className="font-heading text-[18px] font-[700] text-[#1A1714] flex items-center gap-2">
           <Sparkles size={20} /> Weekly Review
         </h2>
         {!showForm && (
           <button
             onClick={() => setShowForm(true)}
-            className="bg-coral text-white px-4 py-2 rounded hover:opacity-90 flex items-center gap-2 text-sm"
+            className="bg-[#EB5E55] text-white px-4 py-2 rounded hover:opacity-90 flex items-center gap-2 text-sm"
           >
             <Plus size={16} /> New Weekly Review
           </button>
@@ -645,51 +639,43 @@ Give me exactly 3 blunt, actionable recommendations for next week. Be direct and
       </div>
 
       {showForm && (
-        <div className="space-y-4 bg-bg border border-border rounded-lg p-4">
+        <div className="space-y-4 bg-[#F4F2EF] border-[0.5px] border-[#1A1714]/12 rounded-[12px] p-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs text-text-muted mb-1">
-                Week Start
-              </label>
+              <label className="block text-xs text-[#8C857D] mb-1">Week Start</label>
               <input
                 type="date"
-                className="w-full bg-bg border border-border rounded px-3 py-2 text-text-primary"
+                className="w-full bg-[#F4F2EF] border-[0.5px] border-[#1A1714]/12 rounded-[7px] px-3 py-2 text-[#1A1714]"
                 value={weekStart}
                 onChange={(e) => setWeekStart(e.target.value)}
               />
             </div>
             <div>
-              <label className="block text-xs text-text-muted mb-1">
-                Posts Published
-              </label>
+              <label className="block text-xs text-[#8C857D] mb-1">Posts Published</label>
               <input
                 type="number"
                 min={0}
-                className="w-24 bg-bg border border-border rounded px-2 py-1 text-text-primary"
+                className="w-24 bg-[#F4F2EF] border-[0.5px] border-[#1A1714]/12 rounded-[7px] px-2 py-1 text-[#1A1714]"
                 value={postsPublished}
                 onChange={(e) => setPostsPublished(Number(e.target.value) || 0)}
               />
             </div>
             <div>
-              <label className="block text-xs text-text-muted mb-1">
-                Total Views
-              </label>
+              <label className="block text-xs text-[#8C857D] mb-1">Total Views</label>
               <input
                 type="number"
                 min={0}
-                className="w-24 bg-bg border border-border rounded px-2 py-1 text-text-primary"
+                className="w-24 bg-[#F4F2EF] border-[0.5px] border-[#1A1714]/12 rounded-[7px] px-2 py-1 text-[#1A1714]"
                 value={totalViews}
                 onChange={(e) => setTotalViews(Number(e.target.value) || 0)}
               />
             </div>
             <div>
-              <label className="block text-xs text-text-muted mb-1">
-                Total Followers Gained
-              </label>
+              <label className="block text-xs text-[#8C857D] mb-1">Total Followers Gained</label>
               <input
                 type="number"
                 min={0}
-                className="w-24 bg-bg border border-border rounded px-2 py-1 text-text-primary"
+                className="w-24 bg-[#F4F2EF] border-[0.5px] border-[#1A1714]/12 rounded-[7px] px-2 py-1 text-[#1A1714]"
                 value={totalFollowers}
                 onChange={(e) => setTotalFollowers(Number(e.target.value) || 0)}
               />
@@ -697,11 +683,9 @@ Give me exactly 3 blunt, actionable recommendations for next week. Be direct and
           </div>
 
           <div>
-            <label className="block text-xs text-text-muted mb-1">
-              Top Post
-            </label>
+            <label className="block text-xs text-[#8C857D] mb-1">Top Post</label>
             <select
-              className="w-full bg-bg border border-border rounded px-3 py-2 text-text-primary"
+              className="w-full bg-[#F4F2EF] border-[0.5px] border-[#1A1714]/12 rounded-[7px] px-3 py-2 text-[#1A1714]"
               value={topPostId}
               onChange={(e) => setTopPostId(e.target.value)}
             >
@@ -715,33 +699,15 @@ Give me exactly 3 blunt, actionable recommendations for next week. Be direct and
           </div>
 
           {[
-            {
-              label: "What Worked",
-              value: whatWorked,
-              set: setWhatWorked,
-            },
-            {
-              label: "What to Double Down On",
-              value: doublDown,
-              set: setDoublDown,
-            },
-            {
-              label: "What to Cut",
-              value: whatToCut,
-              set: setWhatToCut,
-            },
-            {
-              label: "Next Week Focus",
-              value: nextWeek,
-              set: setNextWeek,
-            },
+            { label: "What Worked", value: whatWorked, set: setWhatWorked },
+            { label: "What to Double Down On", value: doublDown, set: setDoublDown },
+            { label: "What to Cut", value: whatToCut, set: setWhatToCut },
+            { label: "Next Week Focus", value: nextWeek, set: setNextWeek },
           ].map((field) => (
             <div key={field.label}>
-              <label className="block text-xs text-text-muted mb-1">
-                {field.label}
-              </label>
+              <label className="block text-xs text-[#8C857D] mb-1">{field.label}</label>
               <textarea
-                className="w-full bg-bg border border-border rounded px-3 py-2 text-text-primary text-sm min-h-[60px]"
+                className="w-full bg-[#F4F2EF] border-[0.5px] border-[#1A1714]/12 rounded-[7px] px-3 py-2 text-[#1A1714] text-sm min-h-[60px]"
                 value={field.value}
                 onChange={(e) => field.set(e.target.value)}
               />
@@ -752,7 +718,7 @@ Give me exactly 3 blunt, actionable recommendations for next week. Be direct and
             <button
               onClick={handleAnalyze}
               disabled={analyzing}
-              className="bg-yellow text-bg px-4 py-2 rounded hover:opacity-90 disabled:opacity-50 flex items-center gap-2 text-sm font-medium"
+              className="bg-[#F5C842] text-[#1A1714] px-4 py-2 rounded hover:opacity-90 disabled:opacity-50 flex items-center gap-2 text-sm font-medium"
             >
               <Sparkles size={16} />{" "}
               {analyzing ? "Analyzing..." : "Analyze My Week"}
@@ -760,7 +726,7 @@ Give me exactly 3 blunt, actionable recommendations for next week. Be direct and
             <button
               onClick={handleSaveReview}
               disabled={saving || !weekStart}
-              className="bg-coral text-white px-4 py-2 rounded hover:opacity-90 disabled:opacity-50 flex items-center gap-2 text-sm"
+              className="bg-[#EB5E55] text-white px-4 py-2 rounded hover:opacity-90 disabled:opacity-50 flex items-center gap-2 text-sm"
             >
               <Save size={16} /> {saving ? "Saving..." : "Save Review"}
             </button>
@@ -769,25 +735,25 @@ Give me exactly 3 blunt, actionable recommendations for next week. Be direct and
                 setShowForm(false);
                 resetForm();
               }}
-              className="text-text-muted hover:text-text-primary px-4 py-2 text-sm"
+              className="text-[#8C857D] hover:text-[#1A1714] px-4 py-2 text-sm"
             >
               Cancel
             </button>
           </div>
 
           {aiOutput && (
-            <div className="bg-surface border border-border rounded-lg p-4 mt-2">
-              <h4 className="text-sm font-heading text-yellow mb-2">
+            <div className="bg-[#FAFAF8] border-[0.5px] border-[#1A1714]/12 rounded-[12px] p-4 mt-2">
+              <h4 className="text-sm font-heading text-[#854F0B] mb-2">
                 AI Recommendations
               </h4>
-              <p className="text-text-primary text-sm whitespace-pre-wrap">
+              <p className="text-[#1A1714] text-sm whitespace-pre-wrap">
                 {aiOutput}
               </p>
             </div>
           )}
 
           {message && (
-            <p className="text-sm text-green">{message}</p>
+            <p className="text-sm text-[#3B6D11]">{message}</p>
           )}
         </div>
       )}
@@ -795,23 +761,16 @@ Give me exactly 3 blunt, actionable recommendations for next week. Be direct and
       {/* Past reviews */}
       {reviews.length > 0 && (
         <div className="space-y-2">
-          <h3 className="text-sm text-text-muted font-heading">
-            Past Reviews
-          </h3>
+          <h3 className="text-sm text-[#8C857D] font-heading">Past Reviews</h3>
           {reviews.map((r) => {
             const expanded = expandedReview === r.id;
             return (
-              <div
-                key={r.id}
-                className="bg-bg border border-border rounded-lg"
-              >
+              <div key={r.id} className="bg-[#F4F2EF] border-[0.5px] border-[#1A1714]/12 rounded-[12px]">
                 <button
-                  onClick={() =>
-                    setExpandedReview(expanded ? null : r.id)
-                  }
+                  onClick={() => setExpandedReview(expanded ? null : r.id)}
                   className="w-full flex items-center justify-between px-4 py-3 text-left"
                 >
-                  <span className="text-text-primary text-sm">
+                  <span className="text-[#1A1714] text-sm">
                     Week of{" "}
                     {new Date(r.week_start).toLocaleDateString("en-US", {
                       month: "short",
@@ -819,57 +778,39 @@ Give me exactly 3 blunt, actionable recommendations for next week. Be direct and
                       year: "numeric",
                     })}
                   </span>
-                  <span className="text-text-muted flex items-center gap-2 text-xs">
+                  <span className="text-[#8C857D] flex items-center gap-2 text-xs">
                     {r.posts_published} posts / {r.total_views} views
-                    {expanded ? (
-                      <ChevronUp size={14} />
-                    ) : (
-                      <ChevronDown size={14} />
-                    )}
+                    {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                   </span>
                 </button>
                 {expanded && (
                   <div className="px-4 pb-4 space-y-2 text-sm">
-                    <p className="text-text-muted">
+                    <p className="text-[#8C857D]">
                       Followers gained:{" "}
-                      <span className="text-text-primary">
-                        {r.total_followers_gained}
-                      </span>
+                      <span className="text-[#1A1714]">{r.total_followers_gained}</span>
                     </p>
                     {r.what_worked && (
                       <div>
-                        <span className="text-text-muted">What worked: </span>
-                        <span className="text-text-primary">
-                          {r.what_worked}
-                        </span>
+                        <span className="text-[#8C857D]">What worked: </span>
+                        <span className="text-[#1A1714]">{r.what_worked}</span>
                       </div>
                     )}
                     {r.what_to_double_down && (
                       <div>
-                        <span className="text-text-muted">
-                          Double down:{" "}
-                        </span>
-                        <span className="text-text-primary">
-                          {r.what_to_double_down}
-                        </span>
+                        <span className="text-[#8C857D]">Double down: </span>
+                        <span className="text-[#1A1714]">{r.what_to_double_down}</span>
                       </div>
                     )}
                     {r.what_to_cut && (
                       <div>
-                        <span className="text-text-muted">Cut: </span>
-                        <span className="text-text-primary">
-                          {r.what_to_cut}
-                        </span>
+                        <span className="text-[#8C857D]">Cut: </span>
+                        <span className="text-[#1A1714]">{r.what_to_cut}</span>
                       </div>
                     )}
                     {r.next_week_focus && (
                       <div>
-                        <span className="text-text-muted">
-                          Next week focus:{" "}
-                        </span>
-                        <span className="text-text-primary">
-                          {r.next_week_focus}
-                        </span>
+                        <span className="text-[#8C857D]">Next week focus: </span>
+                        <span className="text-[#1A1714]">{r.next_week_focus}</span>
                       </div>
                     )}
                   </div>
@@ -891,22 +832,22 @@ function HashtagVaultSection({
   sets,
   userId,
   onSaved,
+  pillarList,
 }: {
   sets: HashtagSet[];
   userId: string | null;
   onSaved: () => void;
+  pillarList: { value: string; label: string }[];
 }) {
   const [showCreate, setShowCreate] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [tags, setTags] = useState("");
-  const [pillar, setPillar] = useState<Pillar | "">("");
+  const [pillar, setPillar] = useState<string>("");
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [copiedId, setCopiedId] = useState<string | null>(null);
-  const [analyzeOutput, setAnalyzeOutput] = useState<Record<string, string>>(
-    {}
-  );
+  const [analyzeOutput, setAnalyzeOutput] = useState<Record<string, string>>({});
   const [analyzingId, setAnalyzingId] = useState<string | null>(null);
 
   function startEdit(set: HashtagSet) {
@@ -1013,15 +954,15 @@ Which tags should I keep and which should I cut? Be specific and blunt. Suggest 
   }
 
   return (
-    <section className="bg-surface border border-border rounded-xl p-6 space-y-6">
+    <section className="bg-[#FAFAF8] border-[0.5px] border-[#1A1714]/12 rounded-[12px] p-6 space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="font-heading text-xl text-text-primary flex items-center gap-2">
+        <h2 className="font-heading text-[18px] font-[700] text-[#1A1714] flex items-center gap-2">
           <Hash size={20} /> Hashtag Vault
         </h2>
         {!showCreate && !editingId && (
           <button
             onClick={() => setShowCreate(true)}
-            className="bg-coral text-white px-4 py-2 rounded hover:opacity-90 flex items-center gap-2 text-sm"
+            className="bg-[#EB5E55] text-white px-4 py-2 rounded hover:opacity-90 flex items-center gap-2 text-sm"
           >
             <Plus size={16} /> Create Set
           </button>
@@ -1030,40 +971,38 @@ Which tags should I keep and which should I cut? Be specific and blunt. Suggest 
 
       {/* Create / Edit form */}
       {(showCreate || editingId) && (
-        <div className="bg-bg border border-border rounded-lg p-4 space-y-3">
+        <div className="bg-[#F4F2EF] border-[0.5px] border-[#1A1714]/12 rounded-[12px] p-4 space-y-3">
           <div>
-            <label className="block text-xs text-text-muted mb-1">Name</label>
+            <label className="block text-xs text-[#8C857D] mb-1">Name</label>
             <input
-              className="w-full bg-bg border border-border rounded px-3 py-2 text-text-primary text-sm"
+              className="w-full bg-[#F4F2EF] border-[0.5px] border-[#1A1714]/12 rounded-[7px] px-3 py-2 text-[#1A1714] text-sm"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. Founder hashtags"
             />
           </div>
           <div>
-            <label className="block text-xs text-text-muted mb-1">
+            <label className="block text-xs text-[#8C857D] mb-1">
               Tags (space or comma separated)
             </label>
             <textarea
-              className="w-full bg-bg border border-border rounded px-3 py-2 text-text-primary text-sm min-h-[60px]"
+              className="w-full bg-[#F4F2EF] border-[0.5px] border-[#1A1714]/12 rounded-[7px] px-3 py-2 text-[#1A1714] text-sm min-h-[60px]"
               value={tags}
               onChange={(e) => setTags(e.target.value)}
               placeholder="#founder #startup #buildinpublic"
             />
           </div>
           <div>
-            <label className="block text-xs text-text-muted mb-1">
-              Pillar (optional)
-            </label>
+            <label className="block text-xs text-[#8C857D] mb-1">Pillar (optional)</label>
             <select
-              className="w-full bg-bg border border-border rounded px-3 py-2 text-text-primary text-sm"
+              className="w-full bg-[#F4F2EF] border-[0.5px] border-[#1A1714]/12 rounded-[7px] px-3 py-2 text-[#1A1714] text-sm"
               value={pillar}
-              onChange={(e) => setPillar(e.target.value as Pillar | "")}
+              onChange={(e) => setPillar(e.target.value)}
             >
               <option value="">-- None --</option>
-              {ALL_PILLARS.map((p) => (
-                <option key={p} value={p}>
-                  {PILLAR_LABELS[p]}
+              {pillarList.map((p) => (
+                <option key={p.value} value={p.value}>
+                  {p.label}
                 </option>
               ))}
             </select>
@@ -1072,53 +1011,46 @@ Which tags should I keep and which should I cut? Be specific and blunt. Suggest 
             <button
               onClick={handleSave}
               disabled={saving || !name.trim() || !tags.trim()}
-              className="bg-coral text-white px-4 py-2 rounded hover:opacity-90 disabled:opacity-50 flex items-center gap-2 text-sm"
+              className="bg-[#EB5E55] text-white px-4 py-2 rounded hover:opacity-90 disabled:opacity-50 flex items-center gap-2 text-sm"
             >
               <Save size={16} />{" "}
-              {saving
-                ? "Saving..."
-                : editingId
-                ? "Update Set"
-                : "Create Set"}
+              {saving ? "Saving..." : editingId ? "Update Set" : "Create Set"}
             </button>
             <button
               onClick={resetForm}
-              className="text-text-muted hover:text-text-primary px-4 py-2 text-sm"
+              className="text-[#8C857D] hover:text-[#1A1714] px-4 py-2 text-sm"
             >
               Cancel
             </button>
           </div>
-          {message && <p className="text-sm text-green">{message}</p>}
+          {message && <p className="text-sm text-[#3B6D11]">{message}</p>}
         </div>
       )}
 
       {/* List */}
       {sets.length === 0 && !showCreate && (
-        <p className="text-text-muted text-sm">
+        <p className="text-[#8C857D] text-sm">
           No hashtag sets yet. Create one to get started.
         </p>
       )}
 
       <div className="space-y-3">
         {sets.map((s) => (
-          <div
-            key={s.id}
-            className="bg-bg border border-border rounded-lg p-4 space-y-2"
-          >
+          <div key={s.id} className="bg-[#F4F2EF] border-[0.5px] border-[#1A1714]/12 rounded-[12px] p-4 space-y-2">
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2 min-w-0">
-                <span className="text-text-primary text-sm font-medium truncate">
+                <span className="text-[#1A1714] text-sm font-medium truncate">
                   {s.name}
                 </span>
                 {s.pillar && <PillarDot pillar={s.pillar} showLabel />}
-                <span className="text-text-muted text-xs shrink-0">
+                <span className="text-[#8C857D] text-xs shrink-0">
                   Used {s.use_count}x
                 </span>
               </div>
               <div className="flex items-center gap-1 shrink-0">
                 <button
                   onClick={() => handleCopy(s.tags, s.id)}
-                  className="text-text-muted hover:text-text-primary p-1.5 rounded"
+                  className="text-[#8C857D] hover:text-[#1A1714] p-1.5 rounded-[7px]"
                   title="Copy tags"
                 >
                   <ClipboardCopy size={14} />
@@ -1126,37 +1058,35 @@ Which tags should I keep and which should I cut? Be specific and blunt. Suggest 
                 <button
                   onClick={() => handleAnalyze(s)}
                   disabled={analyzingId === s.id}
-                  className="text-text-muted hover:text-yellow p-1.5 rounded disabled:opacity-50"
+                  className="text-[#8C857D] hover:text-[#854F0B] p-1.5 rounded-[7px] disabled:opacity-50"
                   title="Analyze"
                 >
                   <Sparkles size={14} />
                 </button>
                 <button
                   onClick={() => startEdit(s)}
-                  className="text-text-muted hover:text-text-primary p-1.5 rounded"
+                  className="text-[#8C857D] hover:text-[#1A1714] p-1.5 rounded-[7px]"
                   title="Edit"
                 >
                   <Pencil size={14} />
                 </button>
                 <button
                   onClick={() => handleDelete(s.id)}
-                  className="text-text-muted hover:text-coral p-1.5 rounded"
+                  className="text-[#8C857D] hover:text-[#EB5E55] p-1.5 rounded-[7px]"
                   title="Delete"
                 >
                   <Trash2 size={14} />
                 </button>
               </div>
             </div>
-            <p className="text-text-muted text-xs truncate">{s.tags}</p>
+            <p className="text-[#8C857D] text-xs truncate">{s.tags}</p>
             {copiedId === s.id && (
-              <p className="text-xs text-green">Copied!</p>
+              <p className="text-xs text-[#3B6D11]">Copied!</p>
             )}
             {analyzeOutput[s.id] && (
-              <div className="bg-surface border border-border rounded-lg p-3 mt-2">
-                <h4 className="text-xs font-heading text-yellow mb-1">
-                  Analysis
-                </h4>
-                <p className="text-text-primary text-xs whitespace-pre-wrap">
+              <div className="bg-[#FAFAF8] border-[0.5px] border-[#1A1714]/12 rounded-[12px] p-3 mt-2">
+                <h4 className="text-xs font-heading text-[#854F0B] mb-1">Analysis</h4>
+                <p className="text-[#1A1714] text-xs whitespace-pre-wrap">
                   {analyzeOutput[s.id]}
                 </p>
               </div>

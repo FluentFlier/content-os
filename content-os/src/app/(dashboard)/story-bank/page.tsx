@@ -6,8 +6,7 @@ import { ChevronDown, Pickaxe } from "lucide-react";
 import { useToast } from "@/components/ui/Toast";
 import { getInsforge } from "@/lib/insforge/client";
 import type { StoryBankEntry } from "@/lib/types";
-import type { Pillar } from "@/lib/constants";
-import { PILLARS, PILLAR_LABELS } from "@/lib/constants";
+import { usePillars } from "@/hooks/usePillars";
 import StoryGrid from "@/components/story-bank/StoryGrid";
 
 type UsedFilter = "all" | "unused" | "used";
@@ -15,13 +14,14 @@ type UsedFilter = "all" | "unused" | "used";
 export default function StoryBankPage() {
   const router = useRouter();
   const { toast } = useToast();
+  const { pillars: pillarList, pillarValues } = usePillars();
   const [stories, setStories] = useState<StoryBankEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
 
   // Filters
   const [usedFilter, setUsedFilter] = useState<UsedFilter>("all");
-  const [pillarFilter, setPillarFilter] = useState<Pillar | "all">("all");
+  const [pillarFilter, setPillarFilter] = useState<string | "all">("all");
 
   // Expanded card
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -145,7 +145,7 @@ export default function StoryBankPage() {
       );
 
       const parsedPillar = pillarMatch
-        ? (pillarMatch[1].trim().toLowerCase().replace(/\s+/g, "-") as Pillar)
+        ? pillarMatch[1].trim().toLowerCase().replace(/\s+/g, "-")
         : story.pillar;
 
       const insforge = getInsforge();
@@ -160,7 +160,7 @@ export default function StoryBankPage() {
           mined_caption_line: captionMatch
             ? captionMatch[1].trim()
             : story.mined_caption_line,
-          pillar: PILLARS.includes(parsedPillar as Pillar)
+          pillar: parsedPillar && pillarValues.includes(parsedPillar)
             ? parsedPillar
             : story.pillar,
         })
@@ -249,15 +249,13 @@ export default function StoryBankPage() {
         <div className="relative">
           <select
             value={pillarFilter}
-            onChange={(e) =>
-              setPillarFilter(e.target.value as Pillar | "all")
-            }
+            onChange={(e) => setPillarFilter(e.target.value)}
             className="appearance-none bg-[#F4F2EF] border-[0.5px] border-[#1A1714]/12 rounded-[7px] pl-3 pr-7 py-1.5 text-[13px] text-[#1A1714] focus:outline-none focus:border-[#1A1714]/40 cursor-pointer transition-colors"
           >
             <option value="all">Pillar: All</option>
-            {PILLARS.map((p) => (
-              <option key={p} value={p}>
-                Pillar: {PILLAR_LABELS[p]}
+            {pillarList.map((p) => (
+              <option key={p.value} value={p.value}>
+                Pillar: {p.label}
               </option>
             ))}
           </select>

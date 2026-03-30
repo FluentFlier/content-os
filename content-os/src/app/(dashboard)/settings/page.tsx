@@ -2,18 +2,14 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { getInsforge } from "@/lib/insforge/client";
-import type {
-  ContentPillarConfig,
-  PlatformConfig,
-  CreatorProfile,
-  UserSetting,
-  Platform,
-} from "@/types/database";
-import { Eye, EyeOff, Copy, Check, Loader2 } from "lucide-react";
+import type { ContentPillarConfig, PlatformConfig, CreatorProfile, UserSetting } from "@/types/database";
+import type { Platform } from "@/lib/constants";
+import { PLATFORMS } from "@/lib/constants";
+import { Eye, EyeOff, Copy, Check, Loader2, Unplug } from "lucide-react";
 
-// ---------------------------------------------------------------------------
-// Constants
-// ---------------------------------------------------------------------------
+/* ------------------------------------------------------------------ */
+/*  Constants                                                          */
+/* ------------------------------------------------------------------ */
 
 const PRESET_COLORS = [
   "#EB5E55",
@@ -34,8 +30,6 @@ const DAYS_OF_WEEK = [
   "Sunday",
 ];
 
-const ALL_PLATFORMS: Platform[] = ["instagram", "linkedin", "twitter", "threads"];
-
 const PLATFORM_LABELS: Record<Platform, string> = {
   instagram: "Instagram",
   linkedin: "LinkedIn",
@@ -49,9 +43,9 @@ interface BioCard {
   limit: number;
 }
 
-// ---------------------------------------------------------------------------
-// Toggle component
-// ---------------------------------------------------------------------------
+/* ------------------------------------------------------------------ */
+/*  Helper components                                                  */
+/* ------------------------------------------------------------------ */
 
 function Toggle({
   enabled,
@@ -67,7 +61,7 @@ function Toggle({
       aria-checked={enabled}
       onClick={() => onChange(!enabled)}
       className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-        enabled ? "bg-coral" : "bg-border"
+        enabled ? "bg-[#EB5E55]" : "bg-[#EDECEA]"
       }`}
     >
       <span
@@ -78,10 +72,6 @@ function Toggle({
     </button>
   );
 }
-
-// ---------------------------------------------------------------------------
-// Password input with show/hide
-// ---------------------------------------------------------------------------
 
 function PasswordField({
   label,
@@ -96,19 +86,19 @@ function PasswordField({
 
   return (
     <div>
-      <label className="block text-xs text-text-muted mb-1">{label}</label>
+      <label className="block text-xs text-[#8C857D] mb-1">{label}</label>
       <div className="relative">
         <input
           type={visible ? "text" : "password"}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={label}
-          className="w-full bg-bg border border-border rounded-lg px-3 py-2 pr-10 text-sm font-mono text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-coral/50 focus:border-coral transition-colors"
+          className="w-full bg-[#F4F2EF] border-[0.5px] border-[#1A1714]/12 rounded-[7px] px-3 py-2 pr-10 text-sm font-mono text-[#1A1714] placeholder:text-[#8C857D] focus:outline-none focus:border-[#1A1714]/40 transition-colors"
         />
         <button
           type="button"
           onClick={() => setVisible(!visible)}
-          className="absolute right-2 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary transition-colors"
+          className="absolute right-2 top-1/2 -translate-y-1/2 text-[#8C857D] hover:text-[#1A1714] transition-colors"
         >
           {visible ? <EyeOff size={16} /> : <Eye size={16} />}
         </button>
@@ -116,10 +106,6 @@ function PasswordField({
     </div>
   );
 }
-
-// ---------------------------------------------------------------------------
-// Save confirmation message
-// ---------------------------------------------------------------------------
 
 function SaveButton({
   onClick,
@@ -138,20 +124,16 @@ function SaveButton({
         type="button"
         disabled={loading}
         onClick={onClick}
-        className="px-5 py-2 rounded-lg bg-coral text-white font-medium text-sm hover:bg-coral/90 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+        className="px-5 py-2 rounded-lg bg-[#EB5E55] text-white font-medium text-sm hover:bg-[#EB5E55]/90 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
       >
         {loading ? "Saving..." : label}
       </button>
       {saved && (
-        <span className="text-sm text-green animate-fade-in">Saved!</span>
+        <span className="text-sm text-[#3B6D11] animate-fade-in">Saved!</span>
       )}
     </div>
   );
 }
-
-// ---------------------------------------------------------------------------
-// Section wrapper
-// ---------------------------------------------------------------------------
 
 function Section({
   title,
@@ -161,16 +143,30 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <div className="bg-surface border border-border rounded-lg p-6">
-      <h2 className="font-heading text-lg text-text-primary mb-4">{title}</h2>
+    <div className="bg-[#FAFAF8] border-[0.5px] border-[#1A1714]/12 rounded-[12px] p-6">
+      <h2 className="font-heading text-[16px] font-[700] text-[#1A1714] mb-4">{title}</h2>
       {children}
     </div>
   );
 }
 
-// ---------------------------------------------------------------------------
-// Main settings page
-// ---------------------------------------------------------------------------
+function ConnectionStatus({ connected }: { connected: boolean }) {
+  return (
+    <span
+      className={`text-xs px-2 py-0.5 rounded-full ${
+        connected
+          ? "bg-[#EAF3DE] text-[#3B6D11]"
+          : "bg-[#F4F2EF] text-[#8C857D]"
+      }`}
+    >
+      {connected ? "Connected" : "Not configured"}
+    </span>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Main settings page                                                 */
+/* ------------------------------------------------------------------ */
 
 export default function SettingsPage() {
   const [userId, setUserId] = useState<string | null>(null);
@@ -183,9 +179,7 @@ export default function SettingsPage() {
   const [contextSaved, setContextSaved] = useState(false);
 
   // Section 2: Pillar weights
-  const [pillarWeights, setPillarWeights] = useState<Record<string, number>>(
-    {}
-  );
+  const [pillarWeights, setPillarWeights] = useState<Record<string, number>>({});
   const [weightsSaving, setWeightsSaving] = useState(false);
   const [weightsSaved, setWeightsSaved] = useState(false);
 
@@ -242,17 +236,23 @@ export default function SettingsPage() {
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileSaved, setProfileSaved] = useState(false);
 
-  // ---------------------------------------------------------------------------
-  // Helpers
-  // ---------------------------------------------------------------------------
+  // Connected Accounts (OAuth)
+  interface ConnectedAccount {
+    id: string;
+    platform: string;
+    account_name: string | null;
+    account_id: string | null;
+    connected_at: string;
+  }
+  const [connectedAccounts, setConnectedAccounts] = useState<ConnectedAccount[]>([]);
+  const [disconnecting, setDisconnecting] = useState<string | null>(null);
 
-  const flashSaved = useCallback(
-    (setter: (v: boolean) => void) => {
-      setter(true);
-      setTimeout(() => setter(false), 2000);
-    },
-    []
-  );
+  /* ---- Helpers ---- */
+
+  const flashSaved = useCallback((setter: (v: boolean) => void) => {
+    setter(true);
+    setTimeout(() => setter(false), 2000);
+  }, []);
 
   async function upsertSetting(key: string, value: string) {
     if (!userId) return;
@@ -268,9 +268,7 @@ export default function SettingsPage() {
     );
   }
 
-  // ---------------------------------------------------------------------------
-  // Load data
-  // ---------------------------------------------------------------------------
+  /* ---- Load data ---- */
 
   useEffect(() => {
     async function load() {
@@ -281,7 +279,7 @@ export default function SettingsPage() {
         if (!uid) return;
         setUserId(uid);
 
-        const [settingsRes, profileRes] = await Promise.all([
+        const [settingsRes, profileRes, socialRes] = await Promise.all([
           insforge.database
             .from("user_settings")
             .select("*")
@@ -290,13 +288,15 @@ export default function SettingsPage() {
             .from("creator_profile")
             .select("*")
             .eq("user_id", uid)
-            .single(),
+            .maybeSingle(),
+          fetch("/api/social-accounts").then((r) => r.ok ? r.json() : { accounts: [] }),
         ]);
+
+        setConnectedAccounts(socialRes.accounts ?? []);
 
         const settings: UserSetting[] = settingsRes.data ?? [];
         const prof: CreatorProfile | null = profileRes.data;
 
-        // Populate settings
         for (const s of settings) {
           if (s.key === "context_additions") {
             setContextAdditions(s.value);
@@ -311,15 +311,13 @@ export default function SettingsPage() {
           } else if (s.key === "platform_defaults") {
             try {
               const parsed = JSON.parse(s.value);
-              if (parsed.defaultPlatform)
-                setDefaultPlatform(parsed.defaultPlatform);
+              if (parsed.defaultPlatform) setDefaultPlatform(parsed.defaultPlatform);
               if (parsed.crossPostReminders !== undefined)
                 setCrossPostReminders(parsed.crossPostReminders);
             } catch {}
           }
         }
 
-        // Populate profile
         if (prof) {
           setProfile(prof);
           setDisplayName(prof.display_name);
@@ -333,7 +331,6 @@ export default function SettingsPage() {
               : prof.content_pillars;
           setPillars(parsedPillars);
 
-          // Initialize pillar weights for any pillars that don't have a weight yet
           const existingWeights: Record<string, number> = {};
           for (const p of parsedPillars) {
             existingWeights[p.name] = pillarWeights[p.name] ?? 3;
@@ -360,9 +357,7 @@ export default function SettingsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ---------------------------------------------------------------------------
-  // Section save handlers
-  // ---------------------------------------------------------------------------
+  /* ---- Save handlers ---- */
 
   async function saveContext() {
     setContextSaving(true);
@@ -401,11 +396,15 @@ export default function SettingsPage() {
     const insforge = getInsforge();
     await insforge.database
       .from("creator_profile")
-      .update({
-        platform_config: JSON.stringify(platformConfig),
-        updated_at: new Date().toISOString(),
-      })
-      .eq("user_id", userId);
+      .upsert(
+        {
+          user_id: userId,
+          display_name: displayName || "Creator",
+          platform_config: JSON.stringify(platformConfig),
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "user_id" }
+      );
     setPlatformSaving(false);
     flashSaved(setPlatformSaved);
   }
@@ -416,22 +415,63 @@ export default function SettingsPage() {
     const insforge = getInsforge();
     await insforge.database
       .from("creator_profile")
-      .update({
-        display_name: displayName,
-        bio_facts: bioFacts,
-        voice_description: voiceDescription,
-        voice_rules: voiceRules,
-        content_pillars: JSON.stringify(pillars),
-        updated_at: new Date().toISOString(),
-      })
-      .eq("user_id", userId);
+      .upsert(
+        {
+          user_id: userId,
+          display_name: displayName || "Creator",
+          bio_facts: bioFacts,
+          voice_description: voiceDescription,
+          voice_rules: voiceRules,
+          content_pillars: JSON.stringify(pillars),
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "user_id" }
+      );
     setProfileSaving(false);
     flashSaved(setProfileSaved);
   }
 
-  // ---------------------------------------------------------------------------
-  // Bio generator
-  // ---------------------------------------------------------------------------
+  /* ---- Connected accounts ---- */
+
+  async function disconnectAccount(platform: string) {
+    setDisconnecting(platform);
+    try {
+      const res = await fetch(`/api/social-accounts/${platform}`, { method: "DELETE" });
+      if (res.ok) {
+        setConnectedAccounts((prev) => prev.filter((a) => a.platform !== platform));
+      }
+    } catch {
+      // silently fail
+    } finally {
+      setDisconnecting(null);
+    }
+  }
+
+  function connectAccount(platform: string) {
+    const w = 600;
+    const h = 700;
+    const left = window.screenX + (window.outerWidth - w) / 2;
+    const top = window.screenY + (window.outerHeight - h) / 2;
+    const popup = window.open(
+      `/api/social-accounts/connect/${platform}`,
+      `connect_${platform}`,
+      `width=${w},height=${h},left=${left},top=${top},toolbar=no,menubar=no`
+    );
+
+    // Poll for popup close then refresh accounts
+    if (popup) {
+      const interval = setInterval(() => {
+        if (popup.closed) {
+          clearInterval(interval);
+          fetch("/api/social-accounts")
+            .then((r) => r.ok ? r.json() : { accounts: [] })
+            .then((data) => setConnectedAccounts(data.accounts ?? []));
+        }
+      }, 500);
+    }
+  }
+
+  /* ---- Bio generator ---- */
 
   async function generateBios() {
     setBioGenerating(true);
@@ -439,7 +479,7 @@ export default function SettingsPage() {
 
     try {
       const name = profile?.display_name ?? displayName;
-      const prompt = `Write optimized profile bios for ${name} for Instagram, LinkedIn, X (Twitter), and Threads. Character limits: Instagram 150, LinkedIn 220, X 160, Threads 150. Bio must convey the key facts from their profile. Voice: punchy, specific, no fluff, no em dashes.\n\nProfile facts: ${bioFacts}\n\nReturn ONLY a JSON array with objects like: [{"platform":"Instagram","bio":"...","limit":150},{"platform":"LinkedIn","bio":"...","limit":220},{"platform":"X (Twitter)","bio":"...","limit":160},{"platform":"Threads","bio":"...","limit":150}]`;
+      const prompt = `Write optimized profile bios for ${name} for Instagram, LinkedIn, X (Twitter), and Threads. Character limits: Instagram 150, LinkedIn 220, X 160, Threads 150. Bio must convey the key facts from their profile. Voice: punchy, specific, no fluff.\n\nProfile facts: ${bioFacts}\n\nReturn ONLY a JSON array with objects like: [{"platform":"Instagram","bio":"...","limit":150},{"platform":"LinkedIn","bio":"...","limit":220},{"platform":"X (Twitter)","bio":"...","limit":160},{"platform":"Threads","bio":"...","limit":150}]`;
 
       const res = await fetch("/api/generate", {
         method: "POST",
@@ -450,8 +490,6 @@ export default function SettingsPage() {
       if (!res.ok) throw new Error("Generation failed");
 
       const { text } = await res.json();
-
-      // Parse JSON from the response
       const jsonMatch = text.match(/\[[\s\S]*\]/);
       if (jsonMatch) {
         const parsed: BioCard[] = JSON.parse(jsonMatch[0]);
@@ -470,9 +508,7 @@ export default function SettingsPage() {
     setTimeout(() => setCopiedBio(null), 2000);
   }
 
-  // ---------------------------------------------------------------------------
-  // Pillar editor helpers
-  // ---------------------------------------------------------------------------
+  /* ---- Pillar editor helpers ---- */
 
   function addPillar() {
     if (pillars.length >= 6) return;
@@ -497,14 +533,12 @@ export default function SettingsPage() {
     setPillars(updated);
   }
 
-  // ---------------------------------------------------------------------------
-  // Render
-  // ---------------------------------------------------------------------------
+  /* ---- Render ---- */
 
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="w-6 h-6 animate-spin text-text-muted" />
+        <Loader2 className="w-6 h-6 animate-spin text-[#8C857D]" />
       </div>
     );
   }
@@ -513,22 +547,92 @@ export default function SettingsPage() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8 space-y-6">
-      <h1 className="font-heading text-2xl text-text-primary">Settings</h1>
+      <h1 className="font-heading text-[22px] font-[800] text-[#1A1714] leading-[1.2] tracking-[-0.02em]">Settings</h1>
 
-      {/* ------------------------------------------------------------------ */}
+      {/* Connected Accounts */}
+      <div className="bg-[#FAFAF8] border-[0.5px] border-[#1A1714]/12 rounded-[12px] p-6">
+        <span className="text-[10px] font-medium tracking-[0.10em] uppercase text-[#8C857D] block mb-4">
+          CONNECTED ACCOUNTS
+        </span>
+
+        <div className="space-y-3">
+          {(["instagram", "linkedin", "twitter", "threads"] as const).map((platform) => {
+            const account = connectedAccounts.find((a) => a.platform === platform);
+            const isConnected = !!account;
+            const isDisconnecting = disconnecting === platform;
+
+            const platformMeta: Record<string, { label: string; color: string; icon: string }> = {
+              instagram: { label: "Instagram", color: "#E4405F", icon: "IG" },
+              linkedin: { label: "LinkedIn", color: "#0A66C2", icon: "in" },
+              twitter: { label: "X", color: "#1A1714", icon: "\u{1D54F}" },
+              threads: { label: "Threads", color: "#1A1714", icon: "@" },
+            };
+
+            const meta = platformMeta[platform];
+
+            return (
+              <div
+                key={platform}
+                className="flex items-center justify-between py-3 px-4 bg-[#F4F2EF] border-[0.5px] border-[#1A1714]/12 rounded-[7px]"
+              >
+                <div className="flex items-center gap-3">
+                  <span
+                    className="w-7 h-7 rounded-[5px] flex items-center justify-center text-[10px] font-bold text-white shrink-0"
+                    style={{ backgroundColor: meta.color }}
+                  >
+                    {meta.icon}
+                  </span>
+                  <div>
+                    <span className="text-[13px] font-medium text-[#1A1714]">{meta.label}</span>
+                    {isConnected && account.account_name && (
+                      <span className="ml-2 text-[11px] text-[#8C857D]">{account.account_name}</span>
+                    )}
+                  </div>
+                  {isConnected && (
+                    <span className="text-[10px] font-medium px-2 py-0.5 rounded-[3px] bg-[#EAF3DE] text-[#3B6D11]">
+                      Connected
+                    </span>
+                  )}
+                </div>
+
+                {isConnected ? (
+                  <button
+                    type="button"
+                    disabled={isDisconnecting}
+                    onClick={() => disconnectAccount(platform)}
+                    className="flex items-center gap-1 px-3 py-1.5 text-[11px] text-[#4A4540] border-[0.5px] border-[#1A1714]/12 rounded-[6px] hover:border-[#1A1714]/25 transition-colors disabled:opacity-60"
+                  >
+                    <Unplug size={12} />
+                    {isDisconnecting ? "..." : "Disconnect"}
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => connectAccount(platform)}
+                    className="px-4 py-1.5 text-[11px] text-[#1A1714] bg-[#FAFAF8] border-[0.5px] border-[#1A1714]/12 rounded-[6px] hover:border-[#1A1714]/25 transition-colors"
+                  >
+                    Connect
+                  </button>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Section 1: Context Editor */}
-      {/* ------------------------------------------------------------------ */}
       <Section title="Personal Context">
-        <p className="text-sm text-text-muted mb-3">
+        <p className="text-sm text-[#8C857D] mb-3">
           Update this when something big changes. This text is appended to every
           AI call to keep the AI current.
         </p>
         <textarea
           value={contextAdditions}
           onChange={(e) => setContextAdditions(e.target.value)}
+          onBlur={saveContext}
           placeholder="Add context the AI should always know about you..."
-          rows={6}
-          className="w-full bg-bg border border-border rounded-lg px-4 py-2.5 text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-coral/50 focus:border-coral transition-colors resize-none mb-4"
+          rows={20}
+          className="w-full bg-[#F4F2EF] border-[0.5px] border-[#1A1714]/12 rounded-[7px] px-4 py-2.5 text-[#1A1714] placeholder:text-[#8C857D] focus:outline-none focus:border-[#1A1714]/40 transition-colors resize-none mb-4"
         />
         <SaveButton
           onClick={saveContext}
@@ -537,12 +641,10 @@ export default function SettingsPage() {
         />
       </Section>
 
-      {/* ------------------------------------------------------------------ */}
       {/* Section 2: Pillar Weights */}
-      {/* ------------------------------------------------------------------ */}
       <Section title="Pillar Weights">
-        <p className="text-sm text-text-muted mb-4">
-          Set how many posts per week for each content pillar.
+        <p className="text-sm text-[#8C857D] mb-4">
+          Set how many posts per week for each content pillar (0-7).
         </p>
         <div className="space-y-4 mb-4">
           {pillars.map((pillar) => {
@@ -555,13 +657,13 @@ export default function SettingsPage() {
                     className="w-3 h-3 rounded-full flex-shrink-0"
                     style={{ backgroundColor: pillar.color }}
                   />
-                  <span className="text-sm text-text-primary truncate">
+                  <span className="text-sm text-[#1A1714] truncate">
                     {pillar.name}
                   </span>
                 </div>
                 <input
                   type="range"
-                  min={1}
+                  min={0}
                   max={7}
                   value={weight}
                   onChange={(e) =>
@@ -570,9 +672,9 @@ export default function SettingsPage() {
                       [pillar.name]: parseInt(e.target.value, 10),
                     })
                   }
-                  className="flex-1 accent-coral h-2 cursor-pointer"
+                  className="flex-1 accent-[#EB5E55] h-2 cursor-pointer"
                 />
-                <span className="text-sm text-text-muted w-16 text-right">
+                <span className="text-sm text-[#8C857D] w-16 text-right">
                   {weight}/week
                 </span>
               </div>
@@ -586,14 +688,12 @@ export default function SettingsPage() {
         />
       </Section>
 
-      {/* ------------------------------------------------------------------ */}
       {/* Section 3: Weekly Schedule Template */}
-      {/* ------------------------------------------------------------------ */}
       <Section title="Weekly Schedule Template">
         <div className="space-y-3 mb-4">
           {DAYS_OF_WEEK.map((day) => (
             <div key={day} className="flex items-center gap-4">
-              <span className="text-sm text-text-primary w-24">{day}</span>
+              <span className="text-sm text-[#1A1714] w-24">{day}</span>
               <select
                 value={weeklySchedule[day] ?? "Rest"}
                 onChange={(e) =>
@@ -602,7 +702,7 @@ export default function SettingsPage() {
                     [day]: e.target.value,
                   })
                 }
-                className="flex-1 bg-bg border border-border rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-coral/50 focus:border-coral transition-colors"
+                className="flex-1 bg-[#F4F2EF] border-[0.5px] border-[#1A1714]/12 rounded-[7px] px-3 py-2 text-sm text-[#1A1714] focus:outline-none focus:border-[#1A1714]/40 transition-colors"
               >
                 <option value="Rest">Rest</option>
                 {pillarOptions.map((name) => (
@@ -621,21 +721,19 @@ export default function SettingsPage() {
         />
       </Section>
 
-      {/* ------------------------------------------------------------------ */}
       {/* Section 4: Platform Defaults */}
-      {/* ------------------------------------------------------------------ */}
       <Section title="Platform Defaults">
         <div className="space-y-4 mb-4">
           <div>
-            <label className="block text-sm text-text-muted mb-1.5">
+            <label className="block text-sm text-[#8C857D] mb-1.5">
               Default platform
             </label>
             <select
               value={defaultPlatform}
               onChange={(e) => setDefaultPlatform(e.target.value as Platform)}
-              className="w-full bg-bg border border-border rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-coral/50 focus:border-coral transition-colors"
+              className="w-full bg-[#F4F2EF] border-[0.5px] border-[#1A1714]/12 rounded-[7px] px-3 py-2 text-sm text-[#1A1714] focus:outline-none focus:border-[#1A1714]/40 transition-colors"
             >
-              {ALL_PLATFORMS.map((p) => (
+              {PLATFORMS.map((p) => (
                 <option key={p} value={p}>
                   {PLATFORM_LABELS[p]}
                 </option>
@@ -643,7 +741,7 @@ export default function SettingsPage() {
             </select>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-sm text-text-primary">
+            <span className="text-sm text-[#1A1714]">
               Cross-post reminders
             </span>
             <Toggle
@@ -659,15 +757,13 @@ export default function SettingsPage() {
         />
       </Section>
 
-      {/* ------------------------------------------------------------------ */}
       {/* Section 5: Profile Bio Generator */}
-      {/* ------------------------------------------------------------------ */}
       <Section title="Profile Bio Generator">
         <button
           type="button"
           disabled={bioGenerating}
           onClick={generateBios}
-          className="px-5 py-2 rounded-lg bg-coral text-white font-medium text-sm hover:bg-coral/90 disabled:opacity-60 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+          className="px-5 py-2 rounded-lg bg-[#EB5E55] text-white font-medium text-sm hover:bg-[#EB5E55]/90 disabled:opacity-60 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
         >
           {bioGenerating && <Loader2 size={16} className="animate-spin" />}
           {bioGenerating ? "Generating..." : "Generate Platform Bios"}
@@ -678,18 +774,18 @@ export default function SettingsPage() {
             {bios.map((card) => (
               <div
                 key={card.platform}
-                className="bg-bg border border-border rounded-lg p-4"
+                className="bg-[#F4F2EF] border-[0.5px] border-[#1A1714]/12 rounded-[7px] p-4"
               >
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-text-primary">
+                  <span className="text-sm font-medium text-[#1A1714]">
                     {card.platform}
                   </span>
                   <div className="flex items-center gap-2">
                     <span
                       className={`text-xs ${
                         card.bio.length > card.limit
-                          ? "text-coral"
-                          : "text-text-muted"
+                          ? "text-[#EB5E55]"
+                          : "text-[#8C857D]"
                       }`}
                     >
                       {card.bio.length}/{card.limit}
@@ -697,10 +793,10 @@ export default function SettingsPage() {
                     <button
                       type="button"
                       onClick={() => copyBio(card.platform, card.bio)}
-                      className="text-text-muted hover:text-text-primary transition-colors"
+                      className="text-[#8C857D] hover:text-[#1A1714] transition-colors"
                     >
                       {copiedBio === card.platform ? (
-                        <Check size={16} className="text-green" />
+                        <Check size={16} className="text-[#3B6D11]" />
                       ) : (
                         <Copy size={16} />
                       )}
@@ -719,7 +815,7 @@ export default function SettingsPage() {
                     );
                   }}
                   rows={3}
-                  className="w-full bg-surface border border-border rounded px-3 py-2 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-coral/50 focus:border-coral transition-colors resize-none"
+                  className="w-full bg-[#FAFAF8] border-[0.5px] border-[#1A1714]/12 rounded-[7px] px-3 py-2 text-sm text-[#1A1714] focus:outline-none focus:border-[#1A1714]/40 transition-colors resize-none"
                 />
               </div>
             ))}
@@ -727,15 +823,13 @@ export default function SettingsPage() {
         )}
       </Section>
 
-      {/* ------------------------------------------------------------------ */}
       {/* Section 6: Platform Connections */}
-      {/* ------------------------------------------------------------------ */}
       <Section title="Platform Connections">
         {/* X / Twitter */}
-        <div className="border border-border rounded-xl p-5 space-y-4 mb-4">
+        <div className="border-[0.5px] border-[#1A1714]/12 rounded-[12px] p-5 space-y-4 mb-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="font-medium text-text-primary">X / Twitter</span>
+              <span className="font-medium text-[#1A1714]">X / Twitter</span>
               <ConnectionStatus
                 connected={
                   !!(
@@ -770,9 +864,7 @@ export default function SettingsPage() {
                   key={field}
                   label={label}
                   value={
-                    (
-                      platformConfig.x as unknown as Record<string, string>
-                    )?.[field] ?? ""
+                    (platformConfig.x as unknown as Record<string, string>)?.[field] ?? ""
                   }
                   onChange={(v) =>
                     setPlatformConfig({
@@ -787,10 +879,10 @@ export default function SettingsPage() {
         </div>
 
         {/* LinkedIn */}
-        <div className="border border-border rounded-xl p-5 space-y-4 mb-4">
+        <div className="border-[0.5px] border-[#1A1714]/12 rounded-[12px] p-5 space-y-4 mb-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="font-medium text-text-primary">LinkedIn</span>
+              <span className="font-medium text-[#1A1714]">LinkedIn</span>
               <ConnectionStatus
                 connected={
                   !!(
@@ -826,12 +918,7 @@ export default function SettingsPage() {
                   key={field}
                   label={label}
                   value={
-                    (
-                      platformConfig.linkedin as unknown as Record<
-                        string,
-                        string
-                      >
-                    )?.[field] ?? ""
+                    (platformConfig.linkedin as unknown as Record<string, string>)?.[field] ?? ""
                   }
                   onChange={(v) =>
                     setPlatformConfig({
@@ -846,10 +933,10 @@ export default function SettingsPage() {
         </div>
 
         {/* Instagram */}
-        <div className="border border-border rounded-xl p-5 mb-4">
+        <div className="border-[0.5px] border-[#1A1714]/12 rounded-[12px] p-5 mb-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="font-medium text-text-primary">Instagram</span>
+              <span className="font-medium text-[#1A1714]">Instagram</span>
               <ConnectionStatus
                 connected={platformConfig.instagram?.enabled ?? false}
               />
@@ -865,7 +952,7 @@ export default function SettingsPage() {
             />
           </div>
           {platformConfig.instagram?.enabled && (
-            <p className="text-xs text-text-muted mt-2">
+            <p className="text-xs text-[#8C857D] mt-2">
               Manual posting mode. Content will be prepared and ready to copy.
             </p>
           )}
@@ -878,13 +965,11 @@ export default function SettingsPage() {
         />
       </Section>
 
-      {/* ------------------------------------------------------------------ */}
       {/* Section 7: Profile Editor */}
-      {/* ------------------------------------------------------------------ */}
       <Section title="Profile Editor">
         <div className="space-y-5 mb-4">
           <div>
-            <label className="block text-sm text-text-muted mb-1.5">
+            <label className="block text-sm text-[#8C857D] mb-1.5">
               Display name
             </label>
             <input
@@ -892,12 +977,12 @@ export default function SettingsPage() {
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
               placeholder="Your name or brand"
-              className="w-full bg-bg border border-border rounded-lg px-4 py-2.5 text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-coral/50 focus:border-coral transition-colors"
+              className="w-full bg-[#F4F2EF] border-[0.5px] border-[#1A1714]/12 rounded-[7px] px-4 py-2.5 text-[#1A1714] placeholder:text-[#8C857D] focus:outline-none focus:border-[#1A1714]/40 transition-colors"
             />
           </div>
 
           <div>
-            <label className="block text-sm text-text-muted mb-1.5">
+            <label className="block text-sm text-[#8C857D] mb-1.5">
               Bio facts
             </label>
             <textarea
@@ -905,12 +990,12 @@ export default function SettingsPage() {
               onChange={(e) => setBioFacts(e.target.value)}
               placeholder="Key facts about you..."
               rows={4}
-              className="w-full bg-bg border border-border rounded-lg px-4 py-2.5 text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-coral/50 focus:border-coral transition-colors resize-none"
+              className="w-full bg-[#F4F2EF] border-[0.5px] border-[#1A1714]/12 rounded-[7px] px-4 py-2.5 text-[#1A1714] placeholder:text-[#8C857D] focus:outline-none focus:border-[#1A1714]/40 transition-colors resize-none"
             />
           </div>
 
           <div>
-            <label className="block text-sm text-text-muted mb-1.5">
+            <label className="block text-sm text-[#8C857D] mb-1.5">
               Voice description
             </label>
             <textarea
@@ -918,12 +1003,12 @@ export default function SettingsPage() {
               onChange={(e) => setVoiceDescription(e.target.value)}
               placeholder="How your content should sound..."
               rows={4}
-              className="w-full bg-bg border border-border rounded-lg px-4 py-2.5 text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-coral/50 focus:border-coral transition-colors resize-none"
+              className="w-full bg-[#F4F2EF] border-[0.5px] border-[#1A1714]/12 rounded-[7px] px-4 py-2.5 text-[#1A1714] placeholder:text-[#8C857D] focus:outline-none focus:border-[#1A1714]/40 transition-colors resize-none"
             />
           </div>
 
           <div>
-            <label className="block text-sm text-text-muted mb-1.5">
+            <label className="block text-sm text-[#8C857D] mb-1.5">
               Voice rules
             </label>
             <textarea
@@ -931,34 +1016,34 @@ export default function SettingsPage() {
               onChange={(e) => setVoiceRules(e.target.value)}
               placeholder="Hard rules for the AI..."
               rows={3}
-              className="w-full bg-bg border border-border rounded-lg px-4 py-2.5 text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-coral/50 focus:border-coral transition-colors resize-none"
+              className="w-full bg-[#F4F2EF] border-[0.5px] border-[#1A1714]/12 rounded-[7px] px-4 py-2.5 text-[#1A1714] placeholder:text-[#8C857D] focus:outline-none focus:border-[#1A1714]/40 transition-colors resize-none"
             />
           </div>
 
           {/* Content Pillars */}
           <div>
-            <label className="block text-sm text-text-muted mb-3">
+            <label className="block text-sm text-[#8C857D] mb-3">
               Content pillars
             </label>
             <div className="space-y-4">
               {pillars.map((pillar, i) => (
                 <div
                   key={i}
-                  className="border border-border rounded-xl p-5 space-y-4"
+                  className="border-[0.5px] border-[#1A1714]/12 rounded-[12px] p-5 space-y-4"
                   style={{
                     borderLeftColor: pillar.color,
                     borderLeftWidth: 3,
                   }}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-text-muted">
+                    <span className="text-sm font-medium text-[#8C857D]">
                       Pillar {i + 1}
                     </span>
                     {pillars.length > 1 && (
                       <button
                         type="button"
                         onClick={() => removePillar(i)}
-                        className="text-xs text-text-muted hover:text-coral transition-colors"
+                        className="text-xs text-[#8C857D] hover:text-[#EB5E55] transition-colors"
                       >
                         Remove
                       </button>
@@ -971,7 +1056,7 @@ export default function SettingsPage() {
                       value={pillar.name}
                       onChange={(e) => updatePillar(i, "name", e.target.value)}
                       placeholder="Pillar name"
-                      className="flex-1 bg-bg border border-border rounded-lg px-4 py-2.5 text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-coral/50 focus:border-coral transition-colors"
+                      className="flex-1 bg-[#F4F2EF] border-[0.5px] border-[#1A1714]/12 rounded-[7px] px-4 py-2.5 text-[#1A1714] placeholder:text-[#8C857D] focus:outline-none focus:border-[#1A1714]/40 transition-colors"
                     />
                     <div className="flex gap-1.5 items-center">
                       {PRESET_COLORS.map((color) => (
@@ -981,7 +1066,7 @@ export default function SettingsPage() {
                           onClick={() => updatePillar(i, "color", color)}
                           className={`w-7 h-7 rounded-full transition-transform ${
                             pillar.color === color
-                              ? "ring-2 ring-white ring-offset-2 ring-offset-surface scale-110"
+                              ? "ring-2 ring-[#1A1714] ring-offset-2 ring-offset-[#FAFAF8] scale-110"
                               : "hover:scale-110"
                           }`}
                           style={{ backgroundColor: color }}
@@ -991,23 +1076,23 @@ export default function SettingsPage() {
                   </div>
 
                   <textarea
-                    value={pillar.description}
+                    value={pillar.description || ""}
                     onChange={(e) =>
                       updatePillar(i, "description", e.target.value)
                     }
                     placeholder="What this pillar covers..."
                     rows={2}
-                    className="w-full bg-bg border border-border rounded-lg px-4 py-2.5 text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-coral/50 focus:border-coral transition-colors resize-none"
+                    className="w-full bg-[#F4F2EF] border-[0.5px] border-[#1A1714]/12 rounded-[7px] px-4 py-2.5 text-[#1A1714] placeholder:text-[#8C857D] focus:outline-none focus:border-[#1A1714]/40 transition-colors resize-none"
                   />
 
                   <textarea
-                    value={pillar.promptTemplate}
+                    value={pillar.promptTemplate || ""}
                     onChange={(e) =>
                       updatePillar(i, "promptTemplate", e.target.value)
                     }
                     placeholder="AI prompt template for this pillar..."
                     rows={3}
-                    className="w-full bg-bg border border-border rounded-lg px-4 py-2.5 text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-coral/50 focus:border-coral transition-colors resize-none"
+                    className="w-full bg-[#F4F2EF] border-[0.5px] border-[#1A1714]/12 rounded-[7px] px-4 py-2.5 text-[#1A1714] placeholder:text-[#8C857D] focus:outline-none focus:border-[#1A1714]/40 transition-colors resize-none"
                   />
                 </div>
               ))}
@@ -1016,7 +1101,7 @@ export default function SettingsPage() {
                 <button
                   type="button"
                   onClick={addPillar}
-                  className="w-full border border-dashed border-border rounded-xl py-3 text-sm text-text-muted hover:border-coral hover:text-coral transition-colors"
+                  className="w-full border-[0.5px] border-dashed border-[#1A1714]/12 rounded-[12px] py-3 text-sm text-[#8C857D] hover:border-[#EB5E55] hover:text-[#EB5E55] transition-colors"
                 >
                   + Add Pillar
                 </button>
@@ -1032,23 +1117,5 @@ export default function SettingsPage() {
         />
       </Section>
     </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Connection status indicator
-// ---------------------------------------------------------------------------
-
-function ConnectionStatus({ connected }: { connected: boolean }) {
-  return (
-    <span
-      className={`text-xs px-2 py-0.5 rounded-full ${
-        connected
-          ? "bg-green/20 text-green"
-          : "bg-surface text-text-muted"
-      }`}
-    >
-      {connected ? "Connected" : "Not configured"}
-    </span>
   );
 }

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthenticatedUser, getServerClient } from '@/lib/insforge/server';
+import { z } from 'zod';
 
 export async function PATCH(
   request: NextRequest,
@@ -11,10 +12,19 @@ export async function PATCH(
   let body: unknown;
   try { body = await request.json(); } catch { return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 }); }
 
+  const HashtagSetUpdateSchema = z.object({
+    name: z.string().min(1).max(200).optional(),
+    hashtags: z.array(z.string().max(200)).min(1).max(50).optional(),
+    platform: z.string().max(50).optional(),
+  });
+
+  const parsed = HashtagSetUpdateSchema.safeParse(body);
+  if (!parsed.success) return NextResponse.json({ error: parsed.error.message }, { status: 400 });
+
   const client = getServerClient();
   const { data, error } = await client
     .database.from('hashtag_sets')
-    .update(body as Record<string, unknown>)
+    .update(parsed.data)
     .eq('id', params.id)
     .eq('user_id', user.id)
     .select()

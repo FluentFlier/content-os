@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+import { Droppable } from '@hello-pangea/dnd';
 import type { Post } from '@/lib/types';
 import { usePillars } from '@/hooks/usePillars';
 import PillarDot from '@/components/PillarDot';
@@ -141,7 +142,6 @@ export default function CalendarGrid({
           const dayPosts = postsByDate[key] || [];
           const isWeekView = viewMode === 'week';
 
-          // Add right/bottom borders for grid effect
           const col = i % 7;
           const row = Math.floor(i / 7);
           const totalRows = Math.ceil(days.length / 7);
@@ -152,82 +152,92 @@ export default function CalendarGrid({
           ].join(' ');
 
           return (
-            <div
-              key={i}
-              onClick={() => onDayCellClick(day)}
-              className={`bg-[#FAFAF8] cursor-pointer transition-colors hover:bg-[#EDECEA] ${borderClasses} ${
-                isWeekView ? 'min-h-[200px] p-2' : 'min-h-[80px] p-1.5'
-              } ${isToday ? 'ring-1 ring-inset ring-[#EB5E55]' : ''} ${
-                isPickMode ? 'hover:ring-1 hover:ring-[#EB5E55]/60' : ''
-              }`}
-            >
-              {isWeekView ? (
-                <div className="mb-2">
-                  <span className="text-[11px] text-[#8C857D] font-medium">
-                    {DAY_HEADERS_MON[i]}
-                  </span>
-                  <span
-                    className={`ml-1 text-[13px] font-medium ${
-                      isToday ? 'text-[#EB5E55]' : 'text-[#1A1714]'
-                    }`}
-                  >
-                    {day.getDate()}
-                  </span>
-                </div>
-              ) : (
-                <span
-                  className={`text-[11px] font-medium ${
-                    isCurrentMonth ? 'text-[#1A1714]' : 'text-[#8C857D]'
+            <Droppable key={i} droppableId={`day-${key}`}>
+              {(provided, snapshot) => (
+                <div
+                  ref={provided.innerRef}
+                  {...provided.droppableProps}
+                  onClick={() => onDayCellClick(day)}
+                  className={`bg-[#FAFAF8] cursor-pointer transition-colors ${borderClasses} ${
+                    isWeekView ? 'min-h-[200px] p-2' : 'min-h-[80px] p-1.5'
+                  } ${isToday ? 'ring-1 ring-inset ring-[#EB5E55]' : ''} ${
+                    isPickMode ? 'hover:ring-1 hover:ring-[#EB5E55]/60' : ''
+                  } ${
+                    snapshot.isDraggingOver
+                      ? 'bg-[#FAECE7] ring-2 ring-inset ring-[#EB5E55]/50'
+                      : 'hover:bg-[#EDECEA]'
                   }`}
                 >
-                  {day.getDate()}
-                </span>
-              )}
-
-              <div className={isWeekView ? 'space-y-1.5' : 'mt-0.5 space-y-0.5'}>
-                {(isWeekView ? dayPosts : dayPosts.slice(0, 3)).map((p) =>
-                  isWeekView ? (
-                    <div
-                      key={p.id}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onPostClick(p);
-                      }}
-                      className="rounded-[7px] border-[0.5px] border-[#1A1714]/12 bg-[#FAFAF8] p-1.5 cursor-pointer hover:border-[#1A1714]/25 transition-colors"
-                    >
-                      <div className="flex items-center gap-1 mb-0.5">
-                        <PillarDot pillar={p.pillar} />
-                        <span className="text-[11px] text-[#1A1714] font-medium truncate">
-                          {truncateText(p.title, 20)}
-                        </span>
-                      </div>
-                      <StatusBadge status={p.status} />
+                  {isWeekView ? (
+                    <div className="mb-2">
+                      <span className="text-[11px] text-[#8C857D] font-medium">
+                        {DAY_HEADERS_MON[i]}
+                      </span>
+                      <span
+                        className={`ml-1 text-[13px] font-medium ${
+                          isToday ? 'text-[#EB5E55]' : 'text-[#1A1714]'
+                        }`}
+                      >
+                        {day.getDate()}
+                      </span>
                     </div>
                   ) : (
-                    <div
-                      key={p.id}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onPostClick(p);
-                      }}
-                      className="rounded-[3px] px-1 py-0.5 text-[10px] leading-tight font-medium truncate cursor-pointer hover:opacity-80"
-                      style={{
-                        backgroundColor: `${getColor(p.pillar)}25`,
-                        color: getColor(p.pillar),
-                      }}
-                      title={`${p.title} (${getLabel(p.pillar)})`}
+                    <span
+                      className={`text-[11px] font-medium ${
+                        isCurrentMonth ? 'text-[#1A1714]' : 'text-[#8C857D]'
+                      }`}
                     >
-                      {truncateText(p.title, 15)}
-                    </div>
-                  )
-                )}
-                {!isWeekView && dayPosts.length > 3 && (
-                  <span className="text-[10px] text-[#8C857D]">
-                    +{dayPosts.length - 3} more
-                  </span>
-                )}
-              </div>
-            </div>
+                      {day.getDate()}
+                    </span>
+                  )}
+
+                  <div className={isWeekView ? 'space-y-1.5' : 'mt-0.5 space-y-0.5'}>
+                    {(isWeekView ? dayPosts : dayPosts.slice(0, 3)).map((p) =>
+                      isWeekView ? (
+                        <div
+                          key={p.id}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onPostClick(p);
+                          }}
+                          className="rounded-[7px] border-[0.5px] border-[#1A1714]/12 bg-[#FAFAF8] p-1.5 cursor-pointer hover:border-[#1A1714]/25 transition-colors"
+                        >
+                          <div className="flex items-center gap-1 mb-0.5">
+                            <PillarDot pillar={p.pillar} />
+                            <span className="text-[11px] text-[#1A1714] font-medium truncate">
+                              {truncateText(p.title, 20)}
+                            </span>
+                          </div>
+                          <StatusBadge status={p.status} />
+                        </div>
+                      ) : (
+                        <div
+                          key={p.id}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onPostClick(p);
+                          }}
+                          className="rounded-[3px] px-1 py-0.5 text-[10px] leading-tight font-medium truncate cursor-pointer hover:opacity-80"
+                          style={{
+                            backgroundColor: `${getColor(p.pillar)}25`,
+                            color: getColor(p.pillar),
+                          }}
+                          title={`${p.title} (${getLabel(p.pillar)})`}
+                        >
+                          {truncateText(p.title, 15)}
+                        </div>
+                      )
+                    )}
+                    {!isWeekView && dayPosts.length > 3 && (
+                      <span className="text-[10px] text-[#8C857D]">
+                        +{dayPosts.length - 3} more
+                      </span>
+                    )}
+                  </div>
+                  {provided.placeholder}
+                </div>
+              )}
+            </Droppable>
           );
         })}
       </div>

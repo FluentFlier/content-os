@@ -4,6 +4,8 @@ import * as twitterClient from '@/lib/platforms/twitter';
 import * as linkedinClient from '@/lib/platforms/linkedin';
 import * as instagramClient from '@/lib/platforms/instagram';
 import * as threadsClient from '@/lib/platforms/threads';
+import { decryptToken } from '@/lib/crypto';
+import { z } from 'zod';
 
 type SocialPlatform = 'twitter' | 'linkedin' | 'instagram' | 'threads';
 
@@ -31,33 +33,35 @@ async function ensureFreshToken(
   const now = new Date();
   const expiresAt = account.token_expires_at ? new Date(account.token_expires_at) : null;
 
-  // If no expiry set or token is still valid, return as-is
+  // If no expiry set or token is still valid, return decrypted token
   if (!expiresAt || expiresAt > now) {
-    return account.access_token;
+    return decryptToken(account.access_token);
   }
 
   // Token is expired, attempt refresh based on platform
+  const decryptedAccess = decryptToken(account.access_token);
+  const decryptedRefresh = account.refresh_token ? decryptToken(account.refresh_token) : null;
   let refreshed: { success: boolean; accessToken?: string; refreshToken?: string; expiresAt?: string; error?: string } | null = null;
 
   switch (platform) {
     case 'linkedin': {
-      if (!account.refresh_token) break;
+      if (!decryptedRefresh) break;
       const clientId = process.env.LINKEDIN_CLIENT_ID ?? '';
       const clientSecret = process.env.LINKEDIN_CLIENT_SECRET ?? '';
       if (!clientId || !clientSecret) break;
       refreshed = await linkedinClient.refreshAccessToken(
-        account.refresh_token,
+        decryptedRefresh,
         clientId,
         clientSecret
       );
       break;
     }
     case 'instagram': {
-      refreshed = await instagramClient.refreshAccessToken(account.access_token);
+      refreshed = await instagramClient.refreshAccessToken(decryptedAccess);
       break;
     }
     case 'threads': {
-      refreshed = await threadsClient.refreshAccessToken(account.access_token);
+      refreshed = await threadsClient.refreshAccessToken(decryptedAccess);
       break;
     }
     case 'twitter':
@@ -67,13 +71,14 @@ async function ensureFreshToken(
   }
 
   if (refreshed?.success && refreshed.accessToken) {
-    // Persist refreshed tokens
+    // Persist refreshed tokens (encrypted)
+    const { encryptToken } = await import('@/lib/crypto');
     const updatePayload: Record<string, unknown> = {
-      access_token: refreshed.accessToken,
+      access_token: encryptToken(refreshed.accessToken),
       connected_at: new Date().toISOString(),
     };
     if (refreshed.refreshToken) {
-      updatePayload.refresh_token = refreshed.refreshToken;
+      updatePayload.refresh_token = encryptToken(refreshed.refreshToken);
     }
     if (refreshed.expiresAt) {
       updatePayload.token_expires_at = refreshed.expiresAt;
@@ -88,36 +93,34 @@ async function ensureFreshToken(
   }
 
   // Refresh failed or not available, try with existing token anyway
-  return account.access_token;
+  return decryptedAccess;
 }
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   const user = await getAuthenticatedUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  let body: Record<string, unknown>;
+  let body: unknown;
   try {
     body = await request.json();
   } catch {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
   }
 
-  const { postId, platform, content, caption, imageUrl } = body as {
-    postId?: string;
-    platform?: SocialPlatform;
-    content?: string;
-    caption?: string;
-    imageUrl?: string;
-  };
+  const PublishSchema = z.object({
+    postId: z.string().uuid().optional(),
+    platform: z.enum(['twitter', 'linkedin', 'instagram', 'threads']),
+    content: z.string().min(1).max(25000),
+    caption: z.string().max(25000).optional(),
+    imageUrl: z.string().url().optional(),
+  });
 
-  if (!platform || !content) {
-    return NextResponse.json({ error: 'Missing platform or content' }, { status: 400 });
+  const parsed = PublishSchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.message }, { status: 400 });
   }
 
-  const validPlatforms: SocialPlatform[] = ['twitter', 'linkedin', 'instagram', 'threads'];
-  if (!validPlatforms.includes(platform)) {
-    return NextResponse.json({ error: 'Invalid platform' }, { status: 400 });
-  }
+  const { postId, platform, content, caption, imageUrl } = parsed.data;
 
   const client = getServerClient();
 

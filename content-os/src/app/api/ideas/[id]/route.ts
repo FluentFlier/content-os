@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthenticatedUser, getServerClient } from '@/lib/insforge/server';
+import { z } from 'zod';
 
 export async function PATCH(
   request: NextRequest,
@@ -11,10 +12,23 @@ export async function PATCH(
   let body: unknown;
   try { body = await request.json(); } catch { return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 }); }
 
+  const IdeaUpdateSchema = z.object({
+    title: z.string().min(1).max(500).optional(),
+    description: z.string().max(5000).optional(),
+    pillar: z.string().max(200).optional(),
+    platform: z.string().max(50).optional(),
+    priority: z.number().int().min(0).max(10).optional(),
+    status: z.enum(['backlog', 'planned', 'in_progress', 'done']).optional(),
+    series_id: z.string().uuid().optional(),
+  });
+
+  const parsed = IdeaUpdateSchema.safeParse(body);
+  if (!parsed.success) return NextResponse.json({ error: parsed.error.message }, { status: 400 });
+
   const client = getServerClient();
   const { data, error } = await client
     .database.from('content_ideas')
-    .update(body as Record<string, unknown>)
+    .update(parsed.data)
     .eq('id', params.id)
     .eq('user_id', user.id)
     .select()

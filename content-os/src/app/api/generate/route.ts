@@ -3,6 +3,7 @@ import { getAuthenticatedUser, getServerClient } from '@/lib/insforge/server';
 import { generateContent } from '@/lib/claude';
 import type { CreatorProfileForPrompt } from '@/lib/claude';
 import { z } from 'zod';
+import { checkRateLimit } from '@/lib/rate-limit';
 
 const RequestSchema = z.object({
   prompt: z.string().min(1).max(10000),
@@ -18,6 +19,19 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
   const parsed = RequestSchema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: parsed.error.message }, { status: 400 });
+
+  // Rate limit: 50 requests per hour per user
+  const rl = checkRateLimit(user.id);
+  if (!rl.allowed) {
+    const retryAfter = Math.ceil((rl.resetAt - Date.now()) / 1000);
+    return NextResponse.json(
+      { error: 'Rate limit exceeded. Try again later.' },
+      {
+        status: 429,
+        headers: { 'Retry-After': String(retryAfter) },
+      },
+    );
+  }
 
   const client = getServerClient();
 

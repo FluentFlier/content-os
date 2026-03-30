@@ -4,21 +4,19 @@ import { useEffect, useState, useCallback } from "react";
 import { getInsforge } from "@/lib/insforge/client";
 import type { ContentPillarConfig, PlatformConfig, CreatorProfile, UserSetting } from "@/types/database";
 import type { Platform } from "@/lib/constants";
-import { PLATFORMS } from "@/lib/constants";
-import { Eye, EyeOff, Copy, Check, Loader2, Unplug, ChevronDown, ChevronRight } from "lucide-react";
+import { Loader2 } from "lucide-react";
+
+import ContextEditor from "@/components/settings/ContextEditor";
+import PillarWeights from "@/components/settings/PillarWeights";
+import WeeklySchedule from "@/components/settings/WeeklySchedule";
+import PlatformDefaults from "@/components/settings/PlatformDefaults";
+import BioGenerator from "@/components/settings/BioGenerator";
+import PlatformConnections from "@/components/settings/PlatformConnections";
+import ProfileEditor from "@/components/settings/ProfileEditor";
 
 /* ------------------------------------------------------------------ */
 /*  Constants                                                          */
 /* ------------------------------------------------------------------ */
-
-const PRESET_COLORS = [
-  "#EB5E55",
-  "#F5C842",
-  "#5CB85C",
-  "#C77DFF",
-  "#4D96FF",
-  "#5A5047",
-];
 
 const DAYS_OF_WEEK = [
   "Monday",
@@ -30,109 +28,18 @@ const DAYS_OF_WEEK = [
   "Sunday",
 ];
 
-const PLATFORM_LABELS: Record<Platform, string> = {
-  instagram: "Instagram",
-  linkedin: "LinkedIn",
-  twitter: "X / Twitter",
-  threads: "Threads",
-};
-
 interface BioCard {
   platform: string;
   bio: string;
   limit: number;
 }
 
-/* ------------------------------------------------------------------ */
-/*  Helper components                                                  */
-/* ------------------------------------------------------------------ */
-
-function Toggle({
-  enabled,
-  onChange,
-}: {
-  enabled: boolean;
-  onChange: (v: boolean) => void;
-}) {
-  return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={enabled}
-      onClick={() => onChange(!enabled)}
-      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-        enabled ? "bg-[#EB5E55]" : "bg-[#EDECEA]"
-      }`}
-    >
-      <span
-        className={`inline-block h-4 w-4 rounded-full bg-white transition-transform ${
-          enabled ? "translate-x-6" : "translate-x-1"
-        }`}
-      />
-    </button>
-  );
-}
-
-function PasswordField({
-  label,
-  value,
-  onChange,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-}) {
-  const [visible, setVisible] = useState(false);
-
-  return (
-    <div>
-      <label className="block text-xs text-[#8C857D] mb-1">{label}</label>
-      <div className="relative">
-        <input
-          type={visible ? "text" : "password"}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={label}
-          className="w-full bg-[#F4F2EF] border-[0.5px] border-[#1A1714]/12 rounded-[7px] px-3 py-2 pr-10 text-sm font-mono text-[#1A1714] placeholder:text-[#8C857D] focus:outline-none focus:border-[#1A1714]/40 transition-colors"
-        />
-        <button
-          type="button"
-          onClick={() => setVisible(!visible)}
-          className="absolute right-2 top-1/2 -translate-y-1/2 text-[#8C857D] hover:text-[#1A1714] transition-colors"
-        >
-          {visible ? <EyeOff size={16} /> : <Eye size={16} />}
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function SaveButton({
-  onClick,
-  loading,
-  saved,
-  label = "Save",
-}: {
-  onClick: () => void;
-  loading: boolean;
-  saved: boolean;
-  label?: string;
-}) {
-  return (
-    <div className="flex items-center gap-3">
-      <button
-        type="button"
-        disabled={loading}
-        onClick={onClick}
-        className="px-5 py-2 rounded-lg bg-[#EB5E55] text-white font-medium text-sm hover:bg-[#EB5E55]/90 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
-      >
-        {loading ? "Saving..." : label}
-      </button>
-      {saved && (
-        <span className="text-sm text-[#3B6D11] animate-fade-in">Saved!</span>
-      )}
-    </div>
-  );
+interface ConnectedAccount {
+  id: string;
+  platform: string;
+  account_name: string | null;
+  account_id: string | null;
+  connected_at: string;
 }
 
 function Section({
@@ -189,7 +96,6 @@ export default function SettingsPage() {
   // Section 5: Bio generator
   const [bioGenerating, setBioGenerating] = useState(false);
   const [bios, setBios] = useState<BioCard[]>([]);
-  const [copiedBio, setCopiedBio] = useState<string | null>(null);
 
   // Section 6: Platform connections
   const [platformConfig, setPlatformConfig] = useState<PlatformConfig>({
@@ -211,7 +117,6 @@ export default function SettingsPage() {
     },
     threads: { accessToken: "", threadsUserId: "", enabled: false },
   });
-  const [expandedPlatform, setExpandedPlatform] = useState<string | null>(null);
   const [platformSaving, setPlatformSaving] = useState(false);
   const [platformSaved, setPlatformSaved] = useState(false);
 
@@ -225,13 +130,6 @@ export default function SettingsPage() {
   const [profileSaved, setProfileSaved] = useState(false);
 
   // Connected Accounts (OAuth)
-  interface ConnectedAccount {
-    id: string;
-    platform: string;
-    account_name: string | null;
-    account_id: string | null;
-    connected_at: string;
-  }
   const [connectedAccounts, setConnectedAccounts] = useState<ConnectedAccount[]>([]);
   const [disconnecting, setDisconnecting] = useState<string | null>(null);
 
@@ -291,18 +189,18 @@ export default function SettingsPage() {
           } else if (s.key === "pillar_weights") {
             try {
               setPillarWeights(JSON.parse(s.value));
-            } catch {}
+            } catch { /* ignore parse errors */ }
           } else if (s.key === "weekly_schedule") {
             try {
               setWeeklySchedule((prev) => ({ ...prev, ...JSON.parse(s.value) }));
-            } catch {}
+            } catch { /* ignore parse errors */ }
           } else if (s.key === "platform_defaults") {
             try {
               const parsed = JSON.parse(s.value);
               if (parsed.defaultPlatform) setDefaultPlatform(parsed.defaultPlatform);
               if (parsed.crossPostReminders !== undefined)
                 setCrossPostReminders(parsed.crossPostReminders);
-            } catch {}
+            } catch { /* ignore parse errors */ }
           }
         }
 
@@ -446,7 +344,6 @@ export default function SettingsPage() {
       `width=${w},height=${h},left=${left},top=${top},toolbar=no,menubar=no`
     );
 
-    // Poll for popup close then refresh accounts
     if (popup) {
       const interval = setInterval(() => {
         if (popup.closed) {
@@ -490,37 +387,6 @@ export default function SettingsPage() {
     }
   }
 
-  function copyBio(platform: string, text: string) {
-    navigator.clipboard.writeText(text);
-    setCopiedBio(platform);
-    setTimeout(() => setCopiedBio(null), 2000);
-  }
-
-  /* ---- Pillar editor helpers ---- */
-
-  function addPillar() {
-    if (pillars.length >= 6) return;
-    setPillars([
-      ...pillars,
-      { name: "", color: PRESET_COLORS[0], description: "", promptTemplate: "" },
-    ]);
-  }
-
-  function removePillar(index: number) {
-    if (pillars.length <= 1) return;
-    setPillars(pillars.filter((_, i) => i !== index));
-  }
-
-  function updatePillar(
-    index: number,
-    field: keyof ContentPillarConfig,
-    value: string
-  ) {
-    const updated = [...pillars];
-    updated[index] = { ...updated[index], [field]: value };
-    setPillars(updated);
-  }
-
   /* ---- Render ---- */
 
   if (loading) {
@@ -535,618 +401,91 @@ export default function SettingsPage() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8 space-y-6">
-      <h1 className="font-heading text-[22px] font-[800] text-[#1A1714] leading-[1.2] tracking-[-0.02em]">Settings</h1>
+      <h1 className="font-heading text-[22px] font-[800] text-[#1A1714] leading-[1.2] tracking-[-0.02em]">
+        Settings
+      </h1>
 
-      {/* Platform Connections (unified OAuth + manual keys) */}
       <Section title="Platform Connections">
-        <p className="text-sm text-[#8C857D] mb-4">
-          Connect accounts via OAuth or enter API keys manually.
-        </p>
-        <div className="space-y-3">
-          {(["twitter", "linkedin", "instagram", "threads"] as const).map((platform) => {
-            const account = connectedAccounts.find((a) => a.platform === platform);
-            const isOAuthConnected = !!account;
-            const isDisconnecting = disconnecting === platform;
-            const isExpanded = expandedPlatform === platform;
-
-            const platformMeta: Record<string, { label: string; color: string; icon: string }> = {
-              instagram: { label: "Instagram", color: "#E4405F", icon: "IG" },
-              linkedin: { label: "LinkedIn", color: "#0A66C2", icon: "in" },
-              twitter: { label: "X / Twitter", color: "#1A1714", icon: "\u{1D54F}" },
-              threads: { label: "Threads", color: "#1A1714", icon: "@" },
-            };
-
-            const meta = platformMeta[platform];
-            const configKey = platform === "twitter" ? "x" : platform;
-
-            // Determine manual key status
-            const getManualConfigured = (): boolean => {
-              if (platform === "twitter") {
-                const c = platformConfig.x;
-                return !!(c?.apiKey && c?.accessToken && c?.enabled);
-              }
-              if (platform === "linkedin") {
-                const c = platformConfig.linkedin;
-                return !!(c?.accessToken && c?.enabled);
-              }
-              if (platform === "instagram") {
-                const c = platformConfig.instagram;
-                return !!(c?.accessToken && c?.enabled);
-              }
-              if (platform === "threads") {
-                const c = platformConfig.threads;
-                return !!(c?.accessToken && c?.enabled);
-              }
-              return false;
-            };
-            const hasManualKeys = getManualConfigured();
-
-            return (
-              <div
-                key={platform}
-                className="border-[0.5px] border-[#1A1714]/12 rounded-[12px] overflow-hidden"
-              >
-                {/* Card header */}
-                <button
-                  type="button"
-                  onClick={() => setExpandedPlatform(isExpanded ? null : platform)}
-                  className="w-full flex items-center justify-between py-3 px-4 bg-[#F4F2EF] hover:bg-[#EDECEA] transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <span
-                      className="w-7 h-7 rounded-[5px] flex items-center justify-center text-[10px] font-bold text-white shrink-0"
-                      style={{ backgroundColor: meta.color }}
-                    >
-                      {meta.icon}
-                    </span>
-                    <span className="text-[13px] font-medium text-[#1A1714]">{meta.label}</span>
-                    {isOAuthConnected && (
-                      <span className="text-[10px] font-medium px-2 py-0.5 rounded-[3px] bg-[#EAF3DE] text-[#3B6D11]">
-                        OAuth
-                      </span>
-                    )}
-                    {hasManualKeys && (
-                      <span className="text-[10px] font-medium px-2 py-0.5 rounded-[3px] bg-[#E8E5FF] text-[#6B5CE7]">
-                        Manual Keys
-                      </span>
-                    )}
-                    {!isOAuthConnected && !hasManualKeys && (
-                      <span className="text-[10px] px-2 py-0.5 rounded-[3px] bg-[#F4F2EF] text-[#8C857D]">
-                        Not configured
-                      </span>
-                    )}
-                  </div>
-                  {isExpanded ? <ChevronDown size={16} className="text-[#8C857D]" /> : <ChevronRight size={16} className="text-[#8C857D]" />}
-                </button>
-
-                {/* Expanded body */}
-                {isExpanded && (
-                  <div className="p-4 space-y-4 border-t-[0.5px] border-[#1A1714]/12">
-                    {/* OAuth section */}
-                    <div>
-                      <span className="text-[10px] font-medium tracking-[0.10em] uppercase text-[#8C857D] block mb-2">
-                        OAUTH CONNECTION
-                      </span>
-                      {isOAuthConnected ? (
-                        <div className="flex items-center justify-between py-2">
-                          <div className="flex items-center gap-2">
-                            <Check size={14} className="text-[#3B6D11]" />
-                            <span className="text-[12px] text-[#3B6D11]">
-                              Connected{account.account_name ? ` as ${account.account_name}` : ""}
-                            </span>
-                          </div>
-                          <button
-                            type="button"
-                            disabled={isDisconnecting}
-                            onClick={(e) => { e.stopPropagation(); disconnectAccount(platform); }}
-                            className="flex items-center gap-1 px-3 py-1.5 text-[11px] text-[#4A4540] border-[0.5px] border-[#1A1714]/12 rounded-[6px] hover:border-[#1A1714]/25 transition-colors disabled:opacity-60"
-                          >
-                            <Unplug size={12} />
-                            {isDisconnecting ? "..." : "Disconnect"}
-                          </button>
-                        </div>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => connectAccount(platform)}
-                          className="px-4 py-2 text-[12px] text-white bg-[#EB5E55] rounded-[7px] hover:bg-[#EB5E55]/90 transition-colors"
-                        >
-                          Connect with {meta.label}
-                        </button>
-                      )}
-                    </div>
-
-                    {/* Manual keys section */}
-                    <div>
-                      <span className="text-[10px] font-medium tracking-[0.10em] uppercase text-[#8C857D] block mb-2">
-                        MANUAL API KEYS
-                      </span>
-                      <p className="text-[11px] text-[#8C857D] mb-3">
-                        Enter your own API credentials as a fallback to OAuth.
-                      </p>
-
-                      {platform === "twitter" && (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          {([
-                            ["apiKey", "API Key"],
-                            ["apiSecret", "API Secret"],
-                            ["accessToken", "Access Token"],
-                            ["accessSecret", "Access Secret"],
-                          ] as const).map(([field, label]) => (
-                            <PasswordField
-                              key={field}
-                              label={label}
-                              value={(platformConfig.x as unknown as Record<string, string>)?.[field] ?? ""}
-                              onChange={(v) =>
-                                setPlatformConfig({
-                                  ...platformConfig,
-                                  x: { ...platformConfig.x!, [field]: v },
-                                })
-                              }
-                            />
-                          ))}
-                        </div>
-                      )}
-
-                      {platform === "linkedin" && (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          {([
-                            ["accessToken", "Access Token"],
-                            ["refreshToken", "Refresh Token"],
-                          ] as const).map(([field, label]) => (
-                            <PasswordField
-                              key={field}
-                              label={label}
-                              value={(platformConfig.linkedin as unknown as Record<string, string>)?.[field] ?? ""}
-                              onChange={(v) =>
-                                setPlatformConfig({
-                                  ...platformConfig,
-                                  linkedin: { ...platformConfig.linkedin!, [field]: v },
-                                })
-                              }
-                            />
-                          ))}
-                        </div>
-                      )}
-
-                      {platform === "instagram" && (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          {([
-                            ["accessToken", "Access Token"],
-                            ["igUserId", "Instagram User ID"],
-                          ] as const).map(([field, label]) => (
-                            <PasswordField
-                              key={field}
-                              label={label}
-                              value={(platformConfig.instagram as unknown as Record<string, string>)?.[field] ?? ""}
-                              onChange={(v) =>
-                                setPlatformConfig({
-                                  ...platformConfig,
-                                  instagram: { ...platformConfig.instagram!, [field]: v },
-                                })
-                              }
-                            />
-                          ))}
-                        </div>
-                      )}
-
-                      {platform === "threads" && (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          {([
-                            ["accessToken", "Access Token"],
-                            ["threadsUserId", "Threads User ID"],
-                          ] as const).map(([field, label]) => (
-                            <PasswordField
-                              key={field}
-                              label={label}
-                              value={(platformConfig.threads as unknown as Record<string, string>)?.[field] ?? ""}
-                              onChange={(v) =>
-                                setPlatformConfig({
-                                  ...platformConfig,
-                                  threads: { ...platformConfig.threads!, [field]: v },
-                                })
-                              }
-                            />
-                          ))}
-                        </div>
-                      )}
-
-                      <div className="flex items-center justify-between mt-3">
-                        <span className="text-[12px] text-[#1A1714]">Enable manual keys</span>
-                        <Toggle
-                          enabled={
-                            platform === "twitter"
-                              ? (platformConfig.x?.enabled ?? false)
-                              : platform === "linkedin"
-                              ? (platformConfig.linkedin?.enabled ?? false)
-                              : platform === "instagram"
-                              ? (platformConfig.instagram?.enabled ?? false)
-                              : (platformConfig.threads?.enabled ?? false)
-                          }
-                          onChange={(v) => {
-                            if (platform === "twitter") {
-                              setPlatformConfig({ ...platformConfig, x: { ...platformConfig.x!, enabled: v } });
-                            } else if (platform === "linkedin") {
-                              setPlatformConfig({ ...platformConfig, linkedin: { ...platformConfig.linkedin!, enabled: v } });
-                            } else if (platform === "instagram") {
-                              setPlatformConfig({ ...platformConfig, instagram: { ...platformConfig.instagram!, enabled: v } });
-                            } else {
-                              setPlatformConfig({ ...platformConfig, threads: { ...platformConfig.threads!, enabled: v } });
-                            }
-                          }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-
-        <div className="mt-4">
-          <SaveButton
-            onClick={savePlatformConfig}
-            loading={platformSaving}
-            saved={platformSaved}
-            label="Save API Keys"
-          />
-        </div>
+        <PlatformConnections
+          platformConfig={platformConfig}
+          onPlatformConfigChange={setPlatformConfig}
+          connectedAccounts={connectedAccounts}
+          onConnect={connectAccount}
+          onDisconnect={disconnectAccount}
+          disconnecting={disconnecting}
+          onSave={savePlatformConfig}
+          saving={platformSaving}
+          saved={platformSaved}
+        />
       </Section>
 
-      {/* Section 1: Context Editor */}
       <Section title="Personal Context">
-        <p className="text-sm text-[#8C857D] mb-3">
-          Update this when something big changes. This text is appended to every
-          AI call to keep the AI current.
-        </p>
-        <textarea
-          value={contextAdditions}
-          onChange={(e) => setContextAdditions(e.target.value)}
-          onBlur={saveContext}
-          placeholder="Add context the AI should always know about you..."
-          rows={20}
-          className="w-full bg-[#F4F2EF] border-[0.5px] border-[#1A1714]/12 rounded-[7px] px-4 py-2.5 text-[#1A1714] placeholder:text-[#8C857D] focus:outline-none focus:border-[#1A1714]/40 transition-colors resize-none mb-4"
-        />
-        <SaveButton
-          onClick={saveContext}
-          loading={contextSaving}
+        <ContextEditor
+          contextAdditions={contextAdditions}
+          onContextChange={setContextAdditions}
+          onSave={saveContext}
+          saving={contextSaving}
           saved={contextSaved}
         />
       </Section>
 
-      {/* Section 2: Pillar Weights */}
       <Section title="Pillar Weights">
-        <p className="text-sm text-[#8C857D] mb-4">
-          Set how many posts per week for each content pillar (0-7).
-        </p>
-        <div className="space-y-4 mb-4">
-          {pillars.map((pillar) => {
-            if (!pillar.name) return null;
-            const weight = pillarWeights[pillar.name] ?? 3;
-            return (
-              <div key={pillar.name} className="flex items-center gap-4">
-                <div className="flex items-center gap-2 min-w-[140px]">
-                  <span
-                    className="w-3 h-3 rounded-full flex-shrink-0"
-                    style={{ backgroundColor: pillar.color }}
-                  />
-                  <span className="text-sm text-[#1A1714] truncate">
-                    {pillar.name}
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  min={0}
-                  max={7}
-                  value={weight}
-                  onChange={(e) =>
-                    setPillarWeights({
-                      ...pillarWeights,
-                      [pillar.name]: parseInt(e.target.value, 10),
-                    })
-                  }
-                  className="flex-1 accent-[#EB5E55] h-2 cursor-pointer"
-                />
-                <span className="text-sm text-[#8C857D] w-16 text-right">
-                  {weight}/week
-                </span>
-              </div>
-            );
-          })}
-        </div>
-        <SaveButton
-          onClick={savePillarWeights}
-          loading={weightsSaving}
+        <PillarWeights
+          pillars={pillars}
+          pillarWeights={pillarWeights}
+          onWeightChange={setPillarWeights}
+          onSave={savePillarWeights}
+          saving={weightsSaving}
           saved={weightsSaved}
         />
       </Section>
 
-      {/* Section 3: Weekly Schedule Template */}
       <Section title="Weekly Schedule Template">
-        <div className="space-y-3 mb-4">
-          {DAYS_OF_WEEK.map((day) => (
-            <div key={day} className="flex items-center gap-4">
-              <span className="text-sm text-[#1A1714] w-24">{day}</span>
-              <select
-                value={weeklySchedule[day] ?? "Rest"}
-                onChange={(e) =>
-                  setWeeklySchedule({
-                    ...weeklySchedule,
-                    [day]: e.target.value,
-                  })
-                }
-                className="flex-1 bg-[#F4F2EF] border-[0.5px] border-[#1A1714]/12 rounded-[7px] px-3 py-2 text-sm text-[#1A1714] focus:outline-none focus:border-[#1A1714]/40 transition-colors"
-              >
-                <option value="Rest">Rest</option>
-                {pillarOptions.map((name) => (
-                  <option key={name} value={name}>
-                    {name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          ))}
-        </div>
-        <SaveButton
-          onClick={saveWeeklySchedule}
-          loading={scheduleSaving}
+        <WeeklySchedule
+          weeklySchedule={weeklySchedule}
+          onScheduleChange={setWeeklySchedule}
+          pillarOptions={pillarOptions}
+          onSave={saveWeeklySchedule}
+          saving={scheduleSaving}
           saved={scheduleSaved}
         />
       </Section>
 
-      {/* Section 4: Platform Defaults */}
       <Section title="Platform Defaults">
-        <div className="space-y-4 mb-4">
-          <div>
-            <label className="block text-sm text-[#8C857D] mb-1.5">
-              Default platform
-            </label>
-            <select
-              value={defaultPlatform}
-              onChange={(e) => setDefaultPlatform(e.target.value as Platform)}
-              className="w-full bg-[#F4F2EF] border-[0.5px] border-[#1A1714]/12 rounded-[7px] px-3 py-2 text-sm text-[#1A1714] focus:outline-none focus:border-[#1A1714]/40 transition-colors"
-            >
-              {PLATFORMS.map((p) => (
-                <option key={p} value={p}>
-                  {PLATFORM_LABELS[p]}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-[#1A1714]">
-              Cross-post reminders
-            </span>
-            <Toggle
-              enabled={crossPostReminders}
-              onChange={setCrossPostReminders}
-            />
-          </div>
-        </div>
-        <SaveButton
-          onClick={savePlatformDefaults}
-          loading={platformDefaultsSaving}
+        <PlatformDefaults
+          defaultPlatform={defaultPlatform}
+          onDefaultPlatformChange={setDefaultPlatform}
+          crossPostReminders={crossPostReminders}
+          onCrossPostRemindersChange={setCrossPostReminders}
+          onSave={savePlatformDefaults}
+          saving={platformDefaultsSaving}
           saved={platformDefaultsSaved}
         />
       </Section>
 
-      {/* Section 5: Profile Bio Generator */}
       <Section title="Profile Bio Generator">
-        <button
-          type="button"
-          disabled={bioGenerating}
-          onClick={generateBios}
-          className="px-5 py-2 rounded-lg bg-[#EB5E55] text-white font-medium text-sm hover:bg-[#EB5E55]/90 disabled:opacity-60 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
-        >
-          {bioGenerating && <Loader2 size={16} className="animate-spin" />}
-          {bioGenerating ? "Generating..." : "Generate Platform Bios"}
-        </button>
-
-        {bios.length > 0 && (
-          <div className="mt-4 space-y-3">
-            {bios.map((card) => (
-              <div
-                key={card.platform}
-                className="bg-[#F4F2EF] border-[0.5px] border-[#1A1714]/12 rounded-[7px] p-4"
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-[#1A1714]">
-                    {card.platform}
-                  </span>
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`text-xs ${
-                        card.bio.length > card.limit
-                          ? "text-[#EB5E55]"
-                          : "text-[#8C857D]"
-                      }`}
-                    >
-                      {card.bio.length}/{card.limit}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => copyBio(card.platform, card.bio)}
-                      className="text-[#8C857D] hover:text-[#1A1714] transition-colors"
-                    >
-                      {copiedBio === card.platform ? (
-                        <Check size={16} className="text-[#3B6D11]" />
-                      ) : (
-                        <Copy size={16} />
-                      )}
-                    </button>
-                  </div>
-                </div>
-                <textarea
-                  value={card.bio}
-                  onChange={(e) => {
-                    setBios((prev) =>
-                      prev.map((b) =>
-                        b.platform === card.platform
-                          ? { ...b, bio: e.target.value }
-                          : b
-                      )
-                    );
-                  }}
-                  rows={3}
-                  className="w-full bg-[#FAFAF8] border-[0.5px] border-[#1A1714]/12 rounded-[7px] px-3 py-2 text-sm text-[#1A1714] focus:outline-none focus:border-[#1A1714]/40 transition-colors resize-none"
-                />
-              </div>
-            ))}
-          </div>
-        )}
+        <BioGenerator
+          bioGenerating={bioGenerating}
+          bios={bios}
+          onGenerate={generateBios}
+          onBiosChange={setBios}
+        />
       </Section>
 
-
-
-      {/* Section 7: Profile Editor */}
       <Section title="Profile Editor">
-        <div className="space-y-5 mb-4">
-          <div>
-            <label className="block text-sm text-[#8C857D] mb-1.5">
-              Display name
-            </label>
-            <input
-              type="text"
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
-              placeholder="Your name or brand"
-              className="w-full bg-[#F4F2EF] border-[0.5px] border-[#1A1714]/12 rounded-[7px] px-4 py-2.5 text-[#1A1714] placeholder:text-[#8C857D] focus:outline-none focus:border-[#1A1714]/40 transition-colors"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm text-[#8C857D] mb-1.5">
-              Bio facts
-            </label>
-            <textarea
-              value={bioFacts}
-              onChange={(e) => setBioFacts(e.target.value)}
-              placeholder="Key facts about you..."
-              rows={4}
-              className="w-full bg-[#F4F2EF] border-[0.5px] border-[#1A1714]/12 rounded-[7px] px-4 py-2.5 text-[#1A1714] placeholder:text-[#8C857D] focus:outline-none focus:border-[#1A1714]/40 transition-colors resize-none"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm text-[#8C857D] mb-1.5">
-              Voice description
-            </label>
-            <textarea
-              value={voiceDescription}
-              onChange={(e) => setVoiceDescription(e.target.value)}
-              placeholder="How your content should sound..."
-              rows={4}
-              className="w-full bg-[#F4F2EF] border-[0.5px] border-[#1A1714]/12 rounded-[7px] px-4 py-2.5 text-[#1A1714] placeholder:text-[#8C857D] focus:outline-none focus:border-[#1A1714]/40 transition-colors resize-none"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm text-[#8C857D] mb-1.5">
-              Voice rules
-            </label>
-            <textarea
-              value={voiceRules}
-              onChange={(e) => setVoiceRules(e.target.value)}
-              placeholder="Hard rules for the AI..."
-              rows={3}
-              className="w-full bg-[#F4F2EF] border-[0.5px] border-[#1A1714]/12 rounded-[7px] px-4 py-2.5 text-[#1A1714] placeholder:text-[#8C857D] focus:outline-none focus:border-[#1A1714]/40 transition-colors resize-none"
-            />
-          </div>
-
-          {/* Content Pillars */}
-          <div>
-            <label className="block text-sm text-[#8C857D] mb-3">
-              Content pillars
-            </label>
-            <div className="space-y-4">
-              {pillars.map((pillar, i) => (
-                <div
-                  key={i}
-                  className="border-[0.5px] border-[#1A1714]/12 rounded-[12px] p-5 space-y-4"
-                  style={{
-                    borderLeftColor: pillar.color,
-                    borderLeftWidth: 3,
-                  }}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-[#8C857D]">
-                      Pillar {i + 1}
-                    </span>
-                    {pillars.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => removePillar(i)}
-                        className="text-xs text-[#8C857D] hover:text-[#EB5E55] transition-colors"
-                      >
-                        Remove
-                      </button>
-                    )}
-                  </div>
-
-                  <div className="flex gap-3">
-                    <input
-                      type="text"
-                      value={pillar.name}
-                      onChange={(e) => updatePillar(i, "name", e.target.value)}
-                      placeholder="Pillar name"
-                      className="flex-1 bg-[#F4F2EF] border-[0.5px] border-[#1A1714]/12 rounded-[7px] px-4 py-2.5 text-[#1A1714] placeholder:text-[#8C857D] focus:outline-none focus:border-[#1A1714]/40 transition-colors"
-                    />
-                    <div className="flex gap-1.5 items-center">
-                      {PRESET_COLORS.map((color) => (
-                        <button
-                          key={color}
-                          type="button"
-                          onClick={() => updatePillar(i, "color", color)}
-                          className={`w-7 h-7 rounded-full transition-transform ${
-                            pillar.color === color
-                              ? "ring-2 ring-[#1A1714] ring-offset-2 ring-offset-[#FAFAF8] scale-110"
-                              : "hover:scale-110"
-                          }`}
-                          style={{ backgroundColor: color }}
-                        />
-                      ))}
-                    </div>
-                  </div>
-
-                  <textarea
-                    value={pillar.description || ""}
-                    onChange={(e) =>
-                      updatePillar(i, "description", e.target.value)
-                    }
-                    placeholder="What this pillar covers..."
-                    rows={2}
-                    className="w-full bg-[#F4F2EF] border-[0.5px] border-[#1A1714]/12 rounded-[7px] px-4 py-2.5 text-[#1A1714] placeholder:text-[#8C857D] focus:outline-none focus:border-[#1A1714]/40 transition-colors resize-none"
-                  />
-
-                  <textarea
-                    value={pillar.promptTemplate || ""}
-                    onChange={(e) =>
-                      updatePillar(i, "promptTemplate", e.target.value)
-                    }
-                    placeholder="AI prompt template for this pillar..."
-                    rows={3}
-                    className="w-full bg-[#F4F2EF] border-[0.5px] border-[#1A1714]/12 rounded-[7px] px-4 py-2.5 text-[#1A1714] placeholder:text-[#8C857D] focus:outline-none focus:border-[#1A1714]/40 transition-colors resize-none"
-                  />
-                </div>
-              ))}
-
-              {pillars.length < 6 && (
-                <button
-                  type="button"
-                  onClick={addPillar}
-                  className="w-full border-[0.5px] border-dashed border-[#1A1714]/12 rounded-[12px] py-3 text-sm text-[#8C857D] hover:border-[#EB5E55] hover:text-[#EB5E55] transition-colors"
-                >
-                  + Add Pillar
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-
-        <SaveButton
-          onClick={saveProfile}
-          loading={profileSaving}
+        <ProfileEditor
+          displayName={displayName}
+          onDisplayNameChange={setDisplayName}
+          bioFacts={bioFacts}
+          onBioFactsChange={setBioFacts}
+          voiceDescription={voiceDescription}
+          onVoiceDescriptionChange={setVoiceDescription}
+          voiceRules={voiceRules}
+          onVoiceRulesChange={setVoiceRules}
+          pillars={pillars}
+          onPillarsChange={setPillars}
+          onSave={saveProfile}
+          saving={profileSaving}
           saved={profileSaved}
         />
       </Section>

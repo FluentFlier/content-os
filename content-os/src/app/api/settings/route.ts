@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthenticatedUser, getServerClient } from '@/lib/insforge/server';
+import { z } from 'zod';
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const user = await getAuthenticatedUser();
@@ -27,8 +28,15 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   let body: unknown;
   try { body = await request.json(); } catch { return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 }); }
 
-  const { key, value } = body as { key?: string; value?: unknown };
-  if (!key) return NextResponse.json({ error: 'Missing key' }, { status: 400 });
+  const SettingSchema = z.object({
+    key: z.string().min(1).max(255),
+    value: z.unknown(),
+  });
+
+  const parsed = SettingSchema.safeParse(body);
+  if (!parsed.success) return NextResponse.json({ error: parsed.error.message }, { status: 400 });
+
+  const { key, value } = parsed.data;
 
   const client = getServerClient();
   const { data, error } = await client

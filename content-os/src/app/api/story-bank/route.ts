@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthenticatedUser, getServerClient } from '@/lib/insforge/server';
+import { z } from 'zod';
 
 export async function GET(): Promise<NextResponse> {
   const user = await getAuthenticatedUser();
@@ -23,10 +24,21 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   let body: unknown;
   try { body = await request.json(); } catch { return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 }); }
 
+  const StorySchema = z.object({
+    title: z.string().min(1).max(500),
+    body: z.string().max(10000).optional(),
+    category: z.string().max(200).optional(),
+    tags: z.array(z.string().max(100)).max(20).optional(),
+    source: z.string().max(500).optional(),
+  });
+
+  const parsed = StorySchema.safeParse(body);
+  if (!parsed.success) return NextResponse.json({ error: parsed.error.message }, { status: 400 });
+
   const client = getServerClient();
   const { data, error } = await client
     .database.from('story_bank')
-    .insert({ ...body as Record<string, unknown>, user_id: user.id })
+    .insert({ ...parsed.data, user_id: user.id })
     .select()
     .single();
 

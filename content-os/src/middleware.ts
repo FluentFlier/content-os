@@ -11,6 +11,7 @@ const PROTECTED = [
   '/analytics',
   '/settings',
   '/teleprompter',
+  '/video-studio',
   '/onboarding',
 ];
 

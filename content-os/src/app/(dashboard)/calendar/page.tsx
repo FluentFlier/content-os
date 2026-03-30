@@ -4,16 +4,19 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ChevronLeft,
   ChevronRight,
-  Sparkles,
   X,
   Calendar as CalendarIcon,
 } from "lucide-react";
+import {
+  DragDropContext,
+  type DropResult,
+} from "@hello-pangea/dnd";
 import { getInsforge } from "@/lib/insforge/client";
 import type { Post } from "@/lib/types";
 import { usePillars } from "@/hooks/usePillars";
-import PillarDot from "@/components/PillarDot";
 import CalendarGrid from "@/components/calendar/CalendarGrid";
 import CalendarBacklog from "@/components/calendar/CalendarBacklog";
+import { ScheduleModal, FillWeekModal } from "@/components/calendar/CalendarModals";
 
 type ViewMode = "month" | "week";
 
@@ -55,7 +58,7 @@ const MONTH_NAMES = [
 /* ------------------------------------------------------------------ */
 
 export default function CalendarPage() {
-  const { getLabel, getColor } = usePillars();
+  const { getLabel } = usePillars();
   const today = useMemo(() => new Date(), []);
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
@@ -158,6 +161,22 @@ export default function CalendarPage() {
     await fetchPosts();
   };
 
+  /* ---- Drag and drop ---- */
+
+  const handleDragEnd = async (result: DropResult) => {
+    const { draggableId, destination } = result;
+    if (!destination) return;
+
+    const droppableId = destination.droppableId;
+    if (!droppableId.startsWith("day-")) return;
+
+    const dateStr = droppableId.replace("day-", "");
+    const [year, month, day] = dateStr.split("-").map(Number);
+    const targetDate = new Date(year, month - 1, day);
+
+    await schedulePost(draggableId, targetDate);
+  };
+
   /* ---- Backlog click-to-assign flow ---- */
 
   const handleBacklogClick = (post: Post) => {
@@ -173,7 +192,7 @@ export default function CalendarPage() {
     }
   };
 
-  const handlePostClick = (post: Post) => {
+  const handlePostClick = (_post: Post) => {
     window.location.href = "/library";
   };
 
@@ -265,6 +284,11 @@ Respond ONLY with a JSON array of objects: [{"postId":"...","date":"YYYY-MM-DD"}
     await fetchPosts();
   };
 
+  const closeFillWeek = () => {
+    setFillWeekOpen(false);
+    setFillSuggestions([]);
+  };
+
   /* ---- Loading skeleton ---- */
 
   if (loading) {
@@ -286,232 +310,121 @@ Respond ONLY with a JSON array of objects: [{"postId":"...","date":"YYYY-MM-DD"}
   const weekDaysForLabel = getWeekDays(weekBase);
 
   return (
-    <div className="flex flex-col lg:flex-row gap-4 min-h-0">
-      {/* ---- Main calendar area ---- */}
-      <div className="flex-1 space-y-4 min-w-0">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <h1 className="font-heading text-[22px] font-[800] text-[#1A1714] leading-[1.2] tracking-[-0.02em]">
-            Calendar
-          </h1>
-          <div className="flex items-center gap-2 flex-wrap">
-            {/* Nav arrows + month/year */}
-            <div className="flex items-center gap-1">
-              <button
-                onClick={viewMode === "month" ? goToPrevMonth : goToPrevWeek}
-                className="p-1.5 rounded-[7px] border-[0.5px] border-[#1A1714]/12 text-[#8C857D] hover:text-[#1A1714] hover:border-[#1A1714]/25 transition-colors"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-              <span className="text-[13px] text-[#1A1714] font-medium min-w-[140px] text-center">
-                {viewMode === "month"
-                  ? `${MONTH_NAMES[currentMonth]} ${currentYear}`
-                  : `Week of ${weekDaysForLabel[0].toLocaleDateString("en-US", { month: "short", day: "numeric" })}`}
-              </span>
-              <button
-                onClick={viewMode === "month" ? goToNextMonth : goToNextWeek}
-                className="p-1.5 rounded-[7px] border-[0.5px] border-[#1A1714]/12 text-[#8C857D] hover:text-[#1A1714] hover:border-[#1A1714]/25 transition-colors"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* View toggle */}
-            <div className="flex border-[0.5px] border-[#1A1714]/12 rounded-[7px] overflow-hidden">
-              <button
-                onClick={() => setViewMode("month")}
-                className={`px-3 py-1.5 text-[11px] font-medium transition-colors ${
-                  viewMode === "month"
-                    ? "bg-[#EB5E55] text-white"
-                    : "text-[#8C857D] hover:text-[#1A1714]"
-                }`}
-              >
-                Month
-              </button>
-              <button
-                onClick={() => setViewMode("week")}
-                className={`px-3 py-1.5 text-[11px] font-medium transition-colors ${
-                  viewMode === "week"
-                    ? "bg-[#EB5E55] text-white"
-                    : "text-[#8C857D] hover:text-[#1A1714]"
-                }`}
-              >
-                Week
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Backlog pick banner */}
-        {backlogPickPost && (
-          <div className="flex items-center gap-2 bg-[#FAFAF8] border-[0.5px] border-[#EB5E55]/40 rounded-[12px] px-4 py-2 text-[13px] text-[#1A1714]">
-            <CalendarIcon className="w-4 h-4 text-[#EB5E55] shrink-0" />
-            Click a day to schedule{" "}
-            <span className="font-medium">
-              &quot;{truncate(backlogPickPost.title, 30)}&quot;
-            </span>
-            <button
-              onClick={() => setBacklogPickPost(null)}
-              className="ml-auto text-[#8C857D] hover:text-[#1A1714]"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-        )}
-
-        {/* Calendar Grid */}
-        <CalendarGrid
-          viewMode={viewMode}
-          currentYear={currentYear}
-          currentMonth={currentMonth}
-          weekBase={weekBase}
-          posts={posts}
-          today={today}
-          isPickMode={!!backlogPickPost}
-          onDayCellClick={handleDayCellClick}
-          onPostClick={handlePostClick}
-        />
-      </div>
-
-      {/* ---- Backlog sidebar ---- */}
-      <CalendarBacklog
-        backlog={backlog}
-        selectedPostId={backlogPickPost?.id ?? null}
-        onPostClick={handleBacklogClick}
-        onFillWeek={handleFillWeek}
-        fillDisabled={backlog.length === 0}
-      />
-
-      {/* ---- Schedule modal (click empty day) ---- */}
-      {scheduleModalDate && !backlogPickPost && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#1A1714]/30">
-          <div className="bg-[#FAFAF8] border-[0.5px] border-[#1A1714]/12 rounded-[12px] w-full max-w-md mx-4 max-h-[80vh] flex flex-col">
-            <div className="flex items-center justify-between p-4 border-b-[0.5px] border-[#1A1714]/12">
-              <h3 className="font-heading text-[16px] font-[700] text-[#1A1714]">
-                Schedule for{" "}
-                {scheduleModalDate.toLocaleDateString("en-US", {
-                  month: "long",
-                  day: "numeric",
-                  year: "numeric",
-                })}
-              </h3>
-              <button
-                onClick={() => setScheduleModalDate(null)}
-                className="text-[#8C857D] hover:text-[#1A1714]"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <div className="p-4 overflow-y-auto flex-1">
-              {backlog.length === 0 ? (
-                <p className="text-[13px] text-[#8C857D] text-center py-8">
-                  No unscheduled posts available.
-                </p>
-              ) : (
-                <div className="space-y-2">
-                  {backlog.map((p) => (
-                    <button
-                      key={p.id}
-                      onClick={async () => {
-                        await schedulePost(p.id, scheduleModalDate);
-                        setScheduleModalDate(null);
-                      }}
-                      className="w-full text-left rounded-[12px] border-[0.5px] border-[#1A1714]/12 bg-[#FAFAF8] p-3 hover:border-[#1A1714]/25 transition-colors"
-                    >
-                      <div className="flex items-center gap-2 mb-1">
-                        <PillarDot pillar={p.pillar} showLabel />
-                        <span className="text-[13px] text-[#1A1714] font-medium truncate">
-                          {p.title}
-                        </span>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ---- Fill This Week modal ---- */}
-      {fillWeekOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#1A1714]/30">
-          <div className="bg-[#FAFAF8] border-[0.5px] border-[#1A1714]/12 rounded-[12px] w-full max-w-lg mx-4">
-            <div className="flex items-center justify-between p-4 border-b-[0.5px] border-[#1A1714]/12">
-              <h3 className="font-heading text-[16px] font-[700] text-[#1A1714]">
-                Fill This Week
-              </h3>
-              <button
-                onClick={() => {
-                  setFillWeekOpen(false);
-                  setFillSuggestions([]);
-                }}
-                className="text-[#8C857D] hover:text-[#1A1714]"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <div className="p-4">
-              {fillLoading ? (
-                <div className="flex flex-col items-center gap-3 py-8">
-                  <Sparkles className="w-6 h-6 text-[#EB5E55] animate-pulse" />
-                  <p className="text-[13px] text-[#8C857D]">
-                    AI is suggesting a schedule...
-                  </p>
-                </div>
-              ) : fillSuggestions.length === 0 ? (
-                <p className="text-[13px] text-[#8C857D] text-center py-8">
-                  No suggestions generated. Try again or schedule manually.
-                </p>
-              ) : (
-                <div className="space-y-2 mb-4">
-                  {fillSuggestions.map((s) => (
-                    <div
-                      key={s.postId}
-                      className="flex items-center gap-3 rounded-[12px] border-[0.5px] border-[#1A1714]/12 bg-[#FAFAF8] p-3"
-                    >
-                      <PillarDot pillar={s.pillar} />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[13px] text-[#1A1714] font-medium truncate">
-                          {s.title}
-                        </p>
-                        <p className="text-[11px] text-[#8C857D]">
-                          {getLabel(s.pillar)}
-                        </p>
-                      </div>
-                      <span className="text-[11px] text-[#8C857D] whitespace-nowrap">
-                        {new Date(s.date + "T12:00:00").toLocaleDateString(
-                          "en-US",
-                          { weekday: "short", month: "short", day: "numeric" }
-                        )}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-            {fillSuggestions.length > 0 && !fillLoading && (
-              <div className="flex items-center justify-end gap-2 p-4 border-t-[0.5px] border-[#1A1714]/12">
+    <DragDropContext onDragEnd={handleDragEnd}>
+      <div className="flex flex-col lg:flex-row gap-4 min-h-0">
+        {/* Main calendar area */}
+        <div className="flex-1 space-y-4 min-w-0">
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <h1 className="font-heading text-[22px] font-[800] text-[#1A1714] leading-[1.2] tracking-[-0.02em]">
+              Calendar
+            </h1>
+            <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center gap-1">
                 <button
-                  onClick={() => {
-                    setFillWeekOpen(false);
-                    setFillSuggestions([]);
-                  }}
-                  className="px-[14px] py-[7px] text-[13px] text-[#8C857D] hover:text-[#1A1714] border-[0.5px] border-[#1A1714]/12 rounded-[7px] transition-colors"
+                  onClick={viewMode === "month" ? goToPrevMonth : goToPrevWeek}
+                  className="p-1.5 rounded-[7px] border-[0.5px] border-[#1A1714]/12 text-[#8C857D] hover:text-[#1A1714] hover:border-[#1A1714]/25 transition-colors"
                 >
-                  Cancel
+                  <ChevronLeft className="w-4 h-4" />
                 </button>
+                <span className="text-[13px] text-[#1A1714] font-medium min-w-[140px] text-center">
+                  {viewMode === "month"
+                    ? `${MONTH_NAMES[currentMonth]} ${currentYear}`
+                    : `Week of ${weekDaysForLabel[0].toLocaleDateString("en-US", { month: "short", day: "numeric" })}`}
+                </span>
                 <button
-                  onClick={confirmFillWeek}
-                  className="px-5 py-[10px] text-[13px] font-medium bg-[#EB5E55] text-white rounded-[7px] hover:opacity-90 transition-opacity"
+                  onClick={viewMode === "month" ? goToNextMonth : goToNextWeek}
+                  className="p-1.5 rounded-[7px] border-[0.5px] border-[#1A1714]/12 text-[#8C857D] hover:text-[#1A1714] hover:border-[#1A1714]/25 transition-colors"
                 >
-                  Apply Schedule
+                  <ChevronRight className="w-4 h-4" />
                 </button>
               </div>
-            )}
+
+              <div className="flex border-[0.5px] border-[#1A1714]/12 rounded-[7px] overflow-hidden">
+                <button
+                  onClick={() => setViewMode("month")}
+                  className={`px-3 py-1.5 text-[11px] font-medium transition-colors ${
+                    viewMode === "month"
+                      ? "bg-[#EB5E55] text-white"
+                      : "text-[#8C857D] hover:text-[#1A1714]"
+                  }`}
+                >
+                  Month
+                </button>
+                <button
+                  onClick={() => setViewMode("week")}
+                  className={`px-3 py-1.5 text-[11px] font-medium transition-colors ${
+                    viewMode === "week"
+                      ? "bg-[#EB5E55] text-white"
+                      : "text-[#8C857D] hover:text-[#1A1714]"
+                  }`}
+                >
+                  Week
+                </button>
+              </div>
+            </div>
           </div>
+
+          {/* Backlog pick banner */}
+          {backlogPickPost && (
+            <div className="flex items-center gap-2 bg-[#FAFAF8] border-[0.5px] border-[#EB5E55]/40 rounded-[12px] px-4 py-2 text-[13px] text-[#1A1714]">
+              <CalendarIcon className="w-4 h-4 text-[#EB5E55] shrink-0" />
+              Click a day to schedule{" "}
+              <span className="font-medium">
+                &quot;{truncate(backlogPickPost.title, 30)}&quot;
+              </span>
+              <button
+                onClick={() => setBacklogPickPost(null)}
+                className="ml-auto text-[#8C857D] hover:text-[#1A1714]"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+
+          <CalendarGrid
+            viewMode={viewMode}
+            currentYear={currentYear}
+            currentMonth={currentMonth}
+            weekBase={weekBase}
+            posts={posts}
+            today={today}
+            isPickMode={!!backlogPickPost}
+            onDayCellClick={handleDayCellClick}
+            onPostClick={handlePostClick}
+          />
         </div>
-      )}
-    </div>
+
+        <CalendarBacklog
+          backlog={backlog}
+          selectedPostId={backlogPickPost?.id ?? null}
+          onPostClick={handleBacklogClick}
+          onFillWeek={handleFillWeek}
+          fillDisabled={backlog.length === 0}
+        />
+
+        {scheduleModalDate && !backlogPickPost && (
+          <ScheduleModal
+            date={scheduleModalDate}
+            backlog={backlog}
+            onSchedule={async (postId) => {
+              await schedulePost(postId, scheduleModalDate);
+              setScheduleModalDate(null);
+            }}
+            onClose={() => setScheduleModalDate(null)}
+          />
+        )}
+
+        {fillWeekOpen && (
+          <FillWeekModal
+            loading={fillLoading}
+            suggestions={fillSuggestions}
+            getLabel={getLabel}
+            onConfirm={confirmFillWeek}
+            onClose={closeFillWeek}
+          />
+        )}
+      </div>
+    </DragDropContext>
   );
 }

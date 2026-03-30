@@ -1,6 +1,7 @@
 'use client';
 
 import { Sparkles } from 'lucide-react';
+import { Droppable, Draggable } from '@hello-pangea/dnd';
 import type { Post } from '@/lib/types';
 import PillarDot from '@/components/PillarDot';
 import StatusBadge from '@/components/StatusBadge';
@@ -39,27 +40,44 @@ export default function CalendarBacklog({
       {backlog.length === 0 ? (
         <p className="text-[13px] text-[#8C857D]">No unscheduled posts.</p>
       ) : (
-        <div className="space-y-2 max-h-[60vh] overflow-y-auto pr-1">
-          {backlog.map((p) => (
+        <Droppable droppableId="backlog" isDropDisabled>
+          {(provided) => (
             <div
-              key={p.id}
-              onClick={() => onPostClick(p)}
-              className={`rounded-[12px] border-[0.5px] p-2.5 cursor-pointer transition-colors ${
-                selectedPostId === p.id
-                  ? 'border-[#EB5E55] bg-[#FAECE7]'
-                  : 'border-[#1A1714]/12 bg-[#FAFAF8] hover:border-[#1A1714]/25'
-              }`}
+              ref={provided.innerRef}
+              {...provided.droppableProps}
+              className="space-y-2 max-h-[60vh] overflow-y-auto pr-1"
             >
-              <div className="flex items-center gap-1.5 mb-1">
-                <PillarDot pillar={p.pillar} />
-                <span className="text-[13px] text-[#1A1714] font-medium truncate">
-                  {p.title}
-                </span>
-              </div>
-              <StatusBadge status={p.status} />
+              {backlog.map((p, index) => (
+                <Draggable key={p.id} draggableId={p.id} index={index}>
+                  {(dragProvided, dragSnapshot) => (
+                    <div
+                      ref={dragProvided.innerRef}
+                      {...dragProvided.draggableProps}
+                      {...dragProvided.dragHandleProps}
+                      onClick={() => onPostClick(p)}
+                      className={`rounded-[12px] border-[0.5px] p-2.5 cursor-grab transition-colors ${
+                        dragSnapshot.isDragging
+                          ? 'border-[#EB5E55] bg-[#FAECE7] shadow-lg rotate-2'
+                          : selectedPostId === p.id
+                          ? 'border-[#EB5E55] bg-[#FAECE7]'
+                          : 'border-[#1A1714]/12 bg-[#FAFAF8] hover:border-[#1A1714]/25'
+                      }`}
+                    >
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <PillarDot pillar={p.pillar} />
+                        <span className="text-[13px] text-[#1A1714] font-medium truncate">
+                          {p.title}
+                        </span>
+                      </div>
+                      <StatusBadge status={p.status} />
+                    </div>
+                  )}
+                </Draggable>
+              ))}
+              {provided.placeholder}
             </div>
-          ))}
-        </div>
+          )}
+        </Droppable>
       )}
     </div>
   );

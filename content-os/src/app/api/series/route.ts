@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthenticatedUser, getServerClient } from '@/lib/insforge/server';
+import { z } from 'zod';
 
 export async function GET(): Promise<NextResponse> {
   const user = await getAuthenticatedUser();
@@ -23,10 +24,21 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   let body: unknown;
   try { body = await request.json(); } catch { return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 }); }
 
+  const SeriesSchema = z.object({
+    name: z.string().min(1).max(200),
+    description: z.string().max(2000).optional(),
+    cadence: z.string().max(100).optional(),
+    platform: z.string().max(50).optional(),
+    status: z.enum(['active', 'paused', 'completed']).optional(),
+  });
+
+  const parsed = SeriesSchema.safeParse(body);
+  if (!parsed.success) return NextResponse.json({ error: parsed.error.message }, { status: 400 });
+
   const client = getServerClient();
   const { data, error } = await client
     .database.from('series')
-    .insert({ ...body as Record<string, unknown>, user_id: user.id })
+    .insert({ ...parsed.data, user_id: user.id })
     .select()
     .single();
 

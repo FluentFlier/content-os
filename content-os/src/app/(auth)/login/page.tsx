@@ -3,16 +3,6 @@
 import { useState, useEffect, FormEvent } from "react";
 import { getInsforgeClient } from "@/lib/insforge/client";
 
-async function syncTokenAndRedirect(token: string) {
-  await fetch("/api/auth", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ token }),
-  });
-  // Full page reload so server sees the cookie
-  window.location.href = "/dashboard";
-}
-
 export default function LoginPage() {
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
@@ -32,36 +22,29 @@ export default function LoginPage() {
       const urlMode = urlParams.get("mode");
       if (urlMode === "signup") setMode("signup");
 
-      // Check if we already have a session
-      let token = (client.auth as unknown as { getAccessToken(): string | null }).getAccessToken();
-      if (token) {
-        await syncTokenAndRedirect(token);
-        return;
-      }
+      // The SDK auto-detects insforge_code in URL and exchanges it.
+      // After that, getCurrentUser will return the logged-in user.
+      // Give the SDK a moment to process the callback.
+      await new Promise(r => setTimeout(r, 500));
 
-      // Handle hash-based OAuth (implicit flow)
-      if (window.location.hash) {
-        const params = new URLSearchParams(window.location.hash.slice(1));
-        const accessToken = params.get("access_token");
-        if (accessToken) {
-          await syncTokenAndRedirect(accessToken);
+      try {
+        const { data } = await client.auth.getCurrentUser();
+        if (data?.user) {
+          // User is authenticated -- sync token to cookie for server-side middleware
+          const auth = client.auth as unknown as { getAccessToken?(): string | null };
+          const token = auth.getAccessToken?.();
+          if (token) {
+            await fetch("/api/auth", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ token }),
+            });
+          }
+          window.location.href = "/dashboard";
           return;
         }
-      }
-
-      // Handle code-based OAuth callback (PKCE or standard)
-      const code = urlParams.get("code") || urlParams.get("insforge_code");
-      if (code) {
-        try {
-          const result = await client.auth.exchangeOAuthCode(code);
-          const exchangedToken = result?.data?.accessToken ?? (client.auth as unknown as { getAccessToken(): string | null }).getAccessToken();
-          if (exchangedToken) {
-            await syncTokenAndRedirect(exchangedToken);
-            return;
-          }
-        } catch {
-          setError("OAuth sign-in failed. Please try again.");
-        }
+      } catch {
+        // Not logged in
       }
 
       setCheckingSession(false);
@@ -78,24 +61,20 @@ export default function LoginPage() {
       const client = getInsforgeClient();
 
       if (mode === "signup") {
-        const { data, error: err } = await client.auth.signUp({
-          email,
-          password,
-          name: name || undefined,
-        });
+        const { data, error: err } = await client.auth.signUp({ email, password, name: name || undefined });
         if (err) { setError(err.message); setLoading(false); return; }
         if (data?.requireEmailVerification) { setNeedsVerification(true); setLoading(false); return; }
-        const token = data?.accessToken ?? (client.auth as unknown as { getAccessToken(): string | null }).getAccessToken();
-        if (token) {
-          await syncTokenAndRedirect(token);
+        if (data?.accessToken) {
+          await fetch("/api/auth", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ token: data.accessToken }) });
+          window.location.href = "/dashboard";
           return;
         }
       } else {
         const { data, error: err } = await client.auth.signInWithPassword({ email, password });
         if (err) { setError(err.message); setLoading(false); return; }
-        const token = data?.accessToken ?? (client.auth as unknown as { getAccessToken(): string | null }).getAccessToken();
-        if (token) {
-          await syncTokenAndRedirect(token);
+        if (data?.accessToken) {
+          await fetch("/api/auth", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ token: data.accessToken }) });
+          window.location.href = "/dashboard";
           return;
         }
       }
@@ -110,6 +89,7 @@ export default function LoginPage() {
     setError(null);
     try {
       const client = getInsforgeClient();
+      // Redirect back to /login -- SDK will auto-detect insforge_code and exchange it
       await client.auth.signInWithOAuth({
         provider,
         redirectTo: `${window.location.origin}/login`,
@@ -143,7 +123,7 @@ export default function LoginPage() {
             </div>
             <h2 className="font-display font-[700] text-[16px] text-text-primary">Check your email</h2>
             <p className="font-body text-[13px] text-text-secondary">
-              We sent a verification link to <strong className="text-text-primary">{email}</strong>.
+              We sent a verification code to <strong className="text-text-primary">{email}</strong>.
             </p>
             <button onClick={() => { setNeedsVerification(false); setMode("signin"); }} className="font-body text-[13px] text-coral hover:text-coral-dark transition-colors">
               Back to sign in
@@ -157,15 +137,12 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-bg-secondary flex items-center justify-center px-4">
       <div className="w-full max-w-[380px]">
-        {/* Logo */}
         <div className="text-center mb-8">
           <h1 className="font-display font-[800] text-[20px] text-text-primary tracking-[0.16em]">DISPATCH</h1>
           <p className="font-body text-[13px] mt-1.5 text-text-tertiary">Content command center</p>
         </div>
 
-        {/* Card */}
         <div className="bg-white rounded-lg p-6 space-y-5 border border-border shadow-sm">
-          {/* OAuth buttons */}
           <div className="space-y-2.5">
             <button onClick={() => handleOAuth("google")} disabled={loading}
               className="w-full flex items-center justify-center gap-2.5 rounded-md py-2.5 font-body text-[13px] font-medium text-text-primary bg-bg-secondary border border-border hover:border-border-hover hover:bg-bg-tertiary transition-all duration-100 disabled:opacity-40">
@@ -179,27 +156,23 @@ export default function LoginPage() {
             </button>
           </div>
 
-          {/* Divider */}
           <div className="flex items-center gap-3">
             <div className="flex-1 h-px bg-border" />
             <span className="font-body text-[11px] text-text-tertiary uppercase tracking-wider">or</span>
             <div className="flex-1 h-px bg-border" />
           </div>
 
-          {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-3.5">
             {mode === "signup" && (
               <div>
                 <label htmlFor="name" className="block font-body text-[11px] font-medium uppercase tracking-[0.06em] mb-1.5 text-text-tertiary">Name</label>
-                <input id="name" type="text" autoComplete="name" value={name} onChange={e => setName(e.target.value)}
-                  placeholder="Your name"
+                <input id="name" type="text" autoComplete="name" value={name} onChange={e => setName(e.target.value)} placeholder="Your name"
                   className="w-full bg-bg-secondary rounded-md px-3 py-2.5 font-body text-text-primary text-[13px] placeholder:text-text-tertiary border border-border focus:border-coral focus:ring-2 focus:ring-coral/10 focus:outline-none transition-all duration-100" />
               </div>
             )}
             <div>
               <label htmlFor="email" className="block font-body text-[11px] font-medium uppercase tracking-[0.06em] mb-1.5 text-text-tertiary">Email</label>
-              <input id="email" type="email" required autoComplete="email" value={email} onChange={e => setEmail(e.target.value)}
-                placeholder="you@example.com"
+              <input id="email" type="email" required autoComplete="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com"
                 className="w-full bg-bg-secondary rounded-md px-3 py-2.5 font-body text-text-primary text-[13px] placeholder:text-text-tertiary border border-border focus:border-coral focus:ring-2 focus:ring-coral/10 focus:outline-none transition-all duration-100" />
             </div>
             <div>
@@ -215,7 +188,6 @@ export default function LoginPage() {
             {error && <p className="font-body text-[13px] text-center text-red-500">{error}</p>}
           </form>
 
-          {/* Toggle */}
           <div className="text-center pt-1">
             <button type="button" onClick={() => { setMode(mode === "signin" ? "signup" : "signin"); setError(null); }}
               className="font-body text-[13px] text-text-secondary hover:text-text-primary transition-colors">
@@ -224,7 +196,6 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Footer */}
         <p className="text-center font-body text-[11px] text-text-tertiary mt-6">
           By continuing, you agree to our terms of service.
         </p>

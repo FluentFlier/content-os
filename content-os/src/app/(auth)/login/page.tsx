@@ -23,7 +23,16 @@ export default function LoginPage() {
     await new Promise(r => setTimeout(r, 800));
     try {
       const { data } = await client.auth.getCurrentUser();
-      if (data?.user) { window.location.replace("/dashboard"); return; }
+      if (data?.user) {
+        // Sync token to cookie so server-side pages can authenticate
+        const auth = client.auth as unknown as { getAccessToken?(): string | null };
+        const token = auth.getAccessToken?.();
+        if (token) {
+          await fetch("/api/auth", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ token }) });
+        }
+        window.location.replace("/dashboard");
+        return;
+      }
     } catch {}
     const params = new URLSearchParams(window.location.search);
     if (params.has("error") || params.has("insforge_code")) {

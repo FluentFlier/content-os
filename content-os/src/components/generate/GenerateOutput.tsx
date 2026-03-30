@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { CopyButton } from '@/components/ui/CopyButton';
 import { SkeletonLines } from '@/components/ui/Skeleton';
 import { Modal } from '@/components/ui/Modal';
@@ -67,12 +67,20 @@ function SaveToLibraryModal({
   onClose: () => void;
   script: string;
 }) {
-  const { pillars: pillarList } = usePillars();
+  const { pillars: pillarList, loading: pillarsLoading } = usePillars();
   const [title, setTitle] = useState('');
   const [platform, setPlatform] = useState<Platform>('instagram');
-  const [pillar, setPillar] = useState<string>(pillarList[0]?.value ?? '');
+  const [pillar, setPillar] = useState<string>('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+
+  // Sync pillar state when custom pillars finish loading
+  useEffect(() => {
+    if (pillarsLoading || pillarList.length === 0) return;
+    if (!pillar) {
+      setPillar(pillarList[0].value);
+    }
+  }, [pillarsLoading, pillarList, pillar]);
 
   const save = async () => {
     if (!title.trim()) {

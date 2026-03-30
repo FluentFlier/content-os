@@ -79,20 +79,20 @@ interface UsePillarsReturn {
 
 // In-memory cache scoped by user ID so different users see their own pillars.
 const _cacheMap = new Map<string, { pillars: PillarInfo[]; isCustom: boolean }>();
-let _lastUserId: string | null = null;
 
 /**
  * Hook that reads the current user's content pillars from creator_profile
  * and falls back to the default PILLARS constant when no custom pillars exist.
+ *
+ * IMPORTANT: We intentionally do NOT read from the cache during initialization.
+ * The cache is only used inside the useEffect after the current user ID is
+ * resolved, preventing stale data from a previous user in same-tab account
+ * switch scenarios.
  */
 export function usePillars(): UsePillarsReturn {
-  // Try to read from the last known user's cache for initial state
-  const cachedEntry = _lastUserId ? _cacheMap.get(_lastUserId) : null;
-  const [pillars, setPillars] = useState<PillarInfo[]>(
-    cachedEntry?.pillars ?? fromDefaults(),
-  );
-  const [isCustom, setIsCustom] = useState(cachedEntry?.isCustom ?? false);
-  const [loading, setLoading] = useState(!cachedEntry);
+  const [pillars, setPillars] = useState<PillarInfo[]>(fromDefaults());
+  const [isCustom, setIsCustom] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
@@ -100,12 +100,15 @@ export function usePillars(): UsePillarsReturn {
       try {
         const insforge = getInsforgeClient();
         const { data: userData } = await insforge.auth.getCurrentUser();
-        if (!userData?.user || cancelled) return;
+        if (!userData?.user || cancelled) {
+          // No authenticated user: return defaults without caching
+          if (!cancelled) setLoading(false);
+          return;
+        }
 
         const userId = userData.user.id;
-        _lastUserId = userId;
 
-        // Check user-scoped cache
+        // Check user-scoped cache (only AFTER user ID is resolved)
         const cached = _cacheMap.get(userId);
         if (cached) {
           setPillars(cached.pillars);
@@ -199,5 +202,4 @@ export function usePillars(): UsePillarsReturn {
  */
 export function invalidatePillarCache(): void {
   _cacheMap.clear();
-  _lastUserId = null;
 }

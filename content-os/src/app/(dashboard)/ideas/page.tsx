@@ -15,7 +15,7 @@ const PRIORITY_ORDER: Record<Priority, number> = { high: 0, medium: 1, low: 2 };
 
 export default function IdeasPage() {
   const router = useRouter();
-  const { pillars: pillarList, getLabel } = usePillars();
+  const { pillars: pillarList, loading: pillarsLoading, getLabel } = usePillars();
 
   const [ideas, setIdeas] = useState<ContentIdea[]>([]);
   const [loading, setLoading] = useState(true);
@@ -23,7 +23,15 @@ export default function IdeasPage() {
 
   // Quick-add form state
   const [newIdea, setNewIdea] = useState("");
-  const [newPillar, setNewPillar] = useState<string>(pillarList[0]?.value ?? "");
+  const [newPillar, setNewPillar] = useState<string>("");
+
+  // Sync newPillar when custom pillars finish loading
+  useEffect(() => {
+    if (pillarsLoading || pillarList.length === 0) return;
+    if (!newPillar) {
+      setNewPillar(pillarList[0].value);
+    }
+  }, [pillarsLoading, pillarList, newPillar]);
   const [newPriority, setNewPriority] = useState<Priority>("medium");
   const [adding, setAdding] = useState(false);
 

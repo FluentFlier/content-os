@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { GenerateOutput } from './GenerateOutput';
 import { usePillars } from '@/hooks/usePillars';
@@ -82,14 +82,24 @@ export function ScriptGenerator({
   initialTopic = '',
   initialPillar = '',
 }: ScriptGeneratorProps) {
-  const { pillars: pillarList, getLabel, getColor } = usePillars();
+  const { pillars: pillarList, loading: pillarsLoading, getLabel, getColor } = usePillars();
 
-  const [pillar, setPillar] = useState<string>(
-    initialPillar && pillarList.some((p) => p.value === initialPillar)
-      ? initialPillar
-      : pillarList[0]?.value ?? '',
-  );
+  const [pillar, setPillar] = useState<string>(initialPillar);
   const [topic, setTopic] = useState(initialTopic);
+
+  // Sync pillar state when custom pillars finish loading asynchronously
+  useEffect(() => {
+    if (pillarsLoading || pillarList.length === 0) return;
+    // If pillar is still empty (no initial value), default to first loaded pillar
+    if (!pillar) {
+      setPillar(pillarList[0].value);
+      return;
+    }
+    // If pillar was set from initial props but doesn't exist in loaded list, reset
+    if (!pillarList.some((p) => p.value === pillar)) {
+      setPillar(pillarList[0].value);
+    }
+  }, [pillarsLoading, pillarList, pillar]);
   const [output, setOutput] = useState(initialResult);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');

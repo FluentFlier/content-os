@@ -6,6 +6,7 @@ import { getInsforge } from "@/lib/insforge/client";
 import type { ContentIdea } from "@/lib/types";
 import type { Priority } from "@/lib/constants";
 import { usePillars } from "@/hooks/usePillars";
+import { Lightbulb } from "lucide-react";
 import IdeaForm from "@/components/ideas/IdeaForm";
 import IdeaRow from "@/components/ideas/IdeaRow";
 
@@ -303,10 +304,18 @@ export default function IdeasPage() {
           ))}
         </div>
       ) : filtered.length === 0 ? (
-        <div className="text-[#71717A] text-[13px] py-12 text-center">
-          {ideas.length === 0
-            ? "Nothing queued. Add an idea before you forget it."
-            : "No ideas match your filters."}
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          {ideas.length === 0 && (
+            <Lightbulb className="w-12 h-12 text-[#71717A] mb-4" />
+          )}
+          <h2 className="font-heading text-[16px] font-[700] text-[#FAFAFA] mb-1">
+            {ideas.length === 0 ? "Nothing queued" : "No ideas match your filters"}
+          </h2>
+          <p className="text-[#71717A] text-[13px]">
+            {ideas.length === 0
+              ? "Add an idea before you forget it."
+              : "Try adjusting your filters."}
+          </p>
         </div>
       ) : (
         <div className="space-y-1">

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
+  CalendarDays,
   ChevronLeft,
   ChevronRight,
   X,
@@ -110,6 +111,11 @@ export default function CalendarPage() {
 
   const backlog = useMemo(
     () => posts.filter((p) => !p.scheduled_date && p.status !== "posted"),
+    [posts]
+  );
+
+  const hasScheduledPosts = useMemo(
+    () => posts.some((p) => p.scheduled_date),
     [posts]
   );
 
@@ -364,6 +370,19 @@ Respond ONLY with a JSON array of objects: [{"postId":"...","date":"YYYY-MM-DD"}
               </div>
             </div>
           </div>
+
+          {/* Empty state guidance */}
+          {!hasScheduledPosts && !backlogPickPost && (
+            <div className="flex items-center gap-3 bg-[#09090B] border-[0.5px] border-[#FAFAFA]/12 rounded-[12px] px-4 py-3 text-[13px]">
+              <CalendarDays className="w-5 h-5 text-[#6366F1] shrink-0" />
+              <div>
+                <p className="text-[#FAFAFA] font-medium">No content scheduled yet</p>
+                <p className="text-[#71717A] text-[12px]">
+                  Drag posts from the backlog onto a day, or click a day to schedule content.
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* Backlog pick banner */}
           {backlogPickPost && (

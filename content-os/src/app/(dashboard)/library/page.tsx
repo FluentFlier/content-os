@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Grid3X3, List, Plus, Search, Trash2, ChevronDown } from 'lucide-react';
+import { FileText, Grid3X3, List, Plus, Search, Trash2, ChevronDown } from 'lucide-react';
 import type { Post, Series } from '@/lib/types';
 import type { Platform, Status } from '@/lib/constants';
 import { PLATFORMS, STATUSES, STATUS_LABELS } from '@/lib/constants';
@@ -279,8 +279,14 @@ export default function LibraryPage() {
       {/* Content */}
       {filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
+          {posts.length === 0 && (
+            <FileText className="w-12 h-12 text-[#71717A] mb-4" />
+          )}
+          <h2 className="font-heading text-[16px] font-[700] text-[#FAFAFA] mb-1">
+            {posts.length === 0 ? 'Nothing scripted yet' : 'No posts match your filters'}
+          </h2>
           <p className="text-[#71717A] text-[13px] mb-4">
-            {posts.length === 0 ? 'Nothing scripted yet. Generate a script or convert an idea.' : 'No posts match your filters.'}
+            {posts.length === 0 ? 'Generate a script or convert an idea to get started.' : 'Try adjusting your filters.'}
           </p>
           {posts.length === 0 && (
             <a

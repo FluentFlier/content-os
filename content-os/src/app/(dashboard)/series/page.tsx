@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Plus } from "lucide-react";
+import { Layers, Plus } from "lucide-react";
 import { getInsforge } from "@/lib/insforge/client";
 import type { Series, Post } from "@/lib/types";
 import SeriesCard from "@/components/series/SeriesCard";
@@ -227,16 +227,20 @@ export default function SeriesPage() {
           ))}
         </div>
       ) : seriesList.length === 0 ? (
-        <div className="flex flex-col items-center gap-4 py-16">
-          <p className="text-[#71717A] text-[13px]">
-            No series yet. Plan your first multi-part series.
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <Layers className="w-12 h-12 text-[#71717A] mb-4" />
+          <h2 className="font-heading text-[16px] font-[700] text-[#FAFAFA] mb-1">
+            No series yet
+          </h2>
+          <p className="text-[#71717A] text-[13px] mb-4">
+            Organize your content into multi-part series.
           </p>
           <button
             onClick={() => router.push("/generate?tab=series")}
             className="flex items-center gap-1.5 bg-[#6366F1] hover:opacity-90 text-white text-[13px] font-medium px-5 py-[10px] rounded-[7px] transition-opacity"
           >
             <Plus size={16} />
-            Plan a Series
+            Plan a New Series
           </button>
         </div>
       ) : (

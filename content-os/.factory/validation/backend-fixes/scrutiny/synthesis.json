@@ -1,0 +1,83 @@
+{
+  "milestone": "backend-fixes",
+  "round": 1,
+  "status": "fail",
+  "validatorsRun": {
+    "test": {
+      "passed": true,
+      "command": "echo \"No test suite configured\"",
+      "exitCode": 0,
+      "note": "Used test command from .factory/services.yaml."
+    },
+    "typecheck": {
+      "passed": true,
+      "command": "npm --prefix /Users/anirudhmanjesh/hackathons/content-os run build",
+      "exitCode": 0
+    },
+    "lint": {
+      "passed": true,
+      "command": "npm --prefix /Users/anirudhmanjesh/hackathons/content-os run lint",
+      "exitCode": 0
+    }
+  },
+  "reviewsSummary": {
+    "total": 6,
+    "passed": 5,
+    "failed": 1,
+    "failedFeatures": [
+      "fix-publish-route-and-security"
+    ]
+  },
+  "blockingIssues": [
+    {
+      "featureId": "fix-publish-route-and-security",
+      "severity": "blocking",
+      "description": "Feature commit e18c8c1 includes a large out-of-scope validation artifact from multi-user-landing (.factory/validation/multi-user-landing/user-testing/flows/auth-browser-flows.json), breaking feature traceability."
+    },
+    {
+      "featureId": "fix-publish-route-and-security",
+      "severity": "blocking",
+      "description": "Feature commit e18c8c1 includes broad unrelated UI/theme rewrites (for example src/components/ui/Tabs.tsx and many other UI files), contaminating commit scope for a publish/security feature."
+    }
+  ],
+  "appliedUpdates": [
+    {
+      "target": "library",
+      "description": "Added monorepo git-root and path-scoped staging guidance to .factory/library/environment.md.",
+      "sourceFeature": "fix-publish-route-and-security"
+    },
+    {
+      "target": "library",
+      "description": "Updated font stack reference in .factory/library/architecture.md to match tailwind.config.ts (Plus Jakarta Sans/Inter).",
+      "sourceFeature": "fix-font-classes-and-video-stub"
+    }
+  ],
+  "suggestedGuidanceUpdates": [
+    {
+      "target": "skills",
+      "suggestion": "Require agent-browser evidence for UI-affecting features and disallow reporting followedProcedure=true when required UI verification tooling was not used.",
+      "evidence": "Both fix-font-classes-and-video-stub and fix-dashboard-caching-and-zod reported pass while transcript skeletons showed no agent-browser tool calls despite UI verification requirements.",
+      "isSystemic": true
+    },
+    {
+      "target": "AGENTS.md",
+      "suggestion": "Align mission font guidance with the active Tailwind config (Plus Jakarta Sans/Inter), or explicitly require changing config when mission guidance specifies different fonts.",
+      "evidence": "Mission AGENTS.md states Syne/Space Grotesk while tailwind.config.ts defines Plus Jakarta Sans/Inter.",
+      "isSystemic": true
+    },
+    {
+      "target": "AGENTS.md",
+      "suggestion": "Add a mandatory staged-scope check before commit in monorepo context (for example path-scoped add plus git diff --cached scope verification).",
+      "evidence": "Feature fix-publish-route-and-security staged and committed broad unrelated changes, including artifacts from another validation area.",
+      "isSystemic": true
+    },
+    {
+      "target": "skills",
+      "suggestion": "Add fullstack-worker commit hygiene step requiring path-scoped staging and explicit staged-diff review (`git diff --cached`) before commit.",
+      "evidence": "The reviewed failing feature transcript used broad staging and required corrective git resets, then still landed unrelated files in the final commit.",
+      "isSystemic": true
+    }
+  ],
+  "rejectedObservations": [],
+  "previousRound": null
+}

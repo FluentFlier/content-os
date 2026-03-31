@@ -38,3 +38,7 @@ Environment variables, external dependencies, and setup notes.
 - `recharts` - Charting
 - `@hello-pangea/dnd` - Drag and drop for calendar
 - `lucide-react` - Icons
+
+## Repository Topology
+- Git root is `/Users/anirudhmanjesh/hackathons` (the `content-os` project is a subdirectory).
+- For scoped commits from this project, prefer path-scoped staging (for example `git add content-os/<path>`) and review staged scope with `git diff --cached -- content-os/` before commit.

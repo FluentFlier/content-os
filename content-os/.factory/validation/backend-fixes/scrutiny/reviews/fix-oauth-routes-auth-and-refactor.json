@@ -1,0 +1,15 @@
+{
+  "featureId": "fix-oauth-routes-auth-and-refactor",
+  "reviewedAt": "2026-03-31T00:43:24Z",
+  "commitId": "7af90bf",
+  "transcriptSkeletonReviewed": true,
+  "diffReviewed": true,
+  "status": "pass",
+  "codeReview": {
+    "summary": "Reviewed handoff, transcript skeleton, and commit 7af90bf. The implementation covers the feature requirements: auth checks were added to all 4 connect routes with 401 responses, callbacks validate state, self-fetch to /api/social-accounts was removed, tokens are encrypted before direct DB upsert, OAuth cookies are cleared on success, and callbacks redirect to /settings with connected/error query params.",
+    "issues": []
+  },
+  "sharedStateObservations": [],
+  "addressesFailureFrom": null,
+  "summary": "Feature implementation is consistent with description and expected behavior; no blocking or non-blocking defects were identified from the reviewed diff and transcript evidence."
+}

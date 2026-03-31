@@ -73,6 +73,6 @@ src/
 - All API routes: `getAuthenticatedUser()` first, 401 if null, scope by user_id
 - InsForge SDK returns `{data, error}` for all operations
 - Database inserts use array format: `[{...}]`
-- Styling: dark theme (#09090B, #18181B), Syne for headings, Space Grotesk for body
+- Styling: dark theme (#09090B, #18181B), Plus Jakarta Sans for display/headings, Inter for body
 - No em dashes anywhere in code, UI, or AI prompts
 - Components use lucide-react for icons

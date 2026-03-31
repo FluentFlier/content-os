@@ -1,0 +1,15 @@
+{
+  "featureId": "fix-middleware-auth",
+  "reviewedAt": "2026-03-31T00:43:14Z",
+  "commitId": "1221428",
+  "transcriptSkeletonReviewed": true,
+  "diffReviewed": true,
+  "status": "pass",
+  "codeReview": {
+    "summary": "Implementation in src/middleware.ts matches the feature contract: all listed protected routes (and subpaths) require a dispatch-token cookie and redirect to /login with 307 when absent; /login redirects authenticated users to /dashboard with 307; existing x-pathname request-header forwarding logic remains in place for pass-through requests.",
+    "issues": []
+  },
+  "sharedStateObservations": [],
+  "addressesFailureFrom": null,
+  "summary": "Reviewed handoff, commit diff, transcript skeleton, mission AGENTS.md, services.yaml, and library docs. No blocking or non-blocking defects were found for this feature; implementation satisfies the described behavior."
+}

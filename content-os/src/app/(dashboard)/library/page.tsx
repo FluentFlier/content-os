@@ -17,6 +17,10 @@ export default function LibraryPage() {
   const [series, setSeries] = useState<Series[]>([]);
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const PAGE_SIZE = 50;
 
   // View
   const [view, setView] = useState<'card' | 'table'>('card');
@@ -43,10 +47,12 @@ export default function LibraryPage() {
       const uid = userData.user.id;
       setUserId(uid);
 
-      const res = await fetch('/api/posts');
+      const res = await fetch(`/api/posts?page=1&limit=${PAGE_SIZE}`);
       if (res.ok) {
         const data = await res.json();
         setPosts((data.posts as Post[]) ?? []);
+        setHasMore((data.posts?.length ?? 0) >= PAGE_SIZE);
+        setPage(1);
       }
 
       const { data: seriesData } = await client.database
@@ -144,6 +150,27 @@ export default function LibraryPage() {
       await fetchData();
       setEditorPost(data.post as Post);
       setEditorOpen(true);
+    }
+  };
+
+  // Load more pagination
+  const loadMore = async () => {
+    if (loadingMore || !hasMore) return;
+    setLoadingMore(true);
+    try {
+      const nextPage = page + 1;
+      const res = await fetch(`/api/posts?page=${nextPage}&limit=${PAGE_SIZE}`);
+      if (res.ok) {
+        const data = await res.json();
+        const newPosts = (data.posts as Post[]) ?? [];
+        setPosts((prev) => [...prev, ...newPosts]);
+        setHasMore(newPosts.length >= PAGE_SIZE);
+        setPage(nextPage);
+      }
+    } catch (err) {
+      console.error('Failed to load more posts', err);
+    } finally {
+      setLoadingMore(false);
     }
   };
 
@@ -313,6 +340,18 @@ export default function LibraryPage() {
           onSelectAll={toggleSelectAll}
           onClickPost={openEditor}
         />
+      )}
+
+      {hasMore && filtered.length > 0 && (
+        <div className="flex justify-center pt-4">
+          <button
+            onClick={loadMore}
+            disabled={loadingMore}
+            className="text-[13px] text-[#71717A] hover:text-[#FAFAFA] bg-[#18181B] border-[0.5px] border-[#FAFAFA]/12 rounded-[7px] px-6 py-2 min-h-[44px] transition-colors disabled:opacity-50"
+          >
+            {loadingMore ? 'Loading...' : 'Load More'}
+          </button>
+        </div>
       )}
 
       {/* Post Editor Drawer */}

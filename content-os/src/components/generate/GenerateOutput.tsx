@@ -73,7 +73,10 @@ function SaveToLibraryModal({
   script: string;
 }) {
   const { pillars: pillarList, loading: pillarsLoading } = usePillars();
-  const [title, setTitle] = useState('');
+  const [title, setTitle] = useState(() => {
+    const firstLine = script.split('\n').find((l) => l.trim())?.trim() ?? '';
+    return firstLine.replace(/^[#*\->\s]+/, '').slice(0, 120);
+  });
   const [platform, setPlatform] = useState<Platform>('instagram');
   const [pillar, setPillar] = useState<string>('');
   const [saving, setSaving] = useState(false);

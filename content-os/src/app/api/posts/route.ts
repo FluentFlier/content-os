@@ -52,10 +52,17 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   const seriesId = params.get('series_id');
   if (seriesId) query = query.eq('series_id', seriesId);
 
-  const { data, error } = await query;
+  // Pagination
+  const page = parseInt(params.get('page') ?? '1', 10);
+  const limit = Math.min(parseInt(params.get('limit') ?? '50', 10), 100);
+  const from = (page - 1) * limit;
+  const to = from + limit - 1;
+  query = query.range(from, to);
+
+  const { data, error, count } = await query;
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  return NextResponse.json({ posts: data });
+  return NextResponse.json({ posts: data, page, limit, total: count ?? data?.length ?? 0 });
 }
 
 export async function POST(request: NextRequest): Promise<NextResponse> {

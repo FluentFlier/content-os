@@ -32,6 +32,37 @@ export async function publishPost(
   }
 }
 
+/**
+ * Publish a tweet using OAuth 1.0a (4-key auth) for BYOK credentials.
+ * Uses appKey, appSecret, accessToken, and accessSecret for user-context auth.
+ */
+export async function publishPostWithOAuth1(
+  appKey: string,
+  appSecret: string,
+  accessToken: string,
+  accessSecret: string,
+  content: string
+): Promise<PublishResult> {
+  try {
+    const client = new TwitterApi({
+      appKey,
+      appSecret,
+      accessToken,
+      accessSecret,
+    });
+    const tweet = await client.v2.tweet(content);
+
+    return {
+      success: true,
+      platformPostId: tweet.data.id,
+      url: `https://x.com/i/status/${tweet.data.id}`,
+    };
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Unknown error';
+    return { success: false, error: message };
+  }
+}
+
 export async function getProfile(accessToken: string): Promise<ProfileResult | null> {
   try {
     const client = new TwitterApi(accessToken);

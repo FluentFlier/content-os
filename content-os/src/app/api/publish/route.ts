@@ -18,12 +18,14 @@ interface SocialAccountRow {
   access_token: string;
   refresh_token: string | null;
   token_expires_at: string | null;
+  connection_method: string | null;
   connected_at: string;
 }
 
 /**
  * Checks if the stored token is expired and attempts a refresh if possible.
  * Returns the (possibly refreshed) access token, or null if refresh failed.
+ * Only used for OAuth accounts (not BYOK).
  */
 async function ensureFreshToken(
   account: SocialAccountRow,
@@ -95,6 +97,70 @@ async function ensureFreshToken(
   return decryptedAccess;
 }
 
+/**
+ * Decrypts BYOK credentials stored as a JSON object of encrypted values.
+ * The access_token column for BYOK rows contains JSON.stringify({key: encryptedValue, ...}).
+ */
+function decryptByokCredentials(encryptedJson: string): Record<string, string> {
+  const encrypted: Record<string, string> = JSON.parse(encryptedJson);
+  const decrypted: Record<string, string> = {};
+  for (const [key, value] of Object.entries(encrypted)) {
+    decrypted[key] = decryptToken(value);
+  }
+  return decrypted;
+}
+
+/**
+ * Publish using BYOK credentials.
+ * Twitter: OAuth 1.0a with 4 keys.
+ * LinkedIn/Instagram/Threads: bearer token.
+ */
+async function publishWithByok(
+  platform: SocialPlatform,
+  credentials: Record<string, string>,
+  publishContent: string,
+  imageUrl?: string
+): Promise<{ success: boolean; platformPostId?: string; url?: string; error?: string }> {
+  switch (platform) {
+    case 'twitter': {
+      const { api_key, api_secret, access_token, access_token_secret } = credentials;
+      if (!api_key || !api_secret || !access_token || !access_token_secret) {
+        return { success: false, error: 'Incomplete Twitter BYOK credentials. All 4 keys are required.' };
+      }
+      return twitterClient.publishPostWithOAuth1(
+        api_key,
+        api_secret,
+        access_token,
+        access_token_secret,
+        publishContent
+      );
+    }
+    case 'linkedin': {
+      const token = credentials.access_token;
+      if (!token) {
+        return { success: false, error: 'Missing LinkedIn BYOK access token.' };
+      }
+      return linkedinClient.publishPost(token, publishContent);
+    }
+    case 'instagram': {
+      const token = credentials.access_token;
+      if (!token) {
+        return { success: false, error: 'Missing Instagram BYOK access token.' };
+      }
+      return instagramClient.publishPost(token, publishContent, undefined, imageUrl);
+    }
+    case 'threads': {
+      const token = credentials.access_token;
+      if (!token) {
+        return { success: false, error: 'Missing Threads BYOK access token.' };
+      }
+      return threadsClient.publishPost(token, publishContent);
+    }
+    default:
+      return { success: false, error: 'Unsupported platform' };
+  }
+}
+
 export async function POST(request: NextRequest): Promise<NextResponse> {
   const user = await getAuthenticatedUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -121,74 +187,108 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
   const { postId, platform, content, caption, imageUrl } = parsed.data;
 
-  const client = getServerClient();
-
-  // Get the social account for this platform
-  const { data: accountRow, error: accountError } = await client.database
-    .from('social_accounts')
-    .select('*')
-    .eq('user_id', user.id)
-    .eq('platform', platform)
-    .single();
-
-  if (accountError || !accountRow) {
+  // Instagram requires an image URL for publishing
+  if (platform === 'instagram' && !imageUrl) {
     return NextResponse.json(
-      { error: `No ${platform} account connected. Connect it in Settings.` },
+      { error: 'Instagram requires an image' },
       { status: 400 }
     );
   }
 
-  const account: SocialAccountRow = {
-    id: accountRow.id,
-    user_id: accountRow.user_id,
-    platform: accountRow.platform,
-    account_name: accountRow.account_name ?? null,
-    account_id: accountRow.account_id ?? null,
-    access_token: accountRow.access_token,
-    refresh_token: accountRow.refresh_token ?? null,
-    token_expires_at: accountRow.token_expires_at ?? null,
-    connected_at: accountRow.connected_at,
-  };
-
-  // Ensure token is fresh (refresh if expired)
-  const freshToken = await ensureFreshToken(
-    account,
-    platform,
-    client
-  );
-
-  // Publish to the platform
+  const client = getServerClient();
   const publishContent = caption || content;
+
+  // Step 1: Check for OAuth account (connection_method is null or not 'byok')
+  const { data: oauthRows } = await client.database
+    .from('social_accounts')
+    .select('*')
+    .eq('user_id', user.id)
+    .eq('platform', platform)
+    .neq('connection_method', 'byok');
+
+  const oauthRow = oauthRows && oauthRows.length > 0 ? oauthRows[0] : null;
+
+  // Step 2: If no OAuth account, check for BYOK account
+  let byokRow: Record<string, unknown> | null = null;
+  if (!oauthRow) {
+    const { data: byokRows } = await client.database
+      .from('social_accounts')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('platform', platform)
+      .eq('connection_method', 'byok');
+
+    byokRow = byokRows && byokRows.length > 0 ? byokRows[0] : null;
+  }
+
+  // No account of any type found
+  if (!oauthRow && !byokRow) {
+    return NextResponse.json(
+      { error: `No ${platform} account connected. Connect it in Settings or add API keys.` },
+      { status: 400 }
+    );
+  }
+
   let result: { success: boolean; platformPostId?: string; url?: string; error?: string };
 
-  switch (platform) {
-    case 'twitter':
-      result = await twitterClient.publishPost(freshToken, publishContent);
-      break;
-    case 'linkedin':
-      result = await linkedinClient.publishPost(
-        freshToken,
-        publishContent,
-        account.account_id ?? undefined
+  if (oauthRow) {
+    // Publish with OAuth credentials
+    const account: SocialAccountRow = {
+      id: oauthRow.id as string,
+      user_id: oauthRow.user_id as string,
+      platform: oauthRow.platform as string,
+      account_name: (oauthRow.account_name as string) ?? null,
+      account_id: (oauthRow.account_id as string) ?? null,
+      access_token: oauthRow.access_token as string,
+      refresh_token: (oauthRow.refresh_token as string) ?? null,
+      token_expires_at: (oauthRow.token_expires_at as string) ?? null,
+      connection_method: (oauthRow.connection_method as string) ?? null,
+      connected_at: oauthRow.connected_at as string,
+    };
+
+    const freshToken = await ensureFreshToken(account, platform, client);
+
+    switch (platform) {
+      case 'twitter':
+        result = await twitterClient.publishPost(freshToken, publishContent);
+        break;
+      case 'linkedin':
+        result = await linkedinClient.publishPost(
+          freshToken,
+          publishContent,
+          account.account_id ?? undefined
+        );
+        break;
+      case 'instagram':
+        result = await instagramClient.publishPost(
+          freshToken,
+          publishContent,
+          account.account_id ?? undefined,
+          imageUrl
+        );
+        break;
+      case 'threads':
+        result = await threadsClient.publishPost(
+          freshToken,
+          publishContent,
+          account.account_id ?? undefined
+        );
+        break;
+      default:
+        return NextResponse.json({ error: 'Unsupported platform' }, { status: 400 });
+    }
+  } else {
+    // Publish with BYOK credentials
+    try {
+      const credentials = decryptByokCredentials(byokRow!.access_token as string);
+      result = await publishWithByok(platform, credentials, publishContent, imageUrl);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to decrypt BYOK credentials';
+      return NextResponse.json(
+        { error: `BYOK credential error: ${message}` },
+        { status: 500 }
       );
-      break;
-    case 'instagram':
-      result = await instagramClient.publishPost(
-        freshToken,
-        publishContent,
-        account.account_id ?? undefined,
-        imageUrl
-      );
-      break;
-    case 'threads':
-      result = await threadsClient.publishPost(
-        freshToken,
-        publishContent,
-        account.account_id ?? undefined
-      );
-      break;
-    default:
-      return NextResponse.json({ error: 'Unsupported platform' }, { status: 400 });
+    }
   }
 
   if (!result.success) {

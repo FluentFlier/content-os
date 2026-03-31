@@ -184,6 +184,7 @@ create table if not exists social_accounts (
   access_token text not null,
   refresh_token text,
   token_expires_at timestamptz,
+  connection_method text not null default 'oauth',
   connected_at timestamptz default now() not null,
   unique(user_id, platform)
 );

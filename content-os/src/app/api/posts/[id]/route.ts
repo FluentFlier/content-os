@@ -61,6 +61,15 @@ export async function PATCH(
   if (!parsed.success) return NextResponse.json({ error: parsed.error.message }, { status: 400 });
 
   const client = getServerClient();
+
+  // Fetch existing post to compare content for auto-optimize
+  const { data: existingPost } = await client
+    .database.from('posts')
+    .select('script, caption')
+    .eq('id', params.id)
+    .eq('user_id', user.id)
+    .single();
+
   const { data, error } = await client
     .database.from('posts')
     .update(parsed.data)
@@ -71,9 +80,14 @@ export async function PATCH(
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  // Trigger auto-optimize in background if script or caption changed
-  const hasContentChange =
-    parsed.data.script !== undefined || parsed.data.caption !== undefined;
+  // Trigger auto-optimize only if script or caption actually changed
+  const scriptChanged =
+    parsed.data.script !== undefined &&
+    parsed.data.script !== (existingPost?.script ?? null);
+  const captionChanged =
+    parsed.data.caption !== undefined &&
+    parsed.data.caption !== (existingPost?.caption ?? null);
+  const hasContentChange = scriptChanged || captionChanged;
 
   if (hasContentChange && data) {
     const content = parsed.data.script || parsed.data.caption;

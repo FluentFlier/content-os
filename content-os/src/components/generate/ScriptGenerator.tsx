@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { GenerateOutput } from './GenerateOutput';
 import { usePillars } from '@/hooks/usePillars';
+import { PLATFORMS } from '@/lib/constants';
+import type { Platform } from '@/lib/constants';
 
 const PILLAR_PROMPTS: Record<string, string> = {
   'hot-take': `Generate a hot take Reel script.
@@ -75,17 +77,20 @@ interface ScriptGeneratorProps {
   initialResult?: string;
   initialTopic?: string;
   initialPillar?: string;
+  initialPlatform?: Platform;
 }
 
 export function ScriptGenerator({
   initialResult = '',
   initialTopic = '',
   initialPillar = '',
+  initialPlatform,
 }: ScriptGeneratorProps) {
   const { pillars: pillarList, loading: pillarsLoading, getLabel, getColor } = usePillars();
 
   const [pillar, setPillar] = useState<string>(initialPillar);
   const [topic, setTopic] = useState(initialTopic);
+  const [platform, setPlatform] = useState<Platform>(initialPlatform ?? 'instagram');
 
   // Sync pillar state when custom pillars finish loading asynchronously
   useEffect(() => {
@@ -170,13 +175,37 @@ CTA: One direct question.`;
         />
       </div>
 
+      <div>
+        <label className="block font-body text-[13px] text-[#A1A1AA] mb-2">
+          Target Platform
+        </label>
+        <div className="flex flex-wrap gap-2">
+          {PLATFORMS.map((p) => (
+            <button
+              key={p}
+              onClick={() => setPlatform(p)}
+              className="px-4 py-1.5 rounded-[20px] font-body text-[13px] font-medium transition-all duration-100"
+              style={{
+                backgroundColor: '#18181B',
+                color: platform === p ? '#FAFAFA' : '#A1A1AA',
+                border: platform === p
+                  ? '1.5px solid rgba(255,255,255,0.40)'
+                  : '0.5px solid rgba(255,255,255,0.12)',
+              }}
+            >
+              {p.charAt(0).toUpperCase() + p.slice(1)}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <Button onClick={generate} loading={loading}>
         Generate Script
       </Button>
 
       {error && <p className="font-body text-[13px] text-[#6366F1]">{error}</p>}
 
-      <GenerateOutput text={output} loading={loading} />
+      <GenerateOutput text={output} loading={loading} sourcePlatform={platform} />
     </div>
   );
 }

@@ -70,6 +70,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           access_token: encryptToken(accessToken),
           refresh_token: refreshToken ? encryptToken(refreshToken) : null,
           token_expires_at: expiresAt,
+          connection_method: 'oauth',
           connected_at: new Date().toISOString(),
         },
         { onConflict: 'user_id,platform' }

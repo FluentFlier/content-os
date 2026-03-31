@@ -117,16 +117,28 @@ function processTwitterContent(content: string): Variant {
 
   // Check if the AI returned multiple tweets using the delimiter
   if (trimmed.includes('---TWEET---')) {
-    const parts = trimmed
+    let parts = trimmed
       .split('---TWEET---')
       .map((p) => p.trim())
       .filter((p) => p.length > 0);
 
+    // Validate each part <= 280 chars; split oversized parts
+    const validatedParts: string[] = [];
+    for (const part of parts) {
+      if (part.length <= 280) {
+        validatedParts.push(part);
+      } else {
+        validatedParts.push(...splitIntoTweets(part));
+      }
+    }
+    parts = validatedParts;
+
     if (parts.length > 1) {
+      const joined = parts.join('\n---TWEET---\n');
       return {
         platform: 'twitter',
-        content: trimmed,
-        characterCount: trimmed.length,
+        content: joined,
+        characterCount: joined.length,
         isThread: true,
         threadParts: parts,
       };
@@ -197,15 +209,32 @@ function splitIntoTweets(text: string): string[] {
   return tweets;
 }
 
+/**
+ * Truncates content to the platform character limit.
+ * Tries to truncate at word boundary, falls back to hard cut with ellipsis.
+ */
+function truncateToLimit(text: string, limit: number): string {
+  if (text.length <= limit) return text;
+  // Try to truncate at last space before limit (leave room for ellipsis)
+  const cutoff = limit - 1;
+  const lastSpace = text.lastIndexOf(' ', cutoff);
+  if (lastSpace > limit * 0.5) {
+    return text.slice(0, lastSpace).trimEnd() + '\u2026';
+  }
+  return text.slice(0, cutoff) + '\u2026';
+}
+
 function processStandardContent(
   platform: PlatformType,
   content: string
 ): Variant {
   const trimmed = content.trim();
+  const limit = PLATFORM_LIMITS[platform];
+  const truncated = truncateToLimit(trimmed, limit);
   return {
     platform,
-    content: trimmed,
-    characterCount: trimmed.length,
+    content: truncated,
+    characterCount: truncated.length,
     isThread: false,
     threadParts: null,
   };

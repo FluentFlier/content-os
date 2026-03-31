@@ -103,7 +103,7 @@ export default function BulkPublishPanel({
     }));
   }
 
-  async function publishToPlatform(platform: string): Promise<void> {
+  async function publishToPlatform(platform: string): Promise<boolean> {
     setPlatformStates((prev) => ({
       ...prev,
       [platform]: { ...prev[platform], status: 'publishing', error: undefined },
@@ -133,6 +133,7 @@ export default function BulkPublishPanel({
             url: data.url,
           },
         }));
+        return true;
       } else {
         setPlatformStates((prev) => ({
           ...prev,
@@ -142,6 +143,7 @@ export default function BulkPublishPanel({
             error: data.error ?? 'Publishing failed',
           },
         }));
+        return false;
       }
     } catch {
       setPlatformStates((prev) => ({
@@ -152,6 +154,7 @@ export default function BulkPublishPanel({
           error: 'Network error. Try again.',
         },
       }));
+      return false;
     }
   }
 
@@ -167,15 +170,14 @@ export default function BulkPublishPanel({
 
     setBulkPublishing(true);
 
-    // Publish to all selected platforms concurrently
-    await Promise.allSettled(selected.map((p) => publishToPlatform(p)));
+    // Publish to all selected platforms concurrently and collect results
+    const results = await Promise.allSettled(selected.map((p) => publishToPlatform(p)));
 
     setBulkPublishing(false);
 
-    // Check results
-    const results = Object.entries(platformStates);
+    // Check results from resolved promises directly (not stale closure state)
     const anySuccess = results.some(
-      ([, state]) => state.status === 'published'
+      (r) => r.status === 'fulfilled' && r.value === true
     );
     if (anySuccess) {
       onPublishSuccess?.();
@@ -183,10 +185,9 @@ export default function BulkPublishPanel({
   }
 
   async function handleRetry(platform: string) {
-    await publishToPlatform(platform);
-    // Check if this retry succeeded
-    const state = platformStates[platform];
-    if (state?.status === 'published') {
+    // Use direct publish result instead of stale closure state
+    const success = await publishToPlatform(platform);
+    if (success) {
       onPublishSuccess?.();
     }
   }

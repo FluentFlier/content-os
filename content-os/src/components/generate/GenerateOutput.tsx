@@ -14,10 +14,11 @@ import { OptimizePanel } from './OptimizePanel';
 interface GenerateOutputProps {
   text: string;
   loading: boolean;
+  sourcePlatform?: Platform;
   children?: React.ReactNode;
 }
 
-export function GenerateOutput({ text, loading, children }: GenerateOutputProps) {
+export function GenerateOutput({ text, loading, sourcePlatform, children }: GenerateOutputProps) {
   const [showSave, setShowSave] = useState(false);
 
   if (loading) {
@@ -50,7 +51,7 @@ export function GenerateOutput({ text, loading, children }: GenerateOutputProps)
       </div>
 
       {/* Platform optimization section */}
-      <OptimizePanel content={text} />
+      <OptimizePanel content={text} sourcePlatform={sourcePlatform} />
 
       <SaveToLibraryModal
         open={showSave}

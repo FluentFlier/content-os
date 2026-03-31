@@ -198,13 +198,13 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   const client = getServerClient();
   const publishContent = caption || content;
 
-  // Step 1: Check for OAuth account (connection_method is null or not 'byok')
+  // Step 1: Check for OAuth account (connection_method is null or 'oauth')
   const { data: oauthRows } = await client.database
     .from('social_accounts')
     .select('*')
     .eq('user_id', user.id)
     .eq('platform', platform)
-    .neq('connection_method', 'byok');
+    .or('connection_method.is.null,connection_method.eq.oauth');
 
   const oauthRow = oauthRows && oauthRows.length > 0 ? oauthRows[0] : null;
 

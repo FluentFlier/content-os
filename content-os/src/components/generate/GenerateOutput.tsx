@@ -9,6 +9,7 @@ import { getInsforgeClient } from '@/lib/insforge/client';
 import { PLATFORMS } from '@/lib/constants';
 import type { Platform } from '@/lib/constants';
 import { usePillars } from '@/hooks/usePillars';
+import { OptimizePanel } from './OptimizePanel';
 
 interface GenerateOutputProps {
   text: string;
@@ -30,7 +31,7 @@ export function GenerateOutput({ text, loading, children }: GenerateOutputProps)
   if (!text) return null;
 
   return (
-    <>
+    <div className="space-y-4">
       <div className="bg-[#18181B] border-[0.5px] border-[rgba(255,255,255,0.12)] rounded-[12px] p-[13px_14px] space-y-4">
         <pre className="whitespace-pre-wrap font-body text-[13px] text-[#FAFAFA] leading-[1.55]">
           {text}
@@ -48,12 +49,15 @@ export function GenerateOutput({ text, loading, children }: GenerateOutputProps)
         </div>
       </div>
 
+      {/* Platform optimization section */}
+      <OptimizePanel content={text} />
+
       <SaveToLibraryModal
         open={showSave}
         onClose={() => setShowSave(false)}
         script={text}
       />
-    </>
+    </div>
   );
 }
 

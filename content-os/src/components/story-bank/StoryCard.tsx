@@ -14,7 +14,6 @@ function StoryPillarBadge({ pillar }: { pillar: string }) {
       style={{
         backgroundColor: `${color}20`,
         color: color,
-        fontFamily: "'Space Grotesk', sans-serif",
       }}
     >
       <span
@@ -96,7 +95,6 @@ export default function StoryCard({
                 ? 'bg-[rgba(16,185,129,0.15)] text-[#3B6D11]'
                 : 'bg-[#18181B] text-[#71717A]'
             }`}
-            style={{ fontFamily: "'Space Grotesk', sans-serif" }}
           >
             {story.used ? 'Used' : 'Unused'}
           </span>
@@ -108,7 +106,7 @@ export default function StoryCard({
         <div className="border-t-[0.5px] border-[#FAFAFA]/12 px-[14px] py-4 space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <h4 className="text-[10px] font-medium text-[#71717A] uppercase tracking-[0.1em] mb-1" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+              <h4 className="font-body text-[10px] font-medium text-[#71717A] uppercase tracking-[0.1em] mb-1">
                 Raw Memory
               </h4>
               <p className="text-[13px] text-[#FAFAFA] leading-[1.55]">
@@ -116,7 +114,7 @@ export default function StoryCard({
               </p>
             </div>
             <div>
-              <h4 className="text-[10px] font-medium text-[#71717A] uppercase tracking-[0.1em] mb-1" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+              <h4 className="font-body text-[10px] font-medium text-[#71717A] uppercase tracking-[0.1em] mb-1">
                 Mined Angle
               </h4>
               <p className="text-[13px] text-[#6366F1] font-medium">
@@ -124,7 +122,7 @@ export default function StoryCard({
               </p>
             </div>
             <div>
-              <h4 className="text-[10px] font-medium text-[#71717A] uppercase tracking-[0.1em] mb-1" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+              <h4 className="font-body text-[10px] font-medium text-[#71717A] uppercase tracking-[0.1em] mb-1">
                 Mined Hook
               </h4>
               <p className="text-[13px] text-[#FAFAFA]">
@@ -132,7 +130,7 @@ export default function StoryCard({
               </p>
             </div>
             <div>
-              <h4 className="text-[10px] font-medium text-[#71717A] uppercase tracking-[0.1em] mb-1" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+              <h4 className="font-body text-[10px] font-medium text-[#71717A] uppercase tracking-[0.1em] mb-1">
                 Caption Line
               </h4>
               <p className="text-[13px] text-[#FAFAFA]">
@@ -143,7 +141,7 @@ export default function StoryCard({
 
           {story.mined_script && (
             <div>
-              <h4 className="text-[10px] font-medium text-[#71717A] uppercase tracking-[0.1em] mb-1" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+              <h4 className="font-body text-[10px] font-medium text-[#71717A] uppercase tracking-[0.1em] mb-1">
                 Mined Script
               </h4>
               <div className="bg-[#18181B] border-[0.5px] border-[#FAFAFA]/12 rounded-[12px] p-3">
@@ -161,7 +159,7 @@ export default function StoryCard({
 
           {story.pillar && (
             <div>
-              <h4 className="text-[10px] font-medium text-[#71717A] uppercase tracking-[0.1em] mb-1" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+              <h4 className="font-body text-[10px] font-medium text-[#71717A] uppercase tracking-[0.1em] mb-1">
                 Pillar
               </h4>
               <StoryPillarBadge pillar={story.pillar} />

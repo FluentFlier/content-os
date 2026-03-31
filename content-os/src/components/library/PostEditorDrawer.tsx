@@ -272,7 +272,7 @@ export default function PostEditorDrawer({ post, series, onClose, onSave, onDele
               onChange={(e) => update('script', e.target.value)}
               onBlur={autoSave}
               className={`${inputClass} resize-none`}
-              style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+              
             />
           </label>
 

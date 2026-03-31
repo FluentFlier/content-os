@@ -88,7 +88,6 @@ export default function IdeaForm({
                   ? PRIORITY_STYLES[p]
                   : 'bg-[#18181B] text-[#71717A] hover:text-[#FAFAFA]'
               }`}
-              style={{ fontFamily: "'Space Grotesk', sans-serif" }}
             >
               {p}
             </button>

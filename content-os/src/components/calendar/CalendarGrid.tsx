@@ -210,8 +210,7 @@ export default function CalendarGrid({
           {DAY_HEADERS_MON.map((d) => (
             <div
               key={d}
-              className="text-center text-[10px] font-medium text-[#71717A] py-2 uppercase tracking-[0.1em]"
-              style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+              className="font-body text-center text-[10px] font-medium text-[#71717A] py-2 uppercase tracking-[0.1em]"
             >
               {d}
             </div>

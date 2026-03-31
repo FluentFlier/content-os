@@ -1,14 +1,17 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { Film, Trash2 } from 'lucide-react';
+import { Film, Trash2, Wand2, Loader2 } from 'lucide-react';
 import { getInsforgeClient } from '@/lib/insforge/client';
 import {
   VideoUploader,
   VideoPlayer,
   TemplateSelector,
   ExportPanel,
+  RemotionPreview,
 } from '@/components/video-studio';
+import type { TemplateId } from '@/components/video-studio';
+import type { CaptionWord } from '@/components/video-studio/compositions';
 
 interface VideoFile {
   name: string;
@@ -20,6 +23,13 @@ export default function VideoStudioPage() {
   const [videos, setVideos] = useState<VideoFile[]>([]);
   const [activeVideo, setActiveVideo] = useState<VideoFile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [selectedTemplate, setSelectedTemplate] = useState<TemplateId | undefined>();
+  const [showPreview, setShowPreview] = useState(false);
+
+  // Auto-edit state
+  const [autoEditing, setAutoEditing] = useState(false);
+  const [autoEditResult, setAutoEditResult] = useState<string | null>(null);
+  const [captions, setCaptions] = useState<CaptionWord[]>([]);
 
   const fetchVideos = useCallback(async () => {
     try {
@@ -84,13 +94,14 @@ export default function VideoStudioPage() {
         if (!userData?.user) return;
 
         const uid = userData.user.id;
-        // The stored path is uid/filename
         const pathInBucket = `${uid}/${video.name}`;
         await client.storage.from('videos').remove(pathInBucket);
 
         setVideos((prev) => prev.filter((v) => v.name !== video.name));
         if (activeVideo?.name === video.name) {
           setActiveVideo(null);
+          setSelectedTemplate(undefined);
+          setShowPreview(false);
         }
       } catch (err) {
         console.error('Failed to delete video', err);
@@ -99,7 +110,38 @@ export default function VideoStudioPage() {
     [activeVideo],
   );
 
-  // Loading skeleton
+  const handleAutoEdit = async () => {
+    if (!activeVideo) return;
+    setAutoEditing(true);
+    setAutoEditResult(null);
+
+    try {
+      const res = await fetch('/api/video/auto-edit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          videoUrl: activeVideo.url,
+          options: { captions: true, silenceRemoval: true, smartCuts: true },
+        }),
+      });
+
+      const data = await res.json();
+      if (data.captions) {
+        setCaptions(data.captions);
+      }
+      setAutoEditResult(data.message || 'Processing submitted');
+    } catch (err) {
+      setAutoEditResult('Auto-edit request failed');
+    } finally {
+      setAutoEditing(false);
+    }
+  };
+
+  const handleTemplateSelect = (id: TemplateId) => {
+    setSelectedTemplate(id);
+    setShowPreview(true);
+  };
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -124,7 +166,7 @@ export default function VideoStudioPage() {
           Video Studio
         </h1>
         <p className="font-body text-[13px] text-[#71717A] mt-1">
-          Upload, preview, and prepare your videos for editing.
+          Upload, apply templates, and export your videos with Remotion-powered compositions.
         </p>
       </div>
 
@@ -134,19 +176,68 @@ export default function VideoStudioPage() {
           {/* Upload zone */}
           <VideoUploader onUploadComplete={handleUploadComplete} />
 
-          {/* Active video player */}
+          {/* Active video player or Remotion preview */}
           {activeVideo && (
-            <VideoPlayer src={activeVideo.url} title={activeVideo.name} />
+            <>
+              {showPreview && selectedTemplate ? (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-heading text-[15px] font-[700] text-[#FAFAFA]">
+                      Template Preview
+                    </h3>
+                    <button
+                      onClick={() => setShowPreview(false)}
+                      className="font-body text-[12px] text-[#6366F1] hover:underline"
+                    >
+                      Back to video
+                    </button>
+                  </div>
+                  <RemotionPreview
+                    videoSrc={activeVideo.url}
+                    templateId={selectedTemplate}
+                    captions={captions.length > 0 ? captions : undefined}
+                  />
+                </div>
+              ) : (
+                <VideoPlayer src={activeVideo.url} title={activeVideo.name} />
+              )}
+
+              {/* Auto-edit button */}
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  onClick={handleAutoEdit}
+                  disabled={autoEditing}
+                  className="flex items-center gap-1.5 bg-[#18181B] border-[0.5px] border-[#FAFAFA]/12 text-[#FAFAFA] text-[13px] font-medium px-5 py-[10px] min-h-[44px] rounded-[7px] hover:border-[#FAFAFA]/25 transition-colors disabled:opacity-50"
+                >
+                  {autoEditing ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Wand2 className="w-4 h-4" />
+                  )}
+                  {autoEditing ? 'Processing...' : 'Auto-Edit (Captions + Cuts)'}
+                </button>
+                {autoEditResult && (
+                  <span className="font-body text-[11px] text-[#71717A]">{autoEditResult}</span>
+                )}
+              </div>
+            </>
           )}
 
           {/* Template selector */}
-          <TemplateSelector />
+          <TemplateSelector
+            selected={selectedTemplate}
+            onSelect={handleTemplateSelect}
+            hasVideo={Boolean(activeVideo)}
+          />
         </div>
 
         {/* Right column */}
         <div className="space-y-6">
           {/* Export panel */}
-          <ExportPanel />
+          <ExportPanel
+            videoSrc={activeVideo?.url}
+            templateId={selectedTemplate}
+          />
 
           {/* Video list */}
           <div className="space-y-3">
@@ -172,7 +263,10 @@ export default function VideoStudioPage() {
                           ? 'bg-[rgba(99,102,241,0.12)] border-[0.5px] border-[#6366F1]/30'
                           : 'bg-[#18181B] border-[0.5px] border-[#FAFAFA]/12 hover:border-[#FAFAFA]/25'
                       }`}
-                      onClick={() => setActiveVideo(video)}
+                      onClick={() => {
+                        setActiveVideo(video);
+                        setShowPreview(false);
+                      }}
                     >
                       <Film
                         className={`w-4 h-4 flex-shrink-0 ${
@@ -181,9 +275,7 @@ export default function VideoStudioPage() {
                       />
                       <span
                         className={`font-body text-[13px] truncate flex-1 ${
-                          isActive
-                            ? 'text-[#6366F1] font-medium'
-                            : 'text-[#FAFAFA]'
+                          isActive ? 'text-[#6366F1] font-medium' : 'text-[#FAFAFA]'
                         }`}
                       >
                         {video.name}

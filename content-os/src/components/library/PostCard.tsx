@@ -42,7 +42,7 @@ export default function PostCard({ post, selected, onSelect, onClick }: PostCard
         />
 
         {/* Title */}
-        <h3 className="font-[500] text-[#FAFAFA] text-[13px] truncate pr-6 mb-2 leading-[1.3]" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+        <h3 className="font-body font-[500] text-[#FAFAFA] text-[13px] truncate pr-6 mb-2 leading-[1.3]">
           {post.title}
         </h3>
 

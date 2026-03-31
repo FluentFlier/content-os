@@ -51,7 +51,7 @@ export default function Sidebar() {
       style={{ background: '#0C0C0F', borderRight: '1px solid rgba(255,255,255,0.06)' }}>
 
       <div className="px-5 pt-6 pb-1">
-        <h1 style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '11px', letterSpacing: '0.2em', color: '#FAFAFA', fontWeight: 500 }}>
+        <h1 className="font-body text-[11px] tracking-[0.2em] text-[#FAFAFA] font-medium">
           DISPATCH
         </h1>
         {userLabel && (

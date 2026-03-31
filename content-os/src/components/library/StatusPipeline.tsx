@@ -38,7 +38,7 @@ export default function StatusPipeline({ current, onChange }: StatusPipelineProp
                 borderColor: DOT_COLORS[s],
               }}
             />
-            <span className="text-[10px] text-[#71717A] group-hover:text-[#FAFAFA] transition-colors capitalize font-medium tracking-[0.05em]" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+            <span className="font-body text-[10px] text-[#71717A] group-hover:text-[#FAFAFA] transition-colors capitalize font-medium tracking-[0.05em]">
               {STATUS_LABELS[s]}
             </span>
           </button>

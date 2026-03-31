@@ -221,7 +221,7 @@ export default function StoryBankPage() {
         </h1>
         <a
           href="/generate?tab=story-mine"
-          className="flex items-center gap-1.5 bg-[#6366F1] text-white text-[13px] font-medium px-5 py-[10px] rounded-[7px] hover:opacity-90 transition-opacity"
+          className="flex items-center gap-1.5 bg-[#6366F1] text-white text-[13px] font-medium px-5 py-[10px] min-h-[44px] rounded-[7px] hover:opacity-90 transition-opacity"
         >
           <Pickaxe className="w-4 h-4" />
           Mine a Story
@@ -235,7 +235,7 @@ export default function StoryBankPage() {
             <button
               key={tab}
               onClick={() => setUsedFilter(tab)}
-              className={`px-3 py-1.5 text-[13px] font-medium capitalize transition-colors ${
+              className={`px-3 py-2 min-h-[44px] text-[13px] font-medium capitalize transition-colors ${
                 usedFilter === tab
                   ? "bg-[#09090B] text-[#FAFAFA]"
                   : "text-[#71717A] hover:text-[#FAFAFA]"
@@ -250,7 +250,7 @@ export default function StoryBankPage() {
           <select
             value={pillarFilter}
             onChange={(e) => setPillarFilter(e.target.value)}
-            className="appearance-none bg-[#18181B] border-[0.5px] border-[#FAFAFA]/12 rounded-[7px] pl-3 pr-7 py-1.5 text-[13px] text-[#FAFAFA] focus:outline-none focus:border-[#FAFAFA]/40 cursor-pointer transition-colors"
+            className="appearance-none bg-[#18181B] border-[0.5px] border-[#FAFAFA]/12 rounded-[7px] pl-3 pr-7 py-2 min-h-[44px] text-[13px] text-[#FAFAFA] focus:outline-none focus:border-[#FAFAFA]/40 cursor-pointer transition-colors"
           >
             <option value="all">Pillar: All</option>
             {pillarList.map((p) => (

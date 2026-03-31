@@ -259,7 +259,7 @@ function LogPerformanceSection({
 
       {selectedPostId && (
         <>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4 mb-4">
+          <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-6 gap-4 mb-4">
             {[
               { label: "Views", value: views, set: setViews },
               { label: "Likes", value: likes, set: setLikes },
@@ -275,7 +275,7 @@ function LogPerformanceSection({
                 <input
                   type="number"
                   min={0}
-                  className="w-24 bg-[#18181B] border-[0.5px] border-[#FAFAFA]/12 rounded-[7px] px-2 py-1 text-[#FAFAFA]"
+                  className="w-full bg-[#18181B] border-[0.5px] border-[#FAFAFA]/12 rounded-[7px] px-2 py-2 min-h-[44px] text-[#FAFAFA]"
                   value={field.value}
                   onChange={(e) => field.set(Number(e.target.value) || 0)}
                 />
@@ -286,7 +286,7 @@ function LogPerformanceSection({
           <button
             onClick={handleSave}
             disabled={saving}
-            className="bg-[#6366F1] text-white px-4 py-2 rounded hover:opacity-90 disabled:opacity-50 flex items-center gap-2"
+            className="bg-[#6366F1] text-white px-4 py-2 min-h-[44px] rounded hover:opacity-90 disabled:opacity-50 flex items-center gap-2"
           >
             <Save size={16} /> {saving ? "Saving..." : "Save"}
           </button>
@@ -460,8 +460,8 @@ function PerformanceOverviewSection({
               <h3 className="text-sm text-[#71717A] mb-2 font-heading">
                 Pillar Breakdown
               </h3>
-              <div className="bg-[#09090B] border-[0.5px] border-[#FAFAFA]/12 rounded-[12px] overflow-hidden">
-                <table className="w-full text-sm">
+              <div className="bg-[#09090B] border-[0.5px] border-[#FAFAFA]/12 rounded-[12px] overflow-x-auto">
+                <table className="w-full text-sm min-w-[300px]">
                   <thead>
                     <tr className="border-b-[0.5px] border-[#FAFAFA]/12">
                       <th className="text-left px-4 py-2.5 text-[#71717A] font-medium">Pillar</th>

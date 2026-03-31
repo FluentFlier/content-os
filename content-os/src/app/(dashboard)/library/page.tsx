@@ -180,22 +180,22 @@ export default function LibraryPage() {
       {/* Top bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <h1 className="font-heading text-[22px] font-[800] text-[#FAFAFA] leading-[1.2] tracking-[-0.02em]">Library</h1>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           {/* Search */}
-          <div className="relative">
+          <div className="relative flex-1 min-w-[150px] sm:flex-none">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#71717A]" />
             <input
               type="text"
               placeholder="Search posts..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="bg-[#18181B] border-[0.5px] border-[rgba(255,255,255,0.08)] rounded-[7px] pl-8 pr-3 py-1.5 text-[13px] text-[#FAFAFA] placeholder:text-[#71717A] focus:outline-none focus:border-[#FAFAFA]/40 w-44 sm:w-56 transition-colors"
+              className="bg-[#18181B] border-[0.5px] border-[rgba(255,255,255,0.08)] rounded-[7px] pl-8 pr-3 py-2 min-h-[44px] text-[13px] text-[#FAFAFA] placeholder:text-[#71717A] focus:outline-none focus:border-[#FAFAFA]/40 w-full sm:w-56 transition-colors"
             />
           </div>
           {/* View toggle */}
           <button
             onClick={() => setView('card')}
-            className={`p-2 rounded-[7px] border-[0.5px] transition-all duration-100 ${
+            className={`p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-[7px] border-[0.5px] transition-all duration-100 ${
               view === 'card' ? 'border-[#6366F1] text-[#6366F1]' : 'border-[#FAFAFA]/12 text-[#71717A] hover:text-[#FAFAFA]'
             }`}
           >
@@ -203,7 +203,7 @@ export default function LibraryPage() {
           </button>
           <button
             onClick={() => setView('table')}
-            className={`p-2 rounded-[7px] border-[0.5px] transition-all duration-100 ${
+            className={`p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-[7px] border-[0.5px] transition-all duration-100 ${
               view === 'table' ? 'border-[#6366F1] text-[#6366F1]' : 'border-[#FAFAFA]/12 text-[#71717A] hover:text-[#FAFAFA]'
             }`}
           >
@@ -212,10 +212,11 @@ export default function LibraryPage() {
           {/* New Post */}
           <button
             onClick={handleNewPost}
-            className="flex items-center gap-1.5 bg-[#6366F1] text-white text-[13px] font-medium px-5 py-[10px] rounded-[7px] hover:opacity-90 transition-opacity"
+            className="flex items-center gap-1.5 bg-[#6366F1] text-white text-[13px] font-medium px-5 py-[10px] min-h-[44px] rounded-[7px] hover:opacity-90 transition-opacity"
           >
             <Plus className="w-4 h-4" />
-            New Post
+            <span className="hidden sm:inline">New Post</span>
+            <span className="sm:hidden">New</span>
           </button>
         </div>
       </div>
@@ -348,7 +349,7 @@ function FilterDropdown({
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="appearance-none bg-[#18181B] border-[0.5px] border-[#FAFAFA]/12 rounded-[7px] pl-3 pr-7 py-1.5 text-[13px] text-[#FAFAFA] focus:outline-none focus:border-[#FAFAFA]/40 cursor-pointer transition-colors"
+        className="appearance-none bg-[#18181B] border-[0.5px] border-[#FAFAFA]/12 rounded-[7px] pl-3 pr-7 py-2 min-h-[44px] text-[13px] text-[#FAFAFA] focus:outline-none focus:border-[#FAFAFA]/40 cursor-pointer transition-colors"
       >
         {options.map((o) => (
           <option key={o.value} value={o.value}>

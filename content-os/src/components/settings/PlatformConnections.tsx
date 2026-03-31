@@ -191,7 +191,7 @@ export default function PlatformConnections({
                   onClick={() =>
                     setExpandedPlatform(isExpanded ? null : platform)
                   }
-                  className="w-full flex items-center justify-between py-3 px-4 bg-[#18181B] hover:bg-[#27272A] transition-colors"
+                  className="w-full flex items-center justify-between py-3 px-4 min-h-[44px] bg-[#18181B] hover:bg-[#27272A] transition-colors"
                 >
                   <div className="flex items-center gap-3">
                     <span
@@ -386,7 +386,7 @@ function ByokSection({
           type="button"
           disabled={saving}
           onClick={onSaveKeys}
-          className="px-4 py-2 text-[12px] text-white bg-[#6366F1] rounded-[7px] hover:bg-[#6366F1]/90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
+          className="px-4 py-2 min-h-[44px] text-[12px] text-white bg-[#6366F1] rounded-[7px] hover:bg-[#6366F1]/90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
         >
           {saving && <Loader2 size={12} className="animate-spin" />}
           {saving ? "Saving..." : "Save Keys"}
@@ -395,7 +395,7 @@ function ByokSection({
           type="button"
           disabled={testing}
           onClick={onTestConnection}
-          className="px-4 py-2 text-[12px] text-[#FAFAFA] border-[0.5px] border-[#FAFAFA]/12 rounded-[7px] hover:border-[#FAFAFA]/25 transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
+          className="px-4 py-2 min-h-[44px] text-[12px] text-[#FAFAFA] border-[0.5px] border-[#FAFAFA]/12 rounded-[7px] hover:border-[#FAFAFA]/25 transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
         >
           {testing && <Loader2 size={12} className="animate-spin" />}
           {testing ? "Testing..." : "Test Connection"}
@@ -430,7 +430,7 @@ function PasswordField({
         <button
           type="button"
           onClick={() => setVisible(!visible)}
-          className="absolute right-2 top-1/2 -translate-y-1/2 text-[#71717A] hover:text-[#FAFAFA] transition-colors"
+          className="absolute right-1 top-1/2 -translate-y-1/2 w-[44px] h-[44px] flex items-center justify-center text-[#71717A] hover:text-[#FAFAFA] transition-colors"
           aria-label={visible ? "Hide" : "Show"}
         >
           {visible ? <EyeOff size={16} /> : <Eye size={16} />}

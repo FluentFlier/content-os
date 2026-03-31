@@ -127,7 +127,7 @@ function GeneratePageInner() {
       <h1 className="font-display font-[800] text-[21px] text-[#FAFAFA] tracking-[-0.02em] leading-[1.2]">Generate</h1>
 
       {/* Tab bar */}
-      <div ref={tabBarRef} className="-mx-4 px-4 md:mx-0 md:px-0">
+      <div ref={tabBarRef} className="-mx-4 px-4 md:mx-0 md:px-0 overflow-x-auto">
         <Tabs
           tabs={TAB_LIST}
           activeTab={activeTab}

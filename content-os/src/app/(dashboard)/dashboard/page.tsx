@@ -152,7 +152,7 @@ export default async function DashboardPage() {
             <ul className="space-y-2">
               {upNext.map((post) => (
                 <li key={post.id}>
-                  <Link href="/library" className="flex items-center justify-between gap-3 group">
+                  <Link href="/library" className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-3 group min-h-[44px] py-1">
                     <div className="flex items-center gap-3 min-w-0">
                       <span
                         className="inline-block w-[3px] h-8 rounded-r-[2px] shrink-0"
@@ -162,7 +162,7 @@ export default async function DashboardPage() {
                         {post.title}
                       </span>
                     </div>
-                    <div className="flex items-center gap-2 shrink-0">
+                    <div className="flex items-center gap-2 shrink-0 ml-6 sm:ml-0">
                       <span className="font-body text-[10px] font-medium text-[#71717A] bg-[#18181B] border-[0.5px] border-[rgba(255,255,255,0.12)] rounded-[3px] px-[7px] py-[2px] capitalize tracking-[0.05em]">
                         {post.platform}
                       </span>
@@ -308,7 +308,7 @@ function QuickAction({
   return (
     <Link
       href={href}
-      className="flex flex-col items-center gap-2 bg-[#18181B] border-[0.5px] border-[rgba(255,255,255,0.12)] rounded-[7px] p-[10px_14px] hover:border-[rgba(255,255,255,0.25)] transition-colors duration-100 group"
+      className="flex flex-col items-center justify-center gap-2 bg-[#18181B] border-[0.5px] border-[rgba(255,255,255,0.12)] rounded-[7px] p-[10px_14px] min-h-[56px] hover:border-[rgba(255,255,255,0.25)] transition-colors duration-100 group"
     >
       <Icon size={18} className="text-[#71717A] group-hover:text-[#A1A1AA] transition-colors duration-100" />
       <span className="font-body text-[11px] text-[#A1A1AA] group-hover:text-[#FAFAFA] transition-colors duration-100 text-center">

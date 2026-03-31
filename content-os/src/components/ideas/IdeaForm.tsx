@@ -51,12 +51,12 @@ export default function IdeaForm({
             }
           }}
           placeholder="Capture an idea..."
-          className="flex-1 bg-[#18181B] border-[0.5px] border-[#FAFAFA]/12 rounded-[7px] px-3 py-2 text-[13px] text-[#FAFAFA] placeholder:text-[#71717A] focus:outline-none focus:border-[#FAFAFA]/40 transition-colors"
+          className="flex-1 bg-[#18181B] border-[0.5px] border-[#FAFAFA]/12 rounded-[7px] px-3 py-2 min-h-[44px] text-[13px] text-[#FAFAFA] placeholder:text-[#71717A] focus:outline-none focus:border-[#FAFAFA]/40 transition-colors"
         />
         <button
           onClick={onSubmit}
           disabled={adding || !value.trim()}
-          className="flex items-center gap-1.5 bg-[#6366F1] hover:opacity-90 disabled:opacity-40 text-white text-[13px] font-medium px-5 py-[10px] rounded-[7px] transition-opacity"
+          className="flex items-center gap-1.5 bg-[#6366F1] hover:opacity-90 disabled:opacity-40 text-white text-[13px] font-medium px-5 py-[10px] min-h-[44px] rounded-[7px] transition-opacity"
         >
           <Plus size={16} />
           Add
@@ -68,7 +68,7 @@ export default function IdeaForm({
         <select
           value={pillar}
           onChange={(e) => onPillarChange(e.target.value)}
-          className="bg-[#18181B] border-[0.5px] border-[#FAFAFA]/12 rounded-[7px] px-2.5 py-1.5 text-[11px] text-[#FAFAFA] focus:outline-none focus:border-[#FAFAFA]/40 transition-colors"
+          className="bg-[#18181B] border-[0.5px] border-[#FAFAFA]/12 rounded-[7px] px-2.5 py-2 min-h-[44px] text-[11px] text-[#FAFAFA] focus:outline-none focus:border-[#FAFAFA]/40 transition-colors"
         >
           {pillarOptions.map((p) => (
             <option key={p.value} value={p.value}>
@@ -83,7 +83,7 @@ export default function IdeaForm({
             <button
               key={p}
               onClick={() => onPriorityChange(p)}
-              className={`px-3 py-1 rounded-[3px] text-[10px] font-medium capitalize transition-colors tracking-[0.01em] ${
+              className={`px-3 py-2 min-h-[44px] rounded-[3px] text-[10px] font-medium capitalize transition-colors tracking-[0.01em] ${
                 priority === p
                   ? PRIORITY_STYLES[p]
                   : 'bg-[#18181B] text-[#71717A] hover:text-[#FAFAFA]'

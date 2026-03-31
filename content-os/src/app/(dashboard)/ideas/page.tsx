@@ -267,7 +267,7 @@ export default function IdeasPage() {
             <button
               key={mode}
               onClick={() => setFilterMode(mode)}
-              className={`px-3 py-1.5 text-[11px] font-medium transition-colors ${
+              className={`px-3 py-2 min-h-[44px] text-[11px] font-medium transition-colors ${
                 filterMode === mode
                   ? "bg-[rgba(99,102,241,0.12)] text-[#6366F1]"
                   : "text-[#71717A] hover:text-[#FAFAFA]"
@@ -281,7 +281,7 @@ export default function IdeasPage() {
         <select
           value={filterPillar}
           onChange={(e) => setFilterPillar(e.target.value)}
-          className="bg-[#18181B] border-[0.5px] border-[#FAFAFA]/12 rounded-[7px] px-2.5 py-1.5 text-[11px] text-[#FAFAFA] focus:outline-none focus:border-[#FAFAFA]/40 transition-colors"
+          className="bg-[#18181B] border-[0.5px] border-[#FAFAFA]/12 rounded-[7px] px-2.5 py-2 min-h-[44px] text-[11px] text-[#FAFAFA] focus:outline-none focus:border-[#FAFAFA]/40 transition-colors"
         >
           <option value="all">All pillars</option>
           {pillarList.map((p) => (

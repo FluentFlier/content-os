@@ -143,13 +143,13 @@ export default function IdeaRow({
         </div>
       </div>
 
-      {/* Actions */}
-      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+      {/* Actions - always visible on mobile, hover on desktop */}
+      <div className="flex items-center gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity shrink-0">
         <button
           onClick={onConvertToScript}
           disabled={converting}
           title="Convert to Script"
-          className="p-1.5 rounded-[7px] text-[#71717A] hover:text-[#534AB7] hover:bg-[#EEEDFE] transition-colors disabled:animate-pulse"
+          className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-[7px] text-[#71717A] hover:text-[#534AB7] hover:bg-[#EEEDFE] transition-colors disabled:animate-pulse"
         >
           <Wand2 size={15} />
         </button>
@@ -160,7 +160,7 @@ export default function IdeaRow({
               onDelete();
               setConfirmDelete(false);
             }}
-            className="px-2 py-1 rounded-[3px] text-[10px] font-medium bg-[rgba(99,102,241,0.12)] text-[#6366F1] hover:opacity-80 transition-opacity"
+            className="px-3 py-2 min-h-[44px] rounded-[3px] text-[10px] font-medium bg-[rgba(99,102,241,0.12)] text-[#6366F1] hover:opacity-80 transition-opacity"
           >
             Confirm
           </button>
@@ -168,7 +168,7 @@ export default function IdeaRow({
           <button
             onClick={() => setConfirmDelete(true)}
             title="Delete"
-            className="p-1.5 rounded-[7px] text-[#71717A] hover:text-[#6366F1] hover:bg-[rgba(99,102,241,0.12)] transition-colors"
+            className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-[7px] text-[#71717A] hover:text-[#6366F1] hover:bg-[rgba(99,102,241,0.12)] transition-colors"
           >
             <Trash2 size={15} />
           </button>

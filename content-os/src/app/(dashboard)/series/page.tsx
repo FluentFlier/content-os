@@ -205,7 +205,7 @@ export default function SeriesPage() {
         </h1>
         <button
           onClick={() => router.push("/generate?tab=series")}
-          className="flex items-center gap-1.5 bg-[#6366F1] hover:opacity-90 text-white text-[13px] font-medium px-5 py-[10px] rounded-[7px] transition-opacity"
+          className="flex items-center gap-1.5 bg-[#6366F1] hover:opacity-90 text-white text-[13px] font-medium px-5 py-[10px] min-h-[44px] rounded-[7px] transition-opacity"
         >
           <Plus size={16} />
           Create Series

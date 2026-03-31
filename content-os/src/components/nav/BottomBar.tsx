@@ -219,7 +219,7 @@ export default function BottomBar() {
               <Link
                 key={item.name}
                 href={item.href}
-                className={`flex flex-col items-center justify-center gap-0.5 flex-1 py-1 transition-all duration-100 ${
+                className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-h-[44px] py-1 transition-all duration-100 ${
                   isActive ? 'text-[#6366F1]' : 'text-[#A1A1AA]'
                 }`}
                 onClick={() => moreOpen && closeMore()}
@@ -244,7 +244,7 @@ export default function BottomBar() {
           <button
             type="button"
             onClick={() => setMoreOpen((prev) => !prev)}
-            className={`flex flex-col items-center justify-center gap-0.5 flex-1 py-1 transition-all duration-100 ${
+            className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-h-[44px] py-1 transition-all duration-100 ${
               moreOpen || isMoreActive ? 'text-[#6366F1]' : 'text-[#A1A1AA]'
             }`}
           >

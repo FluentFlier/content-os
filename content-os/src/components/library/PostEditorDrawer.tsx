@@ -151,11 +151,11 @@ export default function PostEditorDrawer({ post, series, onClose, onSave, onDele
       <div className="fixed inset-0 z-[60] bg-black/30" onClick={onClose} />
 
       {/* Drawer */}
-      <div className="fixed top-0 right-0 bottom-0 z-[65] w-full sm:w-[480px] bg-[#09090B] border-l-[0.5px] border-[#FAFAFA]/12 overflow-y-auto flex flex-col">
+      <div className="fixed inset-0 sm:inset-auto sm:top-0 sm:right-0 sm:bottom-0 z-[65] w-full sm:w-[480px] bg-[#09090B] sm:border-l-[0.5px] border-[#FAFAFA]/12 overflow-y-auto flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b-[0.5px] border-[#FAFAFA]/12 shrink-0">
           <h2 className="font-heading text-[18px] font-[700] text-[#FAFAFA]">Edit Post</h2>
-          <button onClick={onClose} className="text-[#71717A] hover:text-[#FAFAFA] transition-colors">
+          <button onClick={onClose} className="text-[#71717A] hover:text-[#FAFAFA] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center">
             <X size={18} />
           </button>
         </div>
@@ -175,7 +175,7 @@ export default function PostEditorDrawer({ post, series, onClose, onSave, onDele
           </label>
 
           {/* Selects row */}
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <label className="block">
               <span className={labelClass}>Pillar</span>
               <select
@@ -348,14 +348,14 @@ export default function PostEditorDrawer({ post, series, onClose, onSave, onDele
             <button
               type="button"
               onClick={() => handleRegenerate('caption')}
-              className="flex items-center justify-center gap-1.5 px-3 py-2 text-[11px] text-[#FAFAFA] bg-[#18181B] border-[0.5px] border-[#FAFAFA]/12 rounded-[7px] hover:border-[#FAFAFA]/25 transition-colors"
+              className="flex items-center justify-center gap-1.5 px-3 py-2 min-h-[44px] text-[11px] text-[#FAFAFA] bg-[#18181B] border-[0.5px] border-[#FAFAFA]/12 rounded-[7px] hover:border-[#FAFAFA]/25 transition-colors"
             >
               <Wand2 size={14} /> Regenerate Caption
             </button>
             <button
               type="button"
               onClick={() => handleRegenerate('hook')}
-              className="flex items-center justify-center gap-1.5 px-3 py-2 text-[11px] text-[#FAFAFA] bg-[#18181B] border-[0.5px] border-[#FAFAFA]/12 rounded-[7px] hover:border-[#FAFAFA]/25 transition-colors"
+              className="flex items-center justify-center gap-1.5 px-3 py-2 min-h-[44px] text-[11px] text-[#FAFAFA] bg-[#18181B] border-[0.5px] border-[#FAFAFA]/12 rounded-[7px] hover:border-[#FAFAFA]/25 transition-colors"
             >
               <Wand2 size={14} /> Regenerate Hook
             </button>
@@ -367,13 +367,13 @@ export default function PostEditorDrawer({ post, series, onClose, onSave, onDele
                   toast('Script copied for repurpose');
                 }
               }}
-              className="flex items-center justify-center gap-1.5 px-3 py-2 text-[11px] text-[#FAFAFA] bg-[#18181B] border-[0.5px] border-[#FAFAFA]/12 rounded-[7px] hover:border-[#FAFAFA]/25 transition-colors"
+              className="flex items-center justify-center gap-1.5 px-3 py-2 min-h-[44px] text-[11px] text-[#FAFAFA] bg-[#18181B] border-[0.5px] border-[#FAFAFA]/12 rounded-[7px] hover:border-[#FAFAFA]/25 transition-colors"
             >
               <Copy size={14} /> Repurpose
             </button>
             <Link
               href={`/teleprompter?postId=${post.id}`}
-              className="flex items-center justify-center gap-1.5 px-3 py-2 text-[11px] text-[#FAFAFA] bg-[#18181B] border-[0.5px] border-[#FAFAFA]/12 rounded-[7px] hover:border-[#FAFAFA]/25 transition-colors"
+              className="flex items-center justify-center gap-1.5 px-3 py-2 min-h-[44px] text-[11px] text-[#FAFAFA] bg-[#18181B] border-[0.5px] border-[#FAFAFA]/12 rounded-[7px] hover:border-[#FAFAFA]/25 transition-colors"
             >
               <MonitorPlay size={14} /> Open Teleprompter
             </Link>

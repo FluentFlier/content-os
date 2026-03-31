@@ -65,7 +65,10 @@ export default function CalendarPage() {
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
 
-  const [viewMode, setViewMode] = useState<ViewMode>("month");
+  const [viewMode, setViewMode] = useState<ViewMode>(() => {
+    if (typeof window !== "undefined" && window.innerWidth < 640) return "week";
+    return "month";
+  });
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());
   const [weekBase, setWeekBase] = useState(today);
@@ -174,9 +177,9 @@ export default function CalendarPage() {
     if (!destination) return;
 
     const droppableId = destination.droppableId;
-    if (!droppableId.startsWith("day-")) return;
+    if (!droppableId.startsWith("day-") && !droppableId.startsWith("mday-")) return;
 
-    const dateStr = droppableId.replace("day-", "");
+    const dateStr = droppableId.replace("day-", "").replace("mday-", "");
     const [year, month, day] = dateStr.split("-").map(Number);
     const targetDate = new Date(year, month - 1, day);
 
@@ -329,7 +332,7 @@ Respond ONLY with a JSON array of objects: [{"postId":"...","date":"YYYY-MM-DD"}
               <div className="flex items-center gap-1">
                 <button
                   onClick={viewMode === "month" ? goToPrevMonth : goToPrevWeek}
-                  className="p-1.5 rounded-[7px] border-[0.5px] border-[#FAFAFA]/12 text-[#71717A] hover:text-[#FAFAFA] hover:border-[#FAFAFA]/25 transition-colors"
+                  className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-[7px] border-[0.5px] border-[#FAFAFA]/12 text-[#71717A] hover:text-[#FAFAFA] hover:border-[#FAFAFA]/25 transition-colors"
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </button>
@@ -340,7 +343,7 @@ Respond ONLY with a JSON array of objects: [{"postId":"...","date":"YYYY-MM-DD"}
                 </span>
                 <button
                   onClick={viewMode === "month" ? goToNextMonth : goToNextWeek}
-                  className="p-1.5 rounded-[7px] border-[0.5px] border-[#FAFAFA]/12 text-[#71717A] hover:text-[#FAFAFA] hover:border-[#FAFAFA]/25 transition-colors"
+                  className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-[7px] border-[0.5px] border-[#FAFAFA]/12 text-[#71717A] hover:text-[#FAFAFA] hover:border-[#FAFAFA]/25 transition-colors"
                 >
                   <ChevronRight className="w-4 h-4" />
                 </button>
@@ -349,7 +352,7 @@ Respond ONLY with a JSON array of objects: [{"postId":"...","date":"YYYY-MM-DD"}
               <div className="flex border-[0.5px] border-[#FAFAFA]/12 rounded-[7px] overflow-hidden">
                 <button
                   onClick={() => setViewMode("month")}
-                  className={`px-3 py-1.5 text-[11px] font-medium transition-colors ${
+                  className={`px-3 py-2 min-h-[44px] text-[11px] font-medium transition-colors ${
                     viewMode === "month"
                       ? "bg-[#6366F1] text-white"
                       : "text-[#71717A] hover:text-[#FAFAFA]"
@@ -359,7 +362,7 @@ Respond ONLY with a JSON array of objects: [{"postId":"...","date":"YYYY-MM-DD"}
                 </button>
                 <button
                   onClick={() => setViewMode("week")}
-                  className={`px-3 py-1.5 text-[11px] font-medium transition-colors ${
+                  className={`px-3 py-2 min-h-[44px] text-[11px] font-medium transition-colors ${
                     viewMode === "week"
                       ? "bg-[#6366F1] text-white"
                       : "text-[#71717A] hover:text-[#FAFAFA]"

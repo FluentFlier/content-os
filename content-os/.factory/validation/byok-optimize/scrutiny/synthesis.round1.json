@@ -1,0 +1,107 @@
+{
+  "milestone": "byok-optimize",
+  "round": 1,
+  "status": "fail",
+  "validatorsRun": {
+    "test": {
+      "passed": true,
+      "command": "echo \"No test suite configured\"",
+      "exitCode": 0
+    },
+    "typecheck": {
+      "passed": true,
+      "command": "npm --prefix \"/Users/anirudhmanjesh/hackathons/content-os\" run build",
+      "exitCode": 0
+    },
+    "lint": {
+      "passed": true,
+      "command": "npm --prefix \"/Users/anirudhmanjesh/hackathons/content-os\" run lint",
+      "exitCode": 0
+    }
+  },
+  "reviewsSummary": {
+    "total": 7,
+    "passed": 2,
+    "failed": 5,
+    "failedFeatures": [
+      "byok-settings-ui",
+      "optimize-api",
+      "optimize-ui-generate",
+      "optimize-ui-editor-and-bulk-publish",
+      "auto-optimize-on-save"
+    ]
+  },
+  "blockingIssues": [
+    {
+      "featureId": "byok-settings-ui",
+      "severity": "blocking",
+      "description": "OAuth callback upserts do not set `connection_method: 'oauth'`, so BYOK->OAuth reconnects can leave rows tagged as BYOK and cause incorrect Settings badge state."
+    },
+    {
+      "featureId": "optimize-api",
+      "severity": "blocking",
+      "description": "Non-Twitter optimize variants are returned without hard post-generation limit enforcement; PLATFORM_LIMITS are not enforced before response."
+    },
+    {
+      "featureId": "optimize-api",
+      "severity": "blocking",
+      "description": "When AI output uses `---TWEET---` delimiters, thread parts are accepted without validating each part is <= 280 characters."
+    },
+    {
+      "featureId": "optimize-ui-generate",
+      "severity": "blocking",
+      "description": "GenerateOutput does not pass source platform into OptimizePanel, which defaults sourcePlatform to 'instagram' and misattributes optimize/save flows."
+    },
+    {
+      "featureId": "optimize-ui-editor-and-bulk-publish",
+      "severity": "blocking",
+      "description": "Bulk publish success determination reads stale `platformStates` after async publishes, so `onPublishSuccess` may not fire even when publishing succeeds."
+    },
+    {
+      "featureId": "optimize-ui-editor-and-bulk-publish",
+      "severity": "blocking",
+      "description": "Retry path also reads stale state immediately after async publish and can skip success callback after successful retry."
+    },
+    {
+      "featureId": "auto-optimize-on-save",
+      "severity": "blocking",
+      "description": "PATCH auto-optimize trigger checks field presence, not value change, causing repeated unintended variant generation during normal autosave flows."
+    }
+  ],
+  "appliedUpdates": [
+    {
+      "target": "library",
+      "description": "Updated `.factory/library/architecture.md` with explicit `social_accounts.connection_method` lifecycle contract (`byok` for manual keys, `oauth` for callbacks) and dependency of badges/publish fallback on this field.",
+      "sourceFeature": "byok-settings-ui"
+    }
+  ],
+  "suggestedGuidanceUpdates": [
+    {
+      "target": "skill: social-worker",
+      "suggestion": "Add a mandatory blocked-path protocol for auth-required endpoint validation: when valid auth token bootstrap is unavailable, workers must explicitly record blocker and mark `followedProcedure=false` instead of implicitly treating unauthenticated checks as complete.",
+      "evidence": "Repeated across byok-api-and-storage and optimize-api reviews: only unauthenticated 401 checks were run while procedure step requires valid-auth checks.",
+      "isSystemic": true
+    },
+    {
+      "target": "skill: fullstack-worker",
+      "suggestion": "Require explicit blocked status when UI verification is auth-gated/unreachable (and disallow `followedProcedure=true` in that condition), with minimum required evidence for attempted agent-browser validation.",
+      "evidence": "Repeated across optimize-ui-generate, optimize-ui-editor-and-bulk-publish, and auto-optimize-on-save reviews: UI/manual checks were blocked or skipped but procedure adherence was still marked true.",
+      "isSystemic": true
+    }
+  ],
+  "rejectedObservations": [
+    {
+      "observation": "Add generic auth bootstrap instructions for manual testing.",
+      "reason": "already-documented in `.factory/library/user-testing.md` under 'Auth Bootstrap for Testing'."
+    },
+    {
+      "observation": "Add guidance to always check existing git diff early before implementation.",
+      "reason": "ambiguous optimization preference; not a correctness or systemic validation blocker."
+    },
+    {
+      "observation": "Multiple repeated notes about missing auth fixture for curl and blocked UI checks.",
+      "reason": "duplicate; consolidated into systemic skill recommendations above."
+    }
+  ],
+  "previousRound": null
+}

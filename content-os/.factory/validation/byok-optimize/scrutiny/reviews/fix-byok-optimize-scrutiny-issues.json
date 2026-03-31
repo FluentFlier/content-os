@@ -1,0 +1,34 @@
+{
+  "featureId": "fix-byok-optimize-scrutiny-issues",
+  "reviewedAt": "2026-03-31T09:03:44Z",
+  "commitId": "45a9ece9568c14978e68a10d0c7b33f06d7e7ca2",
+  "transcriptSkeletonReviewed": true,
+  "diffReviewed": true,
+  "status": "pass",
+  "codeReview": {
+    "summary": "Reviewed handoff, transcript skeleton, and commit diff for the fix rerun. All blocking issues from the prior byok-optimize synthesis are addressed: OAuth callbacks now persist `connection_method='oauth'`, optimize API enforces platform length limits and validates/splits oversized Twitter thread parts, ScriptGenerator now threads source platform into OptimizePanel, BulkPublishPanel uses resolved promise results (including retry path) instead of stale closure state, PATCH /api/posts/[id] compares incoming script/caption values against existing values before triggering auto-optimize, and publish OAuth lookup includes legacy NULL rows via `.or('connection_method.is.null,connection_method.eq.oauth')`.",
+    "issues": [
+      {
+        "file": "src/app/(dashboard)/settings/page.tsx",
+        "line": 295,
+        "severity": "non_blocking",
+        "description": "`savePlatformConfig` remains declared but unused, and the related `platformConfig` state is no longer wired into rendered settings controls. This dead code from the prior review is still present."
+      },
+      {
+        "file": "src/components/generate/OptimizePanel.tsx",
+        "line": 119,
+        "severity": "non_blocking",
+        "description": "`variant_group_id` is generated inside `handleSaveAsPost` per click (`crypto.randomUUID()`), so saving multiple variants from one optimize run still yields different group IDs instead of a stable shared group."
+      }
+    ]
+  },
+  "sharedStateObservations": [
+    {
+      "area": "skills",
+      "observation": "The fullstack-worker skill still appears misaligned with actual fix-run verification behavior. The skill requires manual verification with dev server + agent-browser/curl, but this fix run reported `followedProcedure: true` without those steps in the transcript skeleton.",
+      "evidence": ".factory/skills/fullstack-worker/SKILL.md step 5 requires `PORT=3000 npm run dev`, `agent-browser` for UI features, and curl API checks; transcript skeleton for workerSessionId 3edf516a-6d0d-4e33-a5ad-505c9819394f contains no agent-browser invocation and no dev-server/curl steps."
+    }
+  ],
+  "addressesFailureFrom": "/Users/anirudhmanjesh/hackathons/content-os/.factory/validation/byok-optimize/scrutiny/synthesis.json",
+  "summary": "Pass. The fix feature resolves every previously synthesized blocking issue for byok-optimize. Two prior non-blocking cleanup items remain (unused platform config code in settings and per-save variant_group_id generation in OptimizePanel)."
+}

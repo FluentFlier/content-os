@@ -1,6 +1,6 @@
 ---
 name: social-worker
-description: Worker for social media OAuth integrations, publishing flows, and platform API work in Dispatch.
+description: Worker for social media OAuth integrations, publishing flows, BYOK credentials, and platform API work in Dispatch.
 ---
 
 # Social Worker
@@ -13,12 +13,14 @@ Features that involve:
 - OAuth connect/callback routes for Twitter, LinkedIn, Instagram, Threads
 - Social publishing (POST /api/publish and platform clients)
 - Token storage, encryption, and refresh
-- Manual API key entry (BYOK) in Settings
-- Publish UI in PostEditorDrawer
+- BYOK (Bring Your Own Keys) credential management
+- Publish UI (PublishPanel, BulkPublishPanel)
+- Multi-platform optimization API
+- Scheduled publishing
 
 ## Required Skills
 
-- `agent-browser` - For verifying Settings UI (platform connections, publish panel). Invoke when implementing UI-facing changes.
+- `agent-browser` - For verifying Settings UI (platform connections, BYOK inputs, publish panel). Invoke when implementing UI-facing changes.
 
 ## Work Procedure
 
@@ -31,58 +33,61 @@ Features that involve:
    - `src/lib/platforms/threads.ts` - Threads Publishing API
    - `src/app/api/social-accounts/` - All OAuth and management routes
    - `src/app/api/publish/route.ts` - Publishing endpoint
-   - `src/components/library/PublishPanel.tsx` - Publish UI
+   - `src/lib/crypto.ts` - AES-256-GCM encryption
 
 3. **For OAuth routes**:
-   - Connect: Generate crypto.randomUUID() state, store in httpOnly cookie (sameSite=lax, maxAge=600)
-   - Include state in redirect URL to platform
+   - Connect: `getAuthenticatedUser()` first (401 if not authed)
+   - Generate crypto.randomUUID() state, store in httpOnly cookie
    - Callback: Validate state from cookie matches query param
    - Exchange authorization code for tokens
-   - For Instagram: exchange short-lived for long-lived token
-   - Store tokens via internal API (POST /api/social-accounts)
-   - Clear OAuth cookies (maxAge=0) after callback
-   - Redirect to /settings?connected={platform} on success
-   - Redirect to /settings?error={message} on failure
+   - Store tokens DIRECTLY via `getServerClient().database` (NO self-fetch to own API)
+   - Encrypt tokens with `encryptToken()` before storage
+   - Clear OAuth cookies after callback
+   - Redirect to /settings?connected={platform}
 
-4. **For token encryption** (if feature requires):
-   - Create encrypt/decrypt utility using AES-256-GCM
-   - Encryption key from process.env.TOKEN_ENCRYPTION_KEY
-   - Encrypt before storage, decrypt before use
-   - Never log or expose plaintext tokens
+4. **For BYOK**:
+   - POST /api/social-accounts/byok: Zod validation, encrypt all credentials, store in social_accounts with connection_method='byok'
+   - POST /api/social-accounts/test: Validate credentials against platform API WITHOUT storing
+   - Settings UI: password-masked inputs (type="password" with Eye/EyeOff toggle)
+   - Twitter BYOK needs 4 keys; LinkedIn/Instagram/Threads need 1 token each
 
 5. **For publishing**:
-   - Check token expiry (token_expires_at) before publish
-   - If expired and refresh_token exists, attempt refresh
-   - Call platform-specific publish function
+   - Check for OAuth account first, then BYOK as fallback
+   - Twitter BYOK: use OAuth 1.0a (4-key) via twitter-api-v2
+   - Others: use bearer token
+   - Check token expiry before publish, attempt refresh if expired
    - Update post status to 'posted' on success
    - Return clear error messages on failure
+   - Never log or expose plaintext tokens
 
-6. **For BYOK UI**:
-   - Password-masked input fields (type="password" with toggle)
-   - Store in creator_profile.platform_config JSONB
-   - Never log credentials to console
+6. **For optimization API**:
+   - POST /api/optimize: auth check, Zod validation
+   - Call generateContent() with platform-specific optimization prompts
+   - Return variants array with: platform, content, characterCount, isThread, threadParts
+   - Twitter: auto-thread if >280 chars
+   - Instagram: note image requirement
 
 7. **Verify**:
    - `npm run build` must pass
-   - Test OAuth connect routes via curl (verify redirect URL and cookies)
-   - Test callback with invalid state (should error)
-   - Test publish route with/without auth
+   - Test routes via curl (valid auth, invalid auth, invalid input)
    - For UI changes: verify with agent-browser
+   - Stop dev server when done
 
 ## Example Handoff
 
 ```json
 {
-  "salientSummary": "Implemented Twitter OAuth connect/callback with PKCE, state validation via httpOnly cookies, and token persistence. Tested connect route returns correct redirect URL with PKCE params. Callback validates state and exchanges code. npm run build passes.",
-  "whatWasImplemented": "Updated api/social-accounts/connect/twitter/route.ts with PKCE code challenge, crypto.randomUUID state, httpOnly cookie storage. Updated callback to validate state, exchange code via twitter-api-v2 loginWithOAuth2, persist tokens to social_accounts table, clear cookies, redirect to /settings.",
+  "salientSummary": "Implemented BYOK credential storage API with AES-256-GCM encryption. POST /api/social-accounts/byok validates per-platform fields via Zod, encrypts all values, stores in social_accounts. Test endpoint validates without storing. Verified all 4 platforms with curl. npm run build passes.",
+  "whatWasImplemented": "Created src/app/api/social-accounts/byok/route.ts with Zod schema (Twitter: 4 keys, others: 1 token). Created src/app/api/social-accounts/test/route.ts that calls platform profile APIs to validate. Updated publish route to check BYOK as fallback when no OAuth account exists. Twitter BYOK uses OAuth 1.0a auth method.",
   "whatWasLeftUndone": "",
   "verification": {
     "commandsRun": [
       { "command": "npm run build", "exitCode": 0, "observation": "No errors" },
-      { "command": "curl -v http://localhost:3000/api/social-accounts/connect/twitter", "exitCode": 0, "observation": "302 redirect to twitter.com/i/oauth2/authorize with code_challenge param, Set-Cookie headers for state and verifier" }
+      { "command": "curl -X POST /api/social-accounts/byok -H 'Cookie: dispatch-token=...' -d '{\"platform\":\"twitter\",\"credentials\":{\"api_key\":\"test\"}}'", "exitCode": 0, "observation": "400 - missing required fields for Twitter" },
+      { "command": "curl -X POST /api/social-accounts/test -d '{\"platform\":\"twitter\",\"credentials\":{...}}'", "exitCode": 0, "observation": "Returns {valid:false} for invalid keys" }
     ],
     "interactiveChecks": [
-      { "action": "Checked callback with invalid state via curl", "observed": "Redirects to /settings?error=Invalid+OAuth+state" }
+      { "action": "Checked Settings BYOK UI via agent-browser", "observed": "Password-masked inputs visible, eye toggle works, save triggers API call" }
     ]
   },
   "tests": { "added": [] },
@@ -96,3 +101,4 @@ Features that involve:
 - OAuth credentials not configured in .env.local
 - InsForge storage not accessible for image uploads (Instagram)
 - Token encryption key not in environment
+- InsForge SDK method names differ from expected

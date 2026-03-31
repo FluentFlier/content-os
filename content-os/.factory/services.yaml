@@ -1,15 +1,14 @@
 commands:
-  init: bash .factory/init.sh
   install: npm install
   build: npm run build
   lint: npm run lint
-  dev: PORT=3000 npm run dev
-  typecheck: npx tsc --noEmit
+  typecheck: npm run build
+  test: echo "No test suite configured"
 
 services:
   web:
     start: PORT=3000 npm run dev
     stop: lsof -ti :3000 | xargs kill -9 2>/dev/null || true
-    healthcheck: curl -sf http://localhost:3000
+    healthcheck: curl -sf http://localhost:3000 -o /dev/null
     port: 3000
     depends_on: []

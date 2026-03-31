@@ -17,10 +17,11 @@ Features that involve:
 - Database schema changes
 - UI/UX improvements (empty states, loading states, responsive fixes)
 - Multi-user generalization (removing hardcoded references, dynamic pillars)
+- Content pipeline fixes (StoryMine, Ideas, Series flows)
 
 ## Required Skills
 
-- `agent-browser` - For verifying UI changes, responsive layouts, and user flows. Invoke when the feature involves any visible UI change to verify it renders correctly.
+- `agent-browser` - For verifying UI changes, responsive layouts, and user flows. Invoke when the feature involves any visible UI change.
 
 ## Work Procedure
 
@@ -28,60 +29,53 @@ Features that involve:
 
 2. **Read ALL files you will modify** before making any changes. Understand existing patterns.
 
-3. **Write tests first (when applicable)**:
-   - For API routes: write curl-testable assertions or integration test cases
-   - For components: verify behavior via agent-browser after implementation
-   - For schema changes: verify via API route tests
-
-4. **Implement the feature**:
+3. **Implement the feature**:
    - Follow AGENTS.md coding conventions strictly
    - Match existing code patterns in surrounding files
    - Use InsForge SDK patterns from lib/insforge/
-   - All API routes: `getAuthenticatedUser()` first, Zod validation, user_id scoping
-   - All styling: Tailwind classes only, follow Brand Guide (light theme, Syne/Space Grotesk)
+   - All API routes: `getAuthenticatedUser()` first, Zod validation for POST/PATCH, user_id scoping
+   - All styling: Tailwind classes only, dark theme (#09090B, #18181B, Syne/Space Grotesk)
    - No em dashes anywhere
    - Files under 500 lines
+   - For schema changes: update db/schema.sql only (single source of truth)
 
-5. **Verify with build**:
-   - Run `npm run build` -- must pass with zero errors
-   - Run `npm run lint` -- fix any issues
-   - If typecheck errors exist, fix them
+4. **Verify with build**:
+   - Run `npm run build` - must pass with zero errors
+   - Run `npm run lint` - fix any issues
 
-6. **Manual verification**:
-   - Start dev server: `PORT=3000 npm run dev`
-   - For UI features: use `agent-browser` to navigate to the page, take screenshots, verify layout
-   - For API features: use curl to test endpoints with valid/invalid inputs
-   - For responsive features: test at 390px viewport width
-   - Stop dev server when done
+5. **Manual verification**:
+   - Start dev server: `PORT=3000 npm run dev &` (background)
+   - For UI features: use `agent-browser` to navigate, take screenshots, verify layout
+   - For API features: use curl with valid auth cookie to test endpoints
+   - For responsive features: test at 390px viewport width with agent-browser
+   - Stop dev server when done: `lsof -ti :3000 | xargs kill -9 2>/dev/null || true`
 
-7. **Check for regressions**:
-   - If modifying shared components (nav, layout, utils), verify 2-3 pages that use them still work
-   - If modifying API routes, verify the pages that call them still render
+6. **Check for regressions**:
+   - If modifying shared components (nav, layout, utils), verify 2-3 pages that use them
+   - If modifying API routes, verify pages that call them still render
 
-8. **Commit** with a descriptive message.
+7. **Commit** with a descriptive message.
 
 ## Example Handoff
 
 ```json
 {
-  "salientSummary": "Fixed mobile nav to include Story Bank, Ideas, Series, Analytics via a 'More' slide-up drawer. Built MoreMenu.tsx component with 4 additional nav items. Verified at 390x844 viewport with agent-browser -- all pages reachable. npm run build passes.",
-  "whatWasImplemented": "Added MoreMenu component to BottomBar.tsx that renders a slide-up drawer with Story Bank, Ideas, Series, and Analytics links. Trigger is a '...' icon in the 5th BottomBar slot. Drawer uses existing Modal pattern with portal. Added /story-bank, /ideas, /series, /analytics nav items with correct icons and active state detection.",
+  "salientSummary": "Added middleware auth enforcement for all protected routes. Unauthenticated requests to /dashboard, /settings, etc. now redirect to /login via 307. Verified with curl (no cookie -> 307) and agent-browser (redirect works in browser). npm run build passes.",
+  "whatWasImplemented": "Updated src/middleware.ts to check for dispatch-token cookie on 12 protected route prefixes. Returns NextResponse.redirect to /login when cookie absent. Also redirects authenticated users from /login to /dashboard. Added /onboarding to protected routes list.",
   "whatWasLeftUndone": "",
   "verification": {
     "commandsRun": [
-      { "command": "npm run build", "exitCode": 0, "observation": "Compiled successfully, no errors" },
-      { "command": "npm run lint", "exitCode": 0, "observation": "No warnings" }
+      { "command": "npm run build", "exitCode": 0, "observation": "Compiled successfully" },
+      { "command": "npm run lint", "exitCode": 0, "observation": "No warnings" },
+      { "command": "curl -v http://localhost:3000/dashboard", "exitCode": 0, "observation": "307 redirect to /login" },
+      { "command": "curl -v http://localhost:3000/settings", "exitCode": 0, "observation": "307 redirect to /login" }
     ],
     "interactiveChecks": [
-      { "action": "Opened /dashboard at 390px width via agent-browser", "observed": "BottomBar visible with 5 items including '...' More button. Sidebar hidden." },
-      { "action": "Clicked More button", "observed": "Drawer slides up showing Story Bank, Ideas, Series, Analytics links" },
-      { "action": "Clicked Story Bank link in More menu", "observed": "Navigated to /story-bank, page renders correctly at 390px" },
-      { "action": "Checked /analytics at 390px", "observed": "Page renders, charts scroll horizontally, no overflow" }
+      { "action": "Opened /dashboard without auth via agent-browser", "observed": "Redirected to /login page" },
+      { "action": "Opened /login with valid session", "observed": "Redirected to /dashboard" }
     ]
   },
-  "tests": {
-    "added": []
-  },
+  "tests": { "added": [] },
   "discoveredIssues": []
 }
 ```

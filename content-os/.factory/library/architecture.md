@@ -1,114 +1,78 @@
-# Architecture
+# Architecture - Dispatch Content OS
 
-## System Overview
+## Overview
+Dispatch is a Next.js 14 App Router application (TypeScript, Tailwind CSS 3.4) that serves as a content command center for creators. It uses InsForge as BaaS (database, auth, AI, storage).
 
-Dispatch is a Next.js 14 App Router application using InsForge as a backend-as-a-service (PostgreSQL + Auth + Storage + AI). It is a content creation and management platform for individual creators.
+## Core Components
 
-## Tech Stack
+### Authentication
+- Google OAuth via InsForge SDK (`client.auth.signInWithOAuth`)
+- Session token synced to `dispatch-token` httpOnly cookie via POST /api/auth
+- Server-side auth: `getServerClient()` reads cookie, passes as `edgeFunctionToken`
+- `getAuthenticatedUser()` helper used in all API routes for auth check
+- Middleware at `src/middleware.ts` checks cookie on protected routes
 
-- **Framework**: Next.js 14.2.21 with App Router, TypeScript strict mode
-- **Styling**: Tailwind CSS 3.4 (DO NOT upgrade to v4), custom design tokens
-- **Backend**: InsForge SDK (`@insforge/sdk`) for auth, database, storage, AI
-- **AI**: Claude Sonnet via InsForge AI gateway (NOT direct Anthropic SDK)
-- **Fonts**: Syne (headings/display), Space Grotesk (body)
-- **Charts**: recharts (dynamic import)
-- **DnD**: @hello-pangea/dnd (for calendar drag-and-drop)
-- **Validation**: Zod
-- **Video**: Remotion + @remotion/player (video composition and preview)
-- **Social**: twitter-api-v2 (Twitter), REST APIs for LinkedIn/Instagram/Threads
+### Database (via InsForge SDK)
+- All DB operations go through InsForge SDK (`client.database.from('table')`)
+- 9 tables: creator_profile, posts, series, story_bank, content_ideas, hashtag_sets, weekly_reviews, user_settings, social_accounts
+- All tables scoped by user_id with row-level security
+- Schema defined in `db/schema.sql`
+
+### AI Generation
+- Uses InsForge AI proxy: `client.ai.chat.completions.create()` with model `anthropic/claude-sonnet-4.5`
+- `buildSystemPrompt()` in `src/lib/claude.ts` personalizes prompts from creator_profile
+- Rate limited: 50 req/hr/user via in-memory store
+
+### Social Media Integration
+- 4 platforms: Twitter, LinkedIn, Instagram, Threads
+- OAuth connect routes: `/api/social-accounts/connect/{platform}`
+- OAuth callback routes: `/api/social-accounts/callback/{platform}`
+- Platform clients: `src/lib/platforms/{twitter,linkedin,instagram,threads}.ts`
+- Token encryption: AES-256-GCM via `src/lib/crypto.ts`
+- Unified publish endpoint: `POST /api/publish`
+
+### Content Pipeline
+- Posts move through status pipeline: idea -> scripted -> filmed -> edited -> posted
+- 8 AI generation tabs in /generate page
+- Story Bank for raw memories that get mined for content angles
+- Ideas backlog with priority and convert-to-script flow
+- Series manager for multi-part content
 
 ## Directory Structure
-
 ```
 src/
   app/
-    page.tsx                    # Landing page (public)
-    layout.tsx                  # Root layout (fonts, metadata)
-    globals.css                 # CSS custom properties, base styles
-    (auth)/
-      login/page.tsx            # Login + signup
-      layout.tsx                # Centered auth layout
-    (dashboard)/
-      layout.tsx                # Dashboard shell (sidebar, bottom bar, auth check)
-      dashboard/page.tsx        # Home dashboard
-      generate/page.tsx         # 8 AI generation tools (tabs)
-      library/page.tsx          # Post CRUD with filters, editor drawer
-      calendar/page.tsx         # Month/week calendar with scheduling
-      story-bank/page.tsx       # Memory mining and management
-      ideas/page.tsx            # Quick idea capture
-      series/page.tsx           # Multi-part content series
-      analytics/page.tsx        # Performance logging, charts, weekly review
-      settings/page.tsx         # User profile, pillars, platform connections
-      teleprompter/page.tsx     # Full-screen script reader
-      onboarding/page.tsx       # New user setup flow
-      video-studio/page.tsx     # Video editing (Remotion-based)
-    api/
-      generate/route.ts         # AI content generation
-      posts/route.ts            # Post CRUD
-      posts/[id]/route.ts       # Single post operations
-      publish/route.ts          # Social media publishing
-      social-accounts/          # OAuth connect/callback/management
-      (other CRUD routes)
-  components/
-    ui/                         # Reusable primitives (Button, Badge, Modal, etc.)
-    nav/                        # Sidebar + BottomBar
-    generate/                   # 8 AI tool tab components
-    library/                    # Post cards, editor drawer, publish panel
-    calendar/                   # Calendar grid, backlog
-    analytics/                  # Charts, forms
-    teleprompter/               # Full-screen reader
-    story-bank/                 # Story cards
-    ideas/                      # Idea rows/forms
-    series/                     # Series cards, post lists
-    video-studio/               # Video editor, player, templates
+    (auth)/login/           -- Google OAuth login
+    (dashboard)/            -- Protected layout (sidebar + bottombar)
+      dashboard/            -- Stats, up next, AI prompt
+      generate/             -- 8 AI generation tabs
+      library/              -- Post CRUD with editor drawer
+      calendar/             -- Month/week views with DnD
+      story-bank/           -- Story mining
+      ideas/                -- Idea backlog
+      series/               -- Multi-part series
+      analytics/            -- Performance charts
+      settings/             -- Profile, pillars, connections
+      teleprompter/         -- Full-screen script reader
+      video-studio/         -- Video upload/preview
+      onboarding/           -- 4-step new user setup
+    api/                    -- 27+ API route files
+  components/               -- Organized by feature area
   lib/
-    insforge/
-      client.ts                 # Browser-side InsForge client (auth only)
-      server.ts                 # Server-side InsForge client (DB, auth check)
-    claude.ts                   # AI generation via InsForge AI gateway
-    constants.ts                # Pillars, statuses, platforms, colors
-    types.ts                    # TypeScript interfaces
-    utils.ts                    # cn(), date formatting, helpers
-    platforms/                  # Social platform publish/profile clients
-  types/
-    database.ts                 # Extended types, creator profile
-  middleware.ts                 # Route protection (cookie-based)
-db/
-  schema.sql                    # Full PostgreSQL DDL
+    insforge/client.ts      -- Browser SDK client
+    insforge/server.ts      -- Server SDK client
+    claude.ts               -- AI generation + prompt builder
+    crypto.ts               -- AES-256-GCM token encrypt/decrypt
+    platforms/              -- Platform-specific publish clients
+    rate-limit.ts           -- In-memory rate limiter
+    constants.ts            -- Pillars, statuses, platforms
+    types.ts                -- TypeScript interfaces
 ```
 
-## Data Flow
-
-### Authentication
-1. User logs in via InsForge Auth (email/password or OAuth)
-2. `dispatch-token` cookie is set (httpOnly)
-3. Middleware checks cookie on all protected routes
-4. `getAuthenticatedUser()` validates token server-side
-5. All API routes verify auth as first operation
-
-### Content Generation
-1. Client calls POST /api/generate with prompt
-2. API route verifies auth, loads user's context_additions + content_pillars
-3. Builds personalized system prompt dynamically
-4. Calls Claude via InsForge AI gateway
-5. Returns generated text to client
-
-### Content Pipeline
-Posts move through: idea -> scripted -> filmed -> edited -> posted
-Each status change updates the post record via PATCH /api/posts/[id]
-
-### Social Publishing
-1. Users connect accounts via OAuth (or manual key entry)
-2. Tokens stored in social_accounts table (encrypted)
-3. Publish from PostEditorDrawer calls POST /api/publish
-4. Route loads token, calls platform-specific publish function
-5. On success, updates post status to "posted"
-
-## Key Invariants
-
-- All DB operations go through API routes (never direct client-side DB calls)
-- API keys/secrets only accessed in server-side code (API routes, server components)
-- User data scoped by user_id in all queries
-- No em dashes anywhere in code, comments, UI copy, or AI prompts
-- Tailwind CSS 3.4 only (no v4)
-- Brand guide: light theme, warm backgrounds (#FAFAF8), Syne headings, Space Grotesk body
+## Key Patterns
+- All API routes: `getAuthenticatedUser()` first, 401 if null, scope by user_id
+- InsForge SDK returns `{data, error}` for all operations
+- Database inserts use array format: `[{...}]`
+- Styling: dark theme (#09090B, #18181B), Syne for headings, Space Grotesk for body
+- No em dashes anywhere in code, UI, or AI prompts
+- Components use lucide-react for icons

@@ -3,12 +3,14 @@
 import { useCallback, useEffect, useState } from 'react';
 import { X, Wand2, Copy, MonitorPlay, Trash2 } from 'lucide-react';
 import type { Post, Series } from '@/lib/types';
-import type { Status } from '@/lib/constants';
+import type { Status, Platform } from '@/lib/constants';
 import { PLATFORMS, STATUSES, STATUS_LABELS } from '@/lib/constants';
 import { usePillars } from '@/hooks/usePillars';
 import StatusPipeline from '@/components/library/StatusPipeline';
 import PerformanceModal from '@/components/library/PerformanceModal';
 import PublishPanel from '@/components/library/PublishPanel';
+import GenerateVariantsSection from '@/components/library/GenerateVariantsSection';
+import BulkPublishPanel from '@/components/library/BulkPublishPanel';
 import { useToast } from '@/components/ui/Toast';
 import Link from 'next/link';
 
@@ -361,6 +363,36 @@ export default function PostEditorDrawer({ post, series, onClose, onSave, onDele
 
           {/* Publish Panel */}
           <PublishPanel
+            postId={post.id}
+            content={form.script || form.hook || form.title}
+            caption={form.caption}
+            onPublishSuccess={() => {
+              setForm((f) => ({ ...f, status: 'posted' }));
+              toast('Published! Post status updated.');
+              onSave();
+            }}
+          />
+
+          {/* Generate Variants section */}
+          <GenerateVariantsSection
+            content={form.script || form.caption || form.hook || form.title}
+            sourcePlatform={form.platform as Platform}
+            postId={post.id}
+            onReplaceCaption={(newCaption: string) => {
+              setForm((f) => ({ ...f, caption: newCaption }));
+              autoSave();
+            }}
+          />
+
+          {/* Bulk Publish section divider */}
+          <div className="pt-3">
+            <span className="text-[10px] font-medium tracking-[0.10em] uppercase text-[#71717A]">
+              BULK PUBLISH
+            </span>
+          </div>
+
+          {/* Bulk Publish Panel */}
+          <BulkPublishPanel
             postId={post.id}
             content={form.script || form.hook || form.title}
             caption={form.caption}

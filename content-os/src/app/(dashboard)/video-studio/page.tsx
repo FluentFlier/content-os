@@ -104,12 +104,12 @@ export default function VideoStudioPage() {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <div className="h-8 w-40 bg-[#F8FAFC] rounded-md animate-pulse" />
+          <div className="h-8 w-40 bg-[#18181B] rounded-md animate-pulse" />
         </div>
-        <div className="h-64 bg-[#F8FAFC] rounded-lg animate-pulse" />
+        <div className="h-64 bg-[#18181B] rounded-lg animate-pulse" />
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="h-32 bg-[#F8FAFC] rounded-lg animate-pulse" />
+            <div key={i} className="h-32 bg-[#18181B] rounded-lg animate-pulse" />
           ))}
         </div>
       </div>
@@ -120,10 +120,10 @@ export default function VideoStudioPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="font-heading text-[22px] font-[800] text-[#0F172A] leading-[1.2] tracking-[-0.02em]">
+        <h1 className="font-heading text-[22px] font-[800] text-[#FAFAFA] leading-[1.2] tracking-[-0.02em]">
           Video Studio
         </h1>
-        <p className="font-body text-[13px] text-[#94A3B8] mt-1">
+        <p className="font-body text-[13px] text-[#71717A] mt-1">
           Upload, preview, and prepare your videos for editing.
         </p>
       </div>
@@ -150,13 +150,13 @@ export default function VideoStudioPage() {
 
           {/* Video list */}
           <div className="space-y-3">
-            <h3 className="font-heading text-[15px] font-[700] text-[#0F172A]">
+            <h3 className="font-heading text-[15px] font-[700] text-[#FAFAFA]">
               Your Videos
             </h3>
             {videos.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-10 text-center rounded-lg bg-[#F8FAFC] border-[0.5px] border-[#0F172A]/12">
-                <Film className="w-8 h-8 text-[#94A3B8] mb-2" />
-                <p className="font-body text-[13px] text-[#94A3B8]">
+              <div className="flex flex-col items-center justify-center py-10 text-center rounded-lg bg-[#18181B] border-[0.5px] border-[#FAFAFA]/12">
+                <Film className="w-8 h-8 text-[#71717A] mb-2" />
+                <p className="font-body text-[13px] text-[#71717A]">
                   No videos yet. Upload one above.
                 </p>
               </div>
@@ -169,21 +169,21 @@ export default function VideoStudioPage() {
                       key={video.name}
                       className={`flex items-center gap-3 px-3 py-2.5 rounded-md cursor-pointer transition-all duration-100 ${
                         isActive
-                          ? 'bg-[#EEF2FF] border-[0.5px] border-[#6366F1]/30'
-                          : 'bg-[#F8FAFC] border-[0.5px] border-[#0F172A]/12 hover:border-[#0F172A]/25'
+                          ? 'bg-[rgba(99,102,241,0.12)] border-[0.5px] border-[#6366F1]/30'
+                          : 'bg-[#18181B] border-[0.5px] border-[#FAFAFA]/12 hover:border-[#FAFAFA]/25'
                       }`}
                       onClick={() => setActiveVideo(video)}
                     >
                       <Film
                         className={`w-4 h-4 flex-shrink-0 ${
-                          isActive ? 'text-[#6366F1]' : 'text-[#94A3B8]'
+                          isActive ? 'text-[#6366F1]' : 'text-[#71717A]'
                         }`}
                       />
                       <span
                         className={`font-body text-[13px] truncate flex-1 ${
                           isActive
                             ? 'text-[#6366F1] font-medium'
-                            : 'text-[#0F172A]'
+                            : 'text-[#FAFAFA]'
                         }`}
                       >
                         {video.name}
@@ -193,7 +193,7 @@ export default function VideoStudioPage() {
                           e.stopPropagation();
                           handleDelete(video);
                         }}
-                        className="text-[#94A3B8] hover:text-[#6366F1] transition-colors flex-shrink-0"
+                        className="text-[#71717A] hover:text-[#6366F1] transition-colors flex-shrink-0"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>

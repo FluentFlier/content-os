@@ -80,15 +80,15 @@ export default function TodaysPrompt({ postsSummary }: TodaysPromptProps) {
   }, [fetchSuggestion]);
 
   return (
-    <section className="bg-[#FFFFFF] border-[0.5px] border-[rgba(26,23,20,0.12)] rounded-[12px] p-[13px_14px]">
+    <section className="bg-[#09090B] border-[0.5px] border-[rgba(255,255,255,0.12)] rounded-[12px] p-[13px_14px]">
       <div className="flex items-center justify-between mb-3">
-        <p className="font-['Space_Grotesk'] font-medium text-[10px] uppercase tracking-[0.10em] text-[#94A3B8]">
+        <p className="font-body font-medium text-[10px] uppercase tracking-[0.10em] text-[#71717A]">
           TODAY&apos;S PROMPT
         </p>
         <button
           onClick={fetchSuggestion}
           disabled={loading}
-          className="text-[#94A3B8] hover:text-[#6366F1] transition-colors duration-100 disabled:opacity-50"
+          className="text-[#71717A] hover:text-[#6366F1] transition-colors duration-100 disabled:opacity-50"
           aria-label="Refresh suggestion"
         >
           <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
@@ -96,12 +96,12 @@ export default function TodaysPrompt({ postsSummary }: TodaysPromptProps) {
       </div>
       {loading ? (
         <div className="space-y-2">
-          <div className="h-3 w-full bg-[#F1F5F9] rounded animate-pulse" />
-          <div className="h-3 w-3/4 bg-[#F1F5F9] rounded animate-pulse" />
-          <div className="h-3 w-5/6 bg-[#F1F5F9] rounded animate-pulse" />
+          <div className="h-3 w-full bg-[#27272A] rounded animate-pulse" />
+          <div className="h-3 w-3/4 bg-[#27272A] rounded animate-pulse" />
+          <div className="h-3 w-5/6 bg-[#27272A] rounded animate-pulse" />
         </div>
       ) : (
-        <p className="font-['Space_Grotesk'] text-[13px] text-[#0F172A] leading-[1.55]">
+        <p className="font-body text-[13px] text-[#FAFAFA] leading-[1.55]">
           {suggestion}
         </p>
       )}

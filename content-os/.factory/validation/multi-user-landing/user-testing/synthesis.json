@@ -1,0 +1,150 @@
+{
+  "milestone": "multi-user-landing",
+  "round": 1,
+  "status": "fail",
+  "assertionsSummary": {
+    "total": 34,
+    "passed": 5,
+    "failed": 0,
+    "blocked": 29
+  },
+  "passedAssertions": [
+    "VAL-LP-001",
+    "VAL-LP-002",
+    "VAL-LP-003",
+    "VAL-LP-004",
+    "VAL-LP-005"
+  ],
+  "failedAssertions": [],
+  "blockedAssertions": [
+    {
+      "id": "VAL-FIX-002",
+      "blockedBy": "Blocked by missing NEXT_PUBLIC_INSFORGE_URL/NEXT_PUBLIC_INSFORGE_ANON_KEY in active dev-server environment; cannot validate signup-form rendering contract"
+    },
+    {
+      "id": "VAL-FIX-001",
+      "blockedBy": "Blocked by missing NEXT_PUBLIC_INSFORGE_URL/NEXT_PUBLIC_INSFORGE_ANON_KEY in dev runtime; could not reach rendered Settings UI."
+    },
+    {
+      "id": "VAL-FIX-003",
+      "blockedBy": "Cannot access /series UI due auth route redirection plus login runtime env failure."
+    },
+    {
+      "id": "VAL-FIX-004",
+      "blockedBy": "Ideas flow inaccessible because auth/login surface fails before rendering."
+    },
+    {
+      "id": "VAL-FIX-005",
+      "blockedBy": "Story Bank route blocked behind broken auth runtime."
+    },
+    {
+      "id": "VAL-FIX-006",
+      "blockedBy": "Mobile nav cannot be validated because authenticated shell never loads."
+    },
+    {
+      "id": "VAL-FIX-007",
+      "blockedBy": "Font assertion scoped to app headings could not be measured due auth runtime failure."
+    },
+    {
+      "id": "VAL-FIX-010",
+      "blockedBy": "Library UI and bulk actions unavailable due missing auth env runtime prerequisites."
+    },
+    {
+      "id": "VAL-FIX-011",
+      "blockedBy": "Dashboard prompt component never mounted due auth runtime failure."
+    },
+    {
+      "id": "VAL-MU-001",
+      "blockedBy": "Cannot create/authenticate test user because login page crashes at runtime from missing NEXT_PUBLIC_INSFORGE_* vars."
+    },
+    {
+      "id": "VAL-MU-002",
+      "blockedBy": "Onboarding flow blocked by inability to establish authenticated session."
+    },
+    {
+      "id": "VAL-MU-003",
+      "blockedBy": "Dependent prerequisite (successful signup/onboarding) is blocked by missing env vars."
+    },
+    {
+      "id": "VAL-MU-005",
+      "blockedBy": "Custom-pillar propagation cannot be exercised without authenticated user session."
+    },
+    {
+      "id": "VAL-MU-006",
+      "blockedBy": "Assertion requires logged-in non-original user context, blocked by missing NEXT_PUBLIC_INSFORGE_* env vars."
+    },
+    {
+      "id": "VAL-UX-001",
+      "blockedBy": "Library page never renders due auth runtime blocker."
+    },
+    {
+      "id": "VAL-UX-002",
+      "blockedBy": "Ideas page unavailable behind broken auth runtime."
+    },
+    {
+      "id": "VAL-UX-003",
+      "blockedBy": "Story Bank route blocked before UI render."
+    },
+    {
+      "id": "VAL-UX-004",
+      "blockedBy": "Series page inaccessible due auth runtime failure."
+    },
+    {
+      "id": "VAL-UX-005",
+      "blockedBy": "Data-fetching views unavailable due upstream auth env blocker."
+    },
+    {
+      "id": "VAL-UX-006",
+      "blockedBy": "Cannot validate app-level error boundary behavior while runtime fails at configuration bootstrap."
+    },
+    {
+      "id": "VAL-CROSS-001",
+      "blockedBy": "Journey blocked at first auth step due missing NEXT_PUBLIC_INSFORGE_* vars."
+    },
+    {
+      "id": "VAL-CROSS-002",
+      "blockedBy": "Lifecycle flow blocked by inability to authenticate/load protected pages."
+    },
+    {
+      "id": "VAL-CROSS-003",
+      "blockedBy": "Cross-flow prerequisites unavailable due auth runtime blocker."
+    },
+    {
+      "id": "VAL-CROSS-005",
+      "blockedBy": "Flow blocked because authenticated app shell cannot initialize."
+    },
+    {
+      "id": "VAL-CROSS-007",
+      "blockedBy": "Mobile nav validation blocked by auth/login runtime failure."
+    },
+    {
+      "id": "VAL-CROSS-008",
+      "blockedBy": "Persistence propagation flow blocked by missing frontend env required for auth runtime."
+    },
+    {
+      "id": "VAL-FIX-008",
+      "blockedBy": "Blocked by missing valid authenticated InsForge session cookie; route exits at auth guard before custom-pillar insert path can be validated."
+    },
+    {
+      "id": "VAL-FIX-009",
+      "blockedBy": "Blocked by auth prerequisite; unable to reach Zod validation branch that should return 400 for invalid payloads."
+    },
+    {
+      "id": "VAL-MU-004",
+      "blockedBy": "Blocked by missing valid authenticated InsForge session; cannot observe generated output to confirm per-user context behavior."
+    }
+  ],
+  "appliedUpdates": [
+    {
+      "target": "user-testing.md",
+      "description": "Documented runtime blocker details for missing NEXT_PUBLIC InsForge env vars and auth-form failure mode on /login when .env.local is absent.",
+      "source": "flow-report"
+    },
+    {
+      "target": "synthesis.json",
+      "description": "Removed VAL-CROSS-006 from this milestone validation scope and deferred it to the video-studio feature per orchestrator override.",
+      "source": "override"
+    }
+  ],
+  "previousRound": null
+}

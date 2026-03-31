@@ -4,7 +4,7 @@ import { STATUSES, STATUS_LABELS } from '@/lib/constants';
 import type { Status } from '@/lib/constants';
 
 const DOT_COLORS: Record<Status, string> = {
-  idea: '#94A3B8',
+  idea: '#71717A',
   scripted: '#6366F1',
   filmed: '#F59E0B',
   edited: '#6366F1',
@@ -38,7 +38,7 @@ export default function StatusPipeline({ current, onChange }: StatusPipelineProp
                 borderColor: DOT_COLORS[s],
               }}
             />
-            <span className="text-[10px] text-[#94A3B8] group-hover:text-[#0F172A] transition-colors capitalize font-medium tracking-[0.05em]" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+            <span className="text-[10px] text-[#71717A] group-hover:text-[#FAFAFA] transition-colors capitalize font-medium tracking-[0.05em]" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
               {STATUS_LABELS[s]}
             </span>
           </button>

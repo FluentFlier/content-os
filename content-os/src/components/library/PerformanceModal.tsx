@@ -34,14 +34,14 @@ export default function PerformanceModal({ post, onSave, onClose }: PerformanceM
     });
   }
 
-  const inputClass = "w-full bg-[#F8FAFC] border-[0.5px] border-[#0F172A]/12 rounded-[7px] px-3 py-1.5 text-[13px] text-[#0F172A] focus:outline-none focus:border-[#0F172A]/40 transition-colors";
+  const inputClass = "w-full bg-[#18181B] border-[0.5px] border-[#FAFAFA]/12 rounded-[7px] px-3 py-1.5 text-[13px] text-[#FAFAFA] focus:outline-none focus:border-[#FAFAFA]/40 transition-colors";
 
   return (
-    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-[#0F172A]/30">
-      <div className="bg-[#FFFFFF] border-[0.5px] border-[#0F172A]/12 rounded-[12px] p-6 w-full max-w-md mx-4">
+    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/40">
+      <div className="bg-[#09090B] border-[0.5px] border-[#FAFAFA]/12 rounded-[12px] p-6 w-full max-w-md mx-4">
         <div className="flex items-center justify-between mb-5">
-          <h3 className="font-heading text-[18px] font-[700] text-[#0F172A]">Log Performance</h3>
-          <button onClick={onClose} className="text-[#94A3B8] hover:text-[#0F172A] transition-colors">
+          <h3 className="font-heading text-[18px] font-[700] text-[#FAFAFA]">Log Performance</h3>
+          <button onClick={onClose} className="text-[#71717A] hover:text-[#FAFAFA] transition-colors">
             <X size={18} />
           </button>
         </div>
@@ -69,7 +69,7 @@ export default function PerformanceModal({ post, onSave, onClose }: PerformanceM
             <button
               type="button"
               onClick={onClose}
-              className="px-[14px] py-[7px] text-[13px] text-[#94A3B8] hover:text-[#0F172A] border-[0.5px] border-[#0F172A]/12 rounded-[7px] transition-colors"
+              className="px-[14px] py-[7px] text-[13px] text-[#71717A] hover:text-[#FAFAFA] border-[0.5px] border-[#FAFAFA]/12 rounded-[7px] transition-colors"
             >
               Cancel
             </button>
@@ -89,7 +89,7 @@ export default function PerformanceModal({ post, onSave, onClose }: PerformanceM
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="text-[11px] text-[#94A3B8] mb-1 block font-medium tracking-[0.05em]">{label}</span>
+      <span className="text-[11px] text-[#71717A] mb-1 block font-medium tracking-[0.05em]">{label}</span>
       {children}
     </label>
   );
@@ -103,7 +103,7 @@ function NumberField({ label, value, onChange }: { label: string; value: number;
         min={0}
         value={value}
         onChange={(e) => onChange(parseInt(e.target.value) || 0)}
-        className="w-full bg-[#F8FAFC] border-[0.5px] border-[#0F172A]/12 rounded-[7px] px-3 py-1.5 text-[13px] text-[#0F172A] focus:outline-none focus:border-[#0F172A]/40 transition-colors"
+        className="w-full bg-[#18181B] border-[0.5px] border-[#FAFAFA]/12 rounded-[7px] px-3 py-1.5 text-[13px] text-[#FAFAFA] focus:outline-none focus:border-[#FAFAFA]/40 transition-colors"
       />
     </Field>
   );

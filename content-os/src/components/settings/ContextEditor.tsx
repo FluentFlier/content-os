@@ -17,7 +17,7 @@ export default function ContextEditor({
 }: ContextEditorProps) {
   return (
     <>
-      <p className="text-sm text-[#94A3B8] mb-3">
+      <p className="text-sm text-[#71717A] mb-3">
         Update this when something big changes. This text is appended to every
         AI call to keep the AI current.
       </p>
@@ -27,7 +27,7 @@ export default function ContextEditor({
         onBlur={onSave}
         placeholder="Add context the AI should always know about you..."
         rows={20}
-        className="w-full bg-[#F8FAFC] border-[0.5px] border-[#0F172A]/12 rounded-[7px] px-4 py-2.5 text-[#0F172A] placeholder:text-[#94A3B8] focus:outline-none focus:border-[#0F172A]/40 transition-colors resize-none mb-4"
+        className="w-full bg-[#18181B] border-[0.5px] border-[#FAFAFA]/12 rounded-[7px] px-4 py-2.5 text-[#FAFAFA] placeholder:text-[#71717A] focus:outline-none focus:border-[#FAFAFA]/40 transition-colors resize-none mb-4"
       />
       <SaveButton onClick={onSave} loading={saving} saved={saved} />
     </>

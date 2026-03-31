@@ -71,7 +71,7 @@ export default function PostTable({ posts, selected, onSelect, onSelectAll, onCl
     <div className="overflow-x-auto">
       <table className="w-full text-[13px]">
         <thead>
-          <tr className="border-b-[0.5px] border-[#0F172A]/12 text-[#94A3B8] text-left">
+          <tr className="border-b-[0.5px] border-[#FAFAFA]/12 text-[#71717A] text-left">
             <th className="py-2 px-2 w-8">
               <input
                 type="checkbox"
@@ -83,7 +83,7 @@ export default function PostTable({ posts, selected, onSelect, onSelectAll, onCl
             {COLUMNS.map(([key, label]) => (
               <th
                 key={key}
-                className="py-2 px-2 font-medium cursor-pointer hover:text-[#0F172A] select-none text-[13px]"
+                className="py-2 px-2 font-medium cursor-pointer hover:text-[#FAFAFA] select-none text-[13px]"
                 onClick={() => toggleSort(key)}
               >
                 <span className="inline-flex items-center gap-1">
@@ -98,7 +98,7 @@ export default function PostTable({ posts, selected, onSelect, onSelectAll, onCl
           {sorted.map((post) => (
             <tr
               key={post.id}
-              className="border-b-[0.5px] border-[#0F172A]/12 hover:bg-[#F1F5F9] cursor-pointer transition-colors"
+              className="border-b-[0.5px] border-[#FAFAFA]/12 hover:bg-[#27272A] cursor-pointer transition-colors"
               onClick={() => onClickPost(post)}
             >
               <td className="py-2.5 px-2">
@@ -110,18 +110,18 @@ export default function PostTable({ posts, selected, onSelect, onSelectAll, onCl
                   className="w-4 h-4 accent-[#6366F1]"
                 />
               </td>
-              <td className="py-2.5 px-2 text-[#0F172A] font-medium max-w-[200px] truncate">
+              <td className="py-2.5 px-2 text-[#FAFAFA] font-medium max-w-[200px] truncate">
                 {post.title}
               </td>
               <td className="py-2.5 px-2">
                 <PillarBadge pillar={post.pillar} />
               </td>
-              <td className="py-2.5 px-2 text-[#94A3B8] capitalize">{post.platform}</td>
+              <td className="py-2.5 px-2 text-[#71717A] capitalize">{post.platform}</td>
               <td className="py-2.5 px-2">
                 <StatusBadge status={post.status} />
               </td>
-              <td className="py-2.5 px-2 text-[#94A3B8]">{formatDateShort(post.scheduled_date)}</td>
-              <td className="py-2.5 px-2 text-[#94A3B8]">
+              <td className="py-2.5 px-2 text-[#71717A]">{formatDateShort(post.scheduled_date)}</td>
+              <td className="py-2.5 px-2 text-[#71717A]">
                 {post.views !== null ? `${post.views} views` : '--'}
               </td>
             </tr>

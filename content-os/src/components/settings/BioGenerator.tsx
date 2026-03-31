@@ -47,10 +47,10 @@ export default function BioGenerator({
           {bios.map((card) => (
             <div
               key={card.platform}
-              className="bg-[#F8FAFC] border-[0.5px] border-[#0F172A]/12 rounded-[7px] p-4"
+              className="bg-[#18181B] border-[0.5px] border-[#FAFAFA]/12 rounded-[7px] p-4"
             >
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-[#0F172A]">
+                <span className="text-sm font-medium text-[#FAFAFA]">
                   {card.platform}
                 </span>
                 <div className="flex items-center gap-2">
@@ -58,7 +58,7 @@ export default function BioGenerator({
                     className={`text-xs ${
                       card.bio.length > card.limit
                         ? "text-[#6366F1]"
-                        : "text-[#94A3B8]"
+                        : "text-[#71717A]"
                     }`}
                   >
                     {card.bio.length}/{card.limit}
@@ -66,7 +66,7 @@ export default function BioGenerator({
                   <button
                     type="button"
                     onClick={() => copyBio(card.platform, card.bio)}
-                    className="text-[#94A3B8] hover:text-[#0F172A] transition-colors"
+                    className="text-[#71717A] hover:text-[#FAFAFA] transition-colors"
                   >
                     {copiedBio === card.platform ? (
                       <Check size={16} className="text-[#3B6D11]" />
@@ -88,7 +88,7 @@ export default function BioGenerator({
                   );
                 }}
                 rows={3}
-                className="w-full bg-[#FFFFFF] border-[0.5px] border-[#0F172A]/12 rounded-[7px] px-3 py-2 text-sm text-[#0F172A] focus:outline-none focus:border-[#0F172A]/40 transition-colors resize-none"
+                className="w-full bg-[#09090B] border-[0.5px] border-[#FAFAFA]/12 rounded-[7px] px-3 py-2 text-sm text-[#FAFAFA] focus:outline-none focus:border-[#FAFAFA]/40 transition-colors resize-none"
               />
             </div>
           ))}

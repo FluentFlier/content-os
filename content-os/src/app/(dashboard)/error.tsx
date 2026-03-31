@@ -17,10 +17,10 @@ export default function DashboardError({
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
       <AlertTriangle className="w-12 h-12 text-[#6366F1] mb-4" />
-      <h2 className="font-heading text-[22px] font-[800] text-[#0F172A] mb-2">
+      <h2 className="font-heading text-[22px] font-[800] text-[#FAFAFA] mb-2">
         Something went wrong
       </h2>
-      <p className="text-[#94A3B8] text-[13px] mb-6 max-w-md">
+      <p className="text-[#71717A] text-[13px] mb-6 max-w-md">
         An unexpected error occurred while loading this page. Please try again.
       </p>
       <button

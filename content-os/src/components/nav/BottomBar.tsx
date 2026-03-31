@@ -124,7 +124,7 @@ const moreItems = [
   {
     name: 'Settings',
     href: '/settings',
-    dotColor: '#94A3B8',
+    dotColor: '#71717A',
     icon: (
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="10" cy="10" r="3" />
@@ -164,7 +164,7 @@ export default function BottomBar() {
       {/* Backdrop */}
       {moreOpen && (
         <div
-          className="fixed inset-0 z-40 bg-[#0F172A]/30 md:hidden"
+          className="fixed inset-0 z-40 bg-black/40 md:hidden"
           onClick={closeMore}
         />
       )}
@@ -173,8 +173,8 @@ export default function BottomBar() {
       {moreOpen && (
         <div className="fixed bottom-14 left-0 right-0 z-40 md:hidden pb-[env(safe-area-inset-bottom)]">
           <div
-            className="mx-3 mb-2 rounded-[12px] bg-[#FFFFFF] p-3 space-y-1 animate-slide-in"
-            style={{ border: '0.5px solid rgba(26,23,20,0.12)', boxShadow: '0 -4px 20px rgba(26,23,20,0.08)' }}
+            className="mx-3 mb-2 rounded-[12px] bg-[#09090B] p-3 space-y-1 animate-slide-in"
+            style={{ border: '0.5px solid rgba(255,255,255,0.12)', boxShadow: '0 -4px 20px rgba(255,255,255,0.08)' }}
           >
             {moreItems.map((item) => {
               const isActive =
@@ -185,8 +185,8 @@ export default function BottomBar() {
                   href={item.href}
                   className={`flex items-center gap-3 px-3 py-2.5 rounded-[7px] min-h-[44px] transition-all duration-100 ${
                     isActive
-                      ? 'bg-[#EEF2FF] text-[#6366F1]'
-                      : 'text-[#475569] hover:bg-[#F8FAFC]'
+                      ? 'bg-[rgba(99,102,241,0.12)] text-[#6366F1]'
+                      : 'text-[#A1A1AA] hover:bg-[#18181B]'
                   }`}
                   onClick={closeMore}
                 >
@@ -207,8 +207,8 @@ export default function BottomBar() {
 
       {/* Bottom bar */}
       <nav
-        className="fixed bottom-0 left-0 right-0 md:hidden bg-[#F8FAFC] z-40 pb-[env(safe-area-inset-bottom)]"
-        style={{ borderTop: '0.5px solid rgba(26,23,20,0.12)' }}
+        className="fixed bottom-0 left-0 right-0 md:hidden bg-[#18181B] z-40 pb-[env(safe-area-inset-bottom)]"
+        style={{ borderTop: '0.5px solid rgba(255,255,255,0.12)' }}
       >
         <div className="flex items-center justify-around h-14">
           {primaryItems.map((item) => {
@@ -220,7 +220,7 @@ export default function BottomBar() {
                 key={item.name}
                 href={item.href}
                 className={`flex flex-col items-center justify-center gap-0.5 flex-1 py-1 transition-all duration-100 ${
-                  isActive ? 'text-[#6366F1]' : 'text-[#475569]'
+                  isActive ? 'text-[#6366F1]' : 'text-[#A1A1AA]'
                 }`}
                 onClick={() => moreOpen && closeMore()}
               >
@@ -245,7 +245,7 @@ export default function BottomBar() {
             type="button"
             onClick={() => setMoreOpen((prev) => !prev)}
             className={`flex flex-col items-center justify-center gap-0.5 flex-1 py-1 transition-all duration-100 ${
-              moreOpen || isMoreActive ? 'text-[#6366F1]' : 'text-[#475569]'
+              moreOpen || isMoreActive ? 'text-[#6366F1]' : 'text-[#A1A1AA]'
             }`}
           >
             <div className="relative">

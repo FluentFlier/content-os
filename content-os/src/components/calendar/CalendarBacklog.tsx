@@ -22,9 +22,9 @@ export default function CalendarBacklog({
   fillDisabled,
 }: CalendarBacklogProps) {
   return (
-    <div className="lg:w-[280px] lg:border-l-[0.5px] lg:border-[#0F172A]/12 lg:pl-4 shrink-0">
+    <div className="lg:w-[280px] lg:border-l-[0.5px] lg:border-[#FAFAFA]/12 lg:pl-4 shrink-0">
       <div className="flex items-center justify-between mb-3">
-        <h2 className="font-heading text-[16px] font-[700] text-[#0F172A]">
+        <h2 className="font-heading text-[16px] font-[700] text-[#FAFAFA]">
           Unscheduled
         </h2>
         <button
@@ -38,7 +38,7 @@ export default function CalendarBacklog({
       </div>
 
       {backlog.length === 0 ? (
-        <p className="text-[13px] text-[#94A3B8]">No unscheduled posts.</p>
+        <p className="text-[13px] text-[#71717A]">No unscheduled posts.</p>
       ) : (
         <Droppable droppableId="backlog" isDropDisabled>
           {(provided) => (
@@ -57,15 +57,15 @@ export default function CalendarBacklog({
                       onClick={() => onPostClick(p)}
                       className={`rounded-[12px] border-[0.5px] p-2.5 cursor-grab transition-colors ${
                         dragSnapshot.isDragging
-                          ? 'border-[#6366F1] bg-[#EEF2FF] shadow-lg rotate-2'
+                          ? 'border-[#6366F1] bg-[rgba(99,102,241,0.12)] shadow-lg rotate-2'
                           : selectedPostId === p.id
-                          ? 'border-[#6366F1] bg-[#EEF2FF]'
-                          : 'border-[#0F172A]/12 bg-[#FFFFFF] hover:border-[#0F172A]/25'
+                          ? 'border-[#6366F1] bg-[rgba(99,102,241,0.12)]'
+                          : 'border-[#FAFAFA]/12 bg-[#09090B] hover:border-[#FAFAFA]/25'
                       }`}
                     >
                       <div className="flex items-center gap-1.5 mb-1">
                         <PillarDot pillar={p.pillar} />
-                        <span className="text-[13px] text-[#0F172A] font-medium truncate">
+                        <span className="text-[13px] text-[#FAFAFA] font-medium truncate">
                           {p.title}
                         </span>
                       </div>

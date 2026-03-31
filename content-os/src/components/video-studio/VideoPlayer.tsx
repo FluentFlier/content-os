@@ -125,14 +125,14 @@ export default function VideoPlayer({ src, title }: VideoPlayerProps) {
         {!playing && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/20">
             <div className="w-14 h-14 rounded-full bg-white/90 flex items-center justify-center">
-              <Play className="w-6 h-6 text-[#0F172A] ml-0.5" />
+              <Play className="w-6 h-6 text-[#09090B] ml-0.5" />
             </div>
           </div>
         )}
       </div>
 
       {/* Controls */}
-      <div className="bg-[#0F172A] px-3 py-2 space-y-1.5">
+      <div className="bg-[#09090B] px-3 py-2 space-y-1.5">
         {title && (
           <p className="font-body text-[12px] text-white/70 truncate">
             {title}

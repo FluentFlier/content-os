@@ -19,7 +19,7 @@ export default function PostCard({ post, selected, onSelect, onClick }: PostCard
 
   return (
     <div
-      className="bg-[#FFFFFF] border-[0.5px] border-[#0F172A]/12 rounded-[12px] cursor-pointer hover:border-[#0F172A]/25 transition-colors relative overflow-hidden"
+      className="bg-[#09090B] border-[0.5px] border-[#FAFAFA]/12 rounded-[12px] cursor-pointer hover:border-[#FAFAFA]/25 transition-colors relative overflow-hidden"
       onClick={() => onClick(post)}
     >
       {/* Pillar left accent - 3px bar */}
@@ -42,7 +42,7 @@ export default function PostCard({ post, selected, onSelect, onClick }: PostCard
         />
 
         {/* Title */}
-        <h3 className="font-[500] text-[#0F172A] text-[13px] truncate pr-6 mb-2 leading-[1.3]" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+        <h3 className="font-[500] text-[#FAFAFA] text-[13px] truncate pr-6 mb-2 leading-[1.3]" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
           {post.title}
         </h3>
 
@@ -54,13 +54,13 @@ export default function PostCard({ post, selected, onSelect, onClick }: PostCard
 
         {/* Script preview */}
         {post.script && (
-          <p className="text-[13px] text-[#475569] leading-[1.55] mb-3 line-clamp-2">
+          <p className="text-[13px] text-[#A1A1AA] leading-[1.55] mb-3 line-clamp-2">
             {truncate(post.script, 120)}
           </p>
         )}
 
         {/* Footer */}
-        <div className="flex items-center justify-between text-[11px] text-[#94A3B8]">
+        <div className="flex items-center justify-between text-[11px] text-[#71717A]">
           <span>{formatDateShort(post.scheduled_date)}</span>
           {post.status === 'posted' && (post.views !== null || post.saves !== null) && (
             <span className="flex gap-2">

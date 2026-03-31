@@ -59,14 +59,14 @@ Numbered 1-8. One per line. No explanation. No em dashes.`;
   return (
     <div className="space-y-5">
       <div>
-        <label className="block font-['Space_Grotesk'] text-[13px] text-[#475569] mb-2">
+        <label className="block font-body text-[13px] text-[#A1A1AA] mb-2">
           Topic (optional)
         </label>
         <input
           value={topic}
           onChange={(e) => setTopic(e.target.value)}
           placeholder="Leave blank for general hooks or enter a topic..."
-          className="w-full bg-[#F8FAFC] border-[0.5px] border-[rgba(26,23,20,0.12)] rounded-[7px] px-4 py-3 font-['Space_Grotesk'] text-[13px] text-[#0F172A] placeholder:text-[#94A3B8] focus:outline-none focus:border-[rgba(26,23,20,0.40)] transition-colors duration-100"
+          className="w-full bg-[#18181B] border-[0.5px] border-[rgba(255,255,255,0.12)] rounded-[7px] px-4 py-3 font-body text-[13px] text-[#FAFAFA] placeholder:text-[#71717A] focus:outline-none focus:border-[rgba(255,255,255,0.40)] transition-colors duration-100"
         />
       </div>
 
@@ -74,23 +74,23 @@ Numbered 1-8. One per line. No explanation. No em dashes.`;
         Generate 8 Hooks
       </Button>
 
-      {error && <p className="font-['Space_Grotesk'] text-[13px] text-[#6366F1]">{error}</p>}
+      {error && <p className="font-body text-[13px] text-[#6366F1]">{error}</p>}
 
       {loading && (
-        <div className="bg-[#F8FAFC] border-[0.5px] border-[rgba(26,23,20,0.12)] rounded-[12px] p-[13px_14px]">
+        <div className="bg-[#18181B] border-[0.5px] border-[rgba(255,255,255,0.12)] rounded-[12px] p-[13px_14px]">
           <SkeletonLines count={3} />
         </div>
       )}
 
       {hooks.length > 0 && (
-        <div className="bg-[#F8FAFC] border-[0.5px] border-[rgba(26,23,20,0.12)] rounded-[12px] p-[13px_14px] space-y-2">
+        <div className="bg-[#18181B] border-[0.5px] border-[rgba(255,255,255,0.12)] rounded-[12px] p-[13px_14px] space-y-2">
           {hooks.map((hook, i) => (
             <div
               key={i}
-              className="flex items-start justify-between gap-3 py-2 border-b-[0.5px] border-[rgba(26,23,20,0.12)] last:border-0"
+              className="flex items-start justify-between gap-3 py-2 border-b-[0.5px] border-[rgba(255,255,255,0.12)] last:border-0"
             >
-              <p className="font-['Space_Grotesk'] text-[13px] text-[#0F172A] flex-1 leading-[1.55]">
-                <span className="text-[#94A3B8] font-medium mr-2">
+              <p className="font-body text-[13px] text-[#FAFAFA] flex-1 leading-[1.55]">
+                <span className="text-[#71717A] font-medium mr-2">
                   {i + 1}.
                 </span>
                 {hook}

@@ -9,7 +9,7 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
     return (
       <select
         ref={ref}
-        className={`bg-[#F8FAFC] border-[0.5px] border-[rgba(26,23,20,0.12)] text-[#0F172A] rounded-[7px] px-3 py-2 text-[13px] font-['Space_Grotesk'] focus:outline-none focus:border-[rgba(26,23,20,0.40)] ${className}`}
+        className={`bg-[#18181B] border-[0.5px] border-[rgba(255,255,255,0.12)] text-[#FAFAFA] rounded-[7px] px-3 py-2 text-[13px] font-body focus:outline-none focus:border-[rgba(255,255,255,0.40)] ${className}`}
         {...rest}
       >
         {children}

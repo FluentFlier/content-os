@@ -33,7 +33,7 @@ export default function PlatformDefaults({
     <>
       <div className="space-y-4 mb-4">
         <div>
-          <label className="block text-sm text-[#94A3B8] mb-1.5">
+          <label className="block text-sm text-[#71717A] mb-1.5">
             Default platform
           </label>
           <select
@@ -41,7 +41,7 @@ export default function PlatformDefaults({
             onChange={(e) =>
               onDefaultPlatformChange(e.target.value as Platform)
             }
-            className="w-full bg-[#F8FAFC] border-[0.5px] border-[#0F172A]/12 rounded-[7px] px-3 py-2 text-sm text-[#0F172A] focus:outline-none focus:border-[#0F172A]/40 transition-colors"
+            className="w-full bg-[#18181B] border-[0.5px] border-[#FAFAFA]/12 rounded-[7px] px-3 py-2 text-sm text-[#FAFAFA] focus:outline-none focus:border-[#FAFAFA]/40 transition-colors"
           >
             {PLATFORMS.map((p) => (
               <option key={p} value={p}>
@@ -51,7 +51,7 @@ export default function PlatformDefaults({
           </select>
         </div>
         <div className="flex items-center justify-between">
-          <span className="text-sm text-[#0F172A]">
+          <span className="text-sm text-[#FAFAFA]">
             Cross-post reminders
           </span>
           <Toggle
@@ -79,7 +79,7 @@ function Toggle({
       aria-checked={enabled}
       onClick={() => onChange(!enabled)}
       className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-        enabled ? "bg-[#6366F1]" : "bg-[#F1F5F9]"
+        enabled ? "bg-[#6366F1]" : "bg-[#27272A]"
       }`}
     >
       <span

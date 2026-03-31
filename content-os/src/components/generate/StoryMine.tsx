@@ -163,7 +163,7 @@ Use every specific detail from the memory. Never genericize. No em dashes.`;
   return (
     <div className="space-y-5">
       <div>
-        <label className="block font-['Space_Grotesk'] text-[13px] text-[#475569] mb-2">
+        <label className="block font-body text-[13px] text-[#A1A1AA] mb-2">
           Describe any memory or experience.
         </label>
         <textarea
@@ -171,9 +171,9 @@ Use every specific detail from the memory. Never genericize. No em dashes.`;
           onChange={(e) => setMemory(e.target.value)}
           rows={6}
           placeholder="A pivotal moment from your work. Something that happened while building your product. The day you almost quit. A real experience that shaped how you think. Anything that felt real."
-          className="w-full bg-[#F8FAFC] border-[0.5px] border-[rgba(26,23,20,0.12)] rounded-[7px] px-4 py-3 font-['Space_Grotesk'] text-[13px] text-[#0F172A] placeholder:text-[#94A3B8] focus:outline-none focus:border-[rgba(26,23,20,0.40)] resize-none transition-colors duration-100"
+          className="w-full bg-[#18181B] border-[0.5px] border-[rgba(255,255,255,0.12)] rounded-[7px] px-4 py-3 font-body text-[13px] text-[#FAFAFA] placeholder:text-[#71717A] focus:outline-none focus:border-[rgba(255,255,255,0.40)] resize-none transition-colors duration-100"
         />
-        <p className="font-['Space_Grotesk'] text-[11px] text-[#94A3B8] mt-1">
+        <p className="font-body text-[11px] text-[#71717A] mt-1">
           A pivotal moment from your work. Something that happened while building your product.
           The day you almost quit. A real experience that shaped how you think. Anything that felt real.
         </p>
@@ -182,13 +182,13 @@ Use every specific detail from the memory. Never genericize. No em dashes.`;
       <button
         onClick={generate}
         disabled={loading || !memory.trim()}
-        className="inline-flex items-center justify-center gap-2 rounded-[7px] font-['Space_Grotesk'] font-medium text-[13px] px-5 py-[10px] bg-[#F59E0B] text-[#0F172A] hover:opacity-90 transition-all duration-100 disabled:opacity-50 disabled:pointer-events-none"
+        className="inline-flex items-center justify-center gap-2 rounded-[7px] font-body font-medium text-[13px] px-5 py-[10px] bg-[#F59E0B] text-[#09090B] hover:opacity-90 transition-all duration-100 disabled:opacity-50 disabled:pointer-events-none"
       >
-        {loading && <span className="h-4 w-4 rounded bg-[#F1F5F9] animate-pulse" />}
+        {loading && <span className="h-4 w-4 rounded bg-[#27272A] animate-pulse" />}
         Mine It
       </button>
 
-      {error && <p className="font-['Space_Grotesk'] text-[13px] text-[#6366F1]">{error}</p>}
+      {error && <p className="font-body text-[13px] text-[#6366F1]">{error}</p>}
 
       <GenerateOutput text={output} loading={loading}>
         <Button

@@ -39,7 +39,7 @@ function StepIndicator({ current, total }: { current: number; total: number }) {
               ? 'bg-[#6366F1] flex-[2]'
               : i === current
               ? 'bg-[#6366F1]/40 flex-[2]'
-              : 'bg-[#F1F5F9] flex-1'
+              : 'bg-[#27272A] flex-1'
           }`}
         />
       ))}
@@ -180,9 +180,9 @@ export default function OnboardingPage() {
   /* ---- Shared input classes ---- */
 
   const inputCls =
-    'w-full bg-[#F8FAFC] border-[0.5px] border-[#0F172A]/12 rounded-[7px] px-4 py-3 font-body text-[13px] text-[#0F172A] placeholder:text-[#94A3B8] focus:outline-none focus:border-[#0F172A]/40 transition-colors';
+    'w-full bg-[#18181B] border-[0.5px] border-[#FAFAFA]/12 rounded-[7px] px-4 py-3 font-body text-[13px] text-[#FAFAFA] placeholder:text-[#71717A] focus:outline-none focus:border-[#FAFAFA]/40 transition-colors';
   const textareaCls = `${inputCls} resize-none`;
-  const labelCls = 'block font-body text-[13px] text-[#475569] mb-2';
+  const labelCls = 'block font-body text-[13px] text-[#A1A1AA] mb-2';
 
   /* ---- Step renderers ---- */
 
@@ -193,10 +193,10 @@ export default function OnboardingPage() {
         return (
           <div className="space-y-5">
             <div>
-              <h2 className="font-display font-[700] text-[20px] text-[#0F172A] mb-1">
+              <h2 className="font-display font-[700] text-[20px] text-[#FAFAFA] mb-1">
                 {"Let's start with the basics"}
               </h2>
-              <p className="font-body text-[13px] text-[#94A3B8]">
+              <p className="font-body text-[13px] text-[#71717A]">
                 What should we call you?
               </p>
             </div>
@@ -231,10 +231,10 @@ export default function OnboardingPage() {
         return (
           <div className="space-y-5">
             <div>
-              <h2 className="font-display font-[700] text-[20px] text-[#0F172A] mb-1">
+              <h2 className="font-display font-[700] text-[20px] text-[#FAFAFA] mb-1">
                 Define your content pillars
               </h2>
-              <p className="font-body text-[13px] text-[#94A3B8]">
+              <p className="font-body text-[13px] text-[#71717A]">
                 These are the core topics you create content about. Add at least one.
               </p>
             </div>
@@ -243,18 +243,18 @@ export default function OnboardingPage() {
               {pillars.map((pillar, i) => (
                 <div
                   key={i}
-                  className="border-[0.5px] border-[#0F172A]/12 rounded-[12px] p-4 space-y-3"
+                  className="border-[0.5px] border-[#FAFAFA]/12 rounded-[12px] p-4 space-y-3"
                   style={{ borderLeftColor: pillar.color, borderLeftWidth: 3 }}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-body text-[12px] font-medium text-[#94A3B8]">
+                    <span className="font-body text-[12px] font-medium text-[#71717A]">
                       Pillar {i + 1}
                     </span>
                     {pillars.length > 1 && (
                       <button
                         type="button"
                         onClick={() => removePillar(i)}
-                        className="text-[11px] text-[#94A3B8] hover:text-[#6366F1] transition-colors"
+                        className="text-[11px] text-[#71717A] hover:text-[#6366F1] transition-colors"
                       >
                         Remove
                       </button>
@@ -277,7 +277,7 @@ export default function OnboardingPage() {
                           onClick={() => updatePillar(i, 'color', color)}
                           className={`w-6 h-6 rounded-full transition-transform ${
                             pillar.color === color
-                              ? 'ring-2 ring-[#0F172A] ring-offset-1 ring-offset-[#FFFFFF] scale-110'
+                              ? 'ring-2 ring-[#FAFAFA] ring-offset-1 ring-offset-[#09090B] scale-110'
                               : 'hover:scale-110'
                           }`}
                           style={{ backgroundColor: color }}
@@ -300,7 +300,7 @@ export default function OnboardingPage() {
                 <button
                   type="button"
                   onClick={addPillar}
-                  className="w-full border-[0.5px] border-dashed border-[#0F172A]/12 rounded-[12px] py-3 text-[13px] text-[#94A3B8] hover:border-[#6366F1] hover:text-[#6366F1] transition-colors"
+                  className="w-full border-[0.5px] border-dashed border-[#FAFAFA]/12 rounded-[12px] py-3 text-[13px] text-[#71717A] hover:border-[#6366F1] hover:text-[#6366F1] transition-colors"
                 >
                   + Add pillar
                 </button>
@@ -314,10 +314,10 @@ export default function OnboardingPage() {
         return (
           <div className="space-y-5">
             <div>
-              <h2 className="font-display font-[700] text-[20px] text-[#0F172A] mb-1">
+              <h2 className="font-display font-[700] text-[20px] text-[#FAFAFA] mb-1">
                 Describe your voice
               </h2>
-              <p className="font-body text-[13px] text-[#94A3B8]">
+              <p className="font-body text-[13px] text-[#71717A]">
                 Help the AI match how you talk. Both fields are optional but recommended.
               </p>
             </div>
@@ -351,10 +351,10 @@ export default function OnboardingPage() {
         return (
           <div className="space-y-5">
             <div>
-              <h2 className="font-display font-[700] text-[20px] text-[#0F172A] mb-1">
+              <h2 className="font-display font-[700] text-[20px] text-[#FAFAFA] mb-1">
                 Add your context
               </h2>
-              <p className="font-body text-[13px] text-[#94A3B8]">
+              <p className="font-body text-[13px] text-[#71717A]">
                 Tell the AI about your background, current projects, anything it should always know.
                 You can update this later in Settings.
               </p>
@@ -384,10 +384,10 @@ export default function OnboardingPage() {
 
   return (
     <div className="max-w-lg mx-auto py-12 px-4">
-      <h1 className="font-display font-[800] text-[18px] text-[#0F172A] tracking-[0.16em] mb-2">
+      <h1 className="font-display font-[800] text-[18px] text-[#FAFAFA] tracking-[0.16em] mb-2">
         DISPATCH
       </h1>
-      <p className="font-body text-[13px] text-[#94A3B8] mb-6">
+      <p className="font-body text-[13px] text-[#71717A] mb-6">
         Step {step + 1} of {TOTAL_STEPS}
       </p>
 
@@ -404,7 +404,7 @@ export default function OnboardingPage() {
           <button
             type="button"
             onClick={handleBack}
-            className="rounded-[7px] py-[10px] px-[20px] font-body text-[13px] font-medium text-[#475569] border-[0.5px] border-[#0F172A]/12 hover:border-[#0F172A]/25 transition-colors"
+            className="rounded-[7px] py-[10px] px-[20px] font-body text-[13px] font-medium text-[#A1A1AA] border-[0.5px] border-[#FAFAFA]/12 hover:border-[#FAFAFA]/25 transition-colors"
           >
             Back
           </button>
@@ -417,7 +417,7 @@ export default function OnboardingPage() {
             type="button"
             onClick={handleFinish}
             disabled={loading}
-            className="rounded-[7px] py-[10px] px-[24px] text-[#FFFFFF] font-body text-[13px] font-medium bg-[#6366F1] hover:opacity-90 transition-all duration-100 disabled:opacity-40"
+            className="rounded-[7px] py-[10px] px-[24px] text-white font-body text-[13px] font-medium bg-[#6366F1] hover:opacity-90 transition-all duration-100 disabled:opacity-40"
           >
             {loading ? 'Setting up...' : 'Finish setup'}
           </button>
@@ -426,7 +426,7 @@ export default function OnboardingPage() {
             type="button"
             onClick={handleNext}
             disabled={!canProceed()}
-            className="rounded-[7px] py-[10px] px-[24px] text-[#FFFFFF] font-body text-[13px] font-medium bg-[#6366F1] hover:opacity-90 transition-all duration-100 disabled:opacity-40"
+            className="rounded-[7px] py-[10px] px-[24px] text-white font-body text-[13px] font-medium bg-[#6366F1] hover:opacity-90 transition-all duration-100 disabled:opacity-40"
           >
             Continue
           </button>

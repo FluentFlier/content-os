@@ -62,12 +62,12 @@ function ToastNotification({
 
   const styles =
     item.type === 'success'
-      ? 'bg-[#EAF3DE] text-[#3B6D11] border-[rgba(59,109,17,0.20)]'
-      : 'bg-[#EEF2FF] text-[#4338CA] border-[rgba(153,60,29,0.20)]';
+      ? 'bg-[rgba(16,185,129,0.15)] text-[#3B6D11] border-[rgba(59,109,17,0.20)]'
+      : 'bg-[rgba(99,102,241,0.12)] text-[#4338CA] border-[rgba(153,60,29,0.20)]';
 
   return (
     <div
-      className={`${styles} border-[0.5px] text-[13px] font-['Space_Grotesk'] font-medium px-4 py-2.5 rounded-[12px] animate-fade-in max-w-xs`}
+      className={`${styles} border-[0.5px] text-[13px] font-body font-medium px-4 py-2.5 rounded-[12px] animate-fade-in max-w-xs`}
     >
       {item.message}
     </div>

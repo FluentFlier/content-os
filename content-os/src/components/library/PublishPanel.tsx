@@ -27,10 +27,10 @@ interface PublishPanelProps {
 }
 
 const PLATFORM_CONFIG: Record<string, { label: string; color: string; charLimit: number; icon: string }> = {
-  twitter: { label: 'X', color: '#0F172A', charLimit: 280, icon: '𝕏' },
+  twitter: { label: 'X', color: '#E7E5E4', charLimit: 280, icon: '𝕏' },
   linkedin: { label: 'LinkedIn', color: '#0A66C2', charLimit: 3000, icon: 'in' },
   instagram: { label: 'Instagram', color: '#E4405F', charLimit: 2200, icon: 'IG' },
-  threads: { label: 'Threads', color: '#0F172A', charLimit: 500, icon: '@' },
+  threads: { label: 'Threads', color: '#E7E5E4', charLimit: 500, icon: '@' },
 };
 
 export default function PublishPanel({ postId, content, caption, onPublishSuccess }: PublishPanelProps) {
@@ -106,8 +106,8 @@ export default function PublishPanel({ postId, content, caption, onPublishSucces
   if (loading) {
     return (
       <div className="flex items-center gap-2 py-2">
-        <Loader2 size={14} className="animate-spin text-[#94A3B8]" />
-        <span className="text-[11px] text-[#94A3B8]">Loading accounts...</span>
+        <Loader2 size={14} className="animate-spin text-[#71717A]" />
+        <span className="text-[11px] text-[#71717A]">Loading accounts...</span>
       </div>
     );
   }
@@ -115,7 +115,7 @@ export default function PublishPanel({ postId, content, caption, onPublishSucces
   if (accounts.length === 0) {
     return (
       <div className="py-2">
-        <p className="text-[11px] text-[#94A3B8] mb-2">No accounts connected.</p>
+        <p className="text-[11px] text-[#71717A] mb-2">No accounts connected.</p>
         <Link
           href="/settings"
           className="inline-flex items-center gap-1.5 text-[11px] text-[#6366F1] hover:opacity-80 transition-opacity"
@@ -145,7 +145,7 @@ export default function PublishPanel({ postId, content, caption, onPublishSucces
                 type="button"
                 disabled={isPublishing || result?.success}
                 onClick={() => handlePublish(account.platform)}
-                className="flex-1 flex items-center gap-2 px-3 py-2 text-[11px] bg-[#F8FAFC] border-[0.5px] border-[#0F172A]/12 rounded-[7px] hover:border-[#0F172A]/25 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                className="flex-1 flex items-center gap-2 px-3 py-2 text-[11px] bg-[#18181B] border-[0.5px] border-[#FAFAFA]/12 rounded-[7px] hover:border-[#FAFAFA]/25 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 <span
                   className="w-5 h-5 rounded-[4px] flex items-center justify-center text-[9px] font-bold text-white shrink-0"
@@ -157,7 +157,7 @@ export default function PublishPanel({ postId, content, caption, onPublishSucces
                 {isPublishing ? (
                   <>
                     <Loader2 size={12} className="animate-spin" />
-                    <span className="text-[#475569]">Posting...</span>
+                    <span className="text-[#A1A1AA]">Posting...</span>
                   </>
                 ) : result?.success ? (
                   <>
@@ -165,11 +165,11 @@ export default function PublishPanel({ postId, content, caption, onPublishSucces
                     <span className="text-[#3B6D11]">Posted to {config.label}</span>
                   </>
                 ) : (
-                  <span className="text-[#0F172A]">Post to {config.label}</span>
+                  <span className="text-[#FAFAFA]">Post to {config.label}</span>
                 )}
 
                 {account.account_name && (
-                  <span className="ml-auto text-[10px] text-[#94A3B8]">{account.account_name}</span>
+                  <span className="ml-auto text-[10px] text-[#71717A]">{account.account_name}</span>
                 )}
               </button>
             </div>
@@ -184,7 +184,7 @@ export default function PublishPanel({ postId, content, caption, onPublishSucces
                   </span>
                 </>
               ) : (
-                <span className="text-[10px] text-[#94A3B8]">
+                <span className="text-[10px] text-[#71717A]">
                   {charCount}/{config.charLimit} characters
                 </span>
               )}

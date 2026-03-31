@@ -230,11 +230,11 @@ export default function IdeasPage() {
     <div className="max-w-3xl mx-auto space-y-6">
       {/* Header */}
       <div className="flex items-baseline justify-between">
-        <h1 className="font-heading text-[22px] font-[800] text-[#0F172A] leading-[1.2] tracking-[-0.02em]">
+        <h1 className="font-heading text-[22px] font-[800] text-[#FAFAFA] leading-[1.2] tracking-[-0.02em]">
           Ideas
         </h1>
         {!loading && ideas.length > 0 && (
-          <span className="text-[13px] text-[#94A3B8]">
+          <span className="text-[13px] text-[#71717A]">
             {ideas.length} idea{ideas.length !== 1 ? "s" : ""} ({unconvertedCount} unconverted)
           </span>
         )}
@@ -255,7 +255,7 @@ export default function IdeasPage() {
 
       {/* Filter bar */}
       <div className="flex flex-wrap items-center gap-3">
-        <div className="flex bg-[#F8FAFC] border-[0.5px] border-[#0F172A]/12 rounded-[7px] overflow-hidden">
+        <div className="flex bg-[#18181B] border-[0.5px] border-[#FAFAFA]/12 rounded-[7px] overflow-hidden">
           {(
             [
               ["all", "All"],
@@ -268,8 +268,8 @@ export default function IdeasPage() {
               onClick={() => setFilterMode(mode)}
               className={`px-3 py-1.5 text-[11px] font-medium transition-colors ${
                 filterMode === mode
-                  ? "bg-[#EEF2FF] text-[#6366F1]"
-                  : "text-[#94A3B8] hover:text-[#0F172A]"
+                  ? "bg-[rgba(99,102,241,0.12)] text-[#6366F1]"
+                  : "text-[#71717A] hover:text-[#FAFAFA]"
               }`}
             >
               {label}
@@ -280,7 +280,7 @@ export default function IdeasPage() {
         <select
           value={filterPillar}
           onChange={(e) => setFilterPillar(e.target.value)}
-          className="bg-[#F8FAFC] border-[0.5px] border-[#0F172A]/12 rounded-[7px] px-2.5 py-1.5 text-[11px] text-[#0F172A] focus:outline-none focus:border-[#0F172A]/40 transition-colors"
+          className="bg-[#18181B] border-[0.5px] border-[#FAFAFA]/12 rounded-[7px] px-2.5 py-1.5 text-[11px] text-[#FAFAFA] focus:outline-none focus:border-[#FAFAFA]/40 transition-colors"
         >
           <option value="all">All pillars</option>
           {pillarList.map((p) => (
@@ -295,15 +295,15 @@ export default function IdeasPage() {
       {loading ? (
         <div className="space-y-2">
           {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="flex items-center gap-3 px-3 py-3 bg-[#F8FAFC] rounded-[7px] animate-pulse">
-              <div className="w-4 h-4 rounded bg-[#F1F5F9] shrink-0" />
-              <div className="flex-1 h-4 bg-[#F1F5F9] rounded" />
-              <div className="w-16 h-5 bg-[#F1F5F9] rounded shrink-0" />
+            <div key={i} className="flex items-center gap-3 px-3 py-3 bg-[#18181B] rounded-[7px] animate-pulse">
+              <div className="w-4 h-4 rounded bg-[#27272A] shrink-0" />
+              <div className="flex-1 h-4 bg-[#27272A] rounded" />
+              <div className="w-16 h-5 bg-[#27272A] rounded shrink-0" />
             </div>
           ))}
         </div>
       ) : filtered.length === 0 ? (
-        <div className="text-[#94A3B8] text-[13px] py-12 text-center">
+        <div className="text-[#71717A] text-[13px] py-12 text-center">
           {ideas.length === 0
             ? "Nothing queued. Add an idea before you forget it."
             : "No ideas match your filters."}

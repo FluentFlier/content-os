@@ -1,0 +1,222 @@
+{
+  "groupId": "public-landing-login",
+  "testedAt": "2026-03-30T13:35:14.366399+00:00",
+  "isolation": {
+    "baseUrl": "http://localhost:3000",
+    "missionDir": "/Users/anirudhmanjesh/.factory/missions/fbcce583-7257-4bc1-9707-8c0ee4dcc7ec",
+    "browserSession": "val-public-landing-login",
+    "scope": "local app routes only; no destructive data mutations"
+  },
+  "toolsUsed": [
+    "agent-browser",
+    "curl"
+  ],
+  "assertions": [
+    {
+      "id": "VAL-LP-001",
+      "title": "Landing page loads at / for unauthenticated users",
+      "status": "pass",
+      "steps": [
+        {
+          "action": "Navigate to / without auth session",
+          "expected": "Public marketing landing renders",
+          "observed": "Landing rendered with hero, marketing copy, and CTA links"
+        },
+        {
+          "action": "Check HTTP response",
+          "expected": "HTTP 200",
+          "observed": "curl returned status=200 for GET /"
+        }
+      ],
+      "evidence": {
+        "screenshots": [
+          "multi-user-landing/public-landing-login/VAL-LP-001-landing-desktop.png"
+        ],
+        "consoleErrors": "none (landing-console-errors.txt empty)",
+        "network": "GET / -> 200 (multi-user-landing/public-landing-login/http-checks.txt)"
+      },
+      "issues": null
+    },
+    {
+      "id": "VAL-LP-002",
+      "title": "Landing page has required sections",
+      "status": "pass",
+      "steps": [
+        {
+          "action": "Inspect landing page sections and feature cards",
+          "expected": "Hero, Features (>=6 cards), How it works, CTA section present",
+          "observed": "All required sections detected; 6 feature items detected (AI Writing Tools, Content Library, Smart Calendar, Video Studio, Social Publishing, Analytics)"
+        }
+      ],
+      "evidence": {
+        "screenshots": [
+          "multi-user-landing/public-landing-login/VAL-LP-002-sections-fullpage.png"
+        ],
+        "consoleErrors": "none (landing-console-errors.txt empty)",
+        "network": "GET / -> 200; section check file: multi-user-landing/public-landing-login/VAL-LP-002-section-check.json"
+      },
+      "issues": null
+    },
+    {
+      "id": "VAL-LP-003",
+      "title": "Landing page CTAs link correctly",
+      "status": "pass",
+      "steps": [
+        {
+          "action": "Click primary Get Started CTA on landing",
+          "expected": "Navigate to /login?mode=signup",
+          "observed": "URL became http://localhost:3000/login?mode=signup"
+        },
+        {
+          "action": "Click Sign In link on landing",
+          "expected": "Navigate to /login",
+          "observed": "URL became http://localhost:3000/login"
+        }
+      ],
+      "evidence": {
+        "screenshots": [
+          "multi-user-landing/public-landing-login/VAL-LP-003-primary-cta-signup.png",
+          "multi-user-landing/public-landing-login/VAL-LP-003-signin-link-login.png"
+        ],
+        "consoleErrors": "Login route emits Missing NEXT_PUBLIC_INSFORGE_URL or NEXT_PUBLIC_INSFORGE_ANON_KEY (does not change URL-target assertion result)",
+        "network": "Link target check file: multi-user-landing/public-landing-login/VAL-LP-003-link-target-checks.txt"
+      },
+      "issues": null
+    },
+    {
+      "id": "VAL-LP-004",
+      "title": "Landing page responsive at 390px",
+      "status": "pass",
+      "steps": [
+        {
+          "action": "Set viewport to 390x844 and load /",
+          "expected": "No horizontal scroll; readable stacked layout; tappable CTAs",
+          "observed": "documentScrollWidth equals viewport width (390); hasHorizontalOverflow=false; CTA heights are >=44px for mobile CTA elements"
+        }
+      ],
+      "evidence": {
+        "screenshots": [
+          "multi-user-landing/public-landing-login/VAL-LP-004-mobile-390x844.png"
+        ],
+        "consoleErrors": "none on landing route after clear",
+        "network": "Mobile metrics file: multi-user-landing/public-landing-login/VAL-LP-004-mobile-metrics.json"
+      },
+      "issues": null
+    },
+    {
+      "id": "VAL-LP-005",
+      "title": "Landing page uses brand fonts",
+      "status": "pass",
+      "steps": [
+        {
+          "action": "Inspect computed styles on landing heading/body",
+          "expected": "Heading uses Syne; body uses Space Grotesk; warm light background",
+          "observed": "headingFontFamily=Syne..., bodyFontFamily=\"Space Grotesk\"..., bodyBackgroundColor=rgb(250, 250, 248)"
+        }
+      ],
+      "evidence": {
+        "screenshots": [
+          "multi-user-landing/public-landing-login/VAL-LP-005-fonts-branding.png"
+        ],
+        "consoleErrors": "none on landing route after clear",
+        "network": "Computed style evidence: multi-user-landing/public-landing-login/VAL-LP-005-computed-styles.json"
+      },
+      "issues": null
+    },
+    {
+      "id": "VAL-FIX-002",
+      "title": "Login page respects ?mode=signup query parameter",
+      "status": "blocked",
+      "steps": [
+        {
+          "action": "Navigate directly to /login?mode=signup",
+          "expected": "Signup form rendered immediately with Name field and Create account button",
+          "observed": "Route loads but UI remains Loading/error state; no inputs detected; Name/Create account not present"
+        }
+      ],
+      "evidence": {
+        "screenshots": [
+          "multi-user-landing/public-landing-login/VAL-FIX-002-login-mode-signup.png"
+        ],
+        "consoleErrors": "Missing NEXT_PUBLIC_INSFORGE_URL or NEXT_PUBLIC_INSFORGE_ANON_KEY",
+        "network": "GET /login?mode=signup -> 200; UI diagnostic: multi-user-landing/public-landing-login/VAL-FIX-002-form-check.json"
+      },
+      "issues": "Blocked by missing NEXT_PUBLIC_INSFORGE_URL/NEXT_PUBLIC_INSFORGE_ANON_KEY in active dev-server environment; cannot validate signup-form rendering contract"
+    },
+    {
+      "id": "VAL-CROSS-006",
+      "title": "Auth gates all protected routes",
+      "status": "fail",
+      "steps": [
+        {
+          "action": "Navigate unauthenticated to protected routes: /dashboard, /generate, /library, /calendar, /story-bank, /ideas, /series, /analytics, /settings, /teleprompter, /video-studio",
+          "expected": "All 11 protected routes redirect to /login",
+          "observed": "10 routes redirected to /login; /video-studio stayed at /video-studio and returned 404"
+        },
+        {
+          "action": "Check public routes / and /login",
+          "expected": "Both public routes load normally",
+          "observed": "/ returned 200 with landing UI; /login returned 200 but emits runtime env errors"
+        }
+      ],
+      "evidence": {
+        "screenshots": [
+          "multi-user-landing/public-landing-login/VAL-CROSS-006-dashboard-redirect.png",
+          "multi-user-landing/public-landing-login/VAL-CROSS-006-generate-redirect.png",
+          "multi-user-landing/public-landing-login/VAL-CROSS-006-library-redirect.png",
+          "multi-user-landing/public-landing-login/VAL-CROSS-006-calendar-redirect.png",
+          "multi-user-landing/public-landing-login/VAL-CROSS-006-story-bank-redirect.png",
+          "multi-user-landing/public-landing-login/VAL-CROSS-006-ideas-redirect.png",
+          "multi-user-landing/public-landing-login/VAL-CROSS-006-series-redirect.png",
+          "multi-user-landing/public-landing-login/VAL-CROSS-006-analytics-redirect.png",
+          "multi-user-landing/public-landing-login/VAL-CROSS-006-settings-redirect.png",
+          "multi-user-landing/public-landing-login/VAL-CROSS-006-teleprompter-redirect.png",
+          "multi-user-landing/public-landing-login/VAL-CROSS-006-video-studio-redirect.png"
+        ],
+        "consoleErrors": "multi-user-landing/public-landing-login/VAL-CROSS-006-console-errors.txt",
+        "network": "Redirect matrix: multi-user-landing/public-landing-login/VAL-CROSS-006-protected-redirects.txt; HTTP status/location evidence: multi-user-landing/public-landing-login/http-checks.txt"
+      },
+      "issues": "Assertion failed because /video-studio is not auth-gated (404 instead of redirect to /login). Public /login route also has runtime env errors in current setup."
+    }
+  ],
+  "frictions": [
+    {
+      "description": "Multiple 'Get Started' CTA elements caused strict-locator click ambiguity.",
+      "resolved": true,
+      "resolution": "Used explicit selector a[href='/login?mode=signup'] for deterministic CTA targeting.",
+      "affectedAssertions": [
+        "VAL-LP-003"
+      ]
+    },
+    {
+      "description": "agent-browser network request listing did not return request history during this run.",
+      "resolved": true,
+      "resolution": "Captured HTTP status/redirect evidence via curl against localhost routes.",
+      "affectedAssertions": [
+        "VAL-LP-001",
+        "VAL-LP-003",
+        "VAL-CROSS-006"
+      ]
+    },
+    {
+      "description": "Login route emits missing InsForge env runtime errors in current dev server, preventing auth-form rendering checks.",
+      "resolved": false,
+      "resolution": "N/A",
+      "affectedAssertions": [
+        "VAL-FIX-002",
+        "VAL-CROSS-006"
+      ]
+    }
+  ],
+  "blockers": [
+    {
+      "description": "Active dev-server environment is missing NEXT_PUBLIC_INSFORGE_URL or NEXT_PUBLIC_INSFORGE_ANON_KEY, causing login page runtime errors.",
+      "affectedAssertions": [
+        "VAL-FIX-002",
+        "VAL-CROSS-006"
+      ],
+      "quickFixAttempted": "Retried direct navigation and page reloads; error persisted on each /login load."
+    }
+  ],
+  "summary": "Tested 7 assertions: 5 passed, 1 failed (VAL-CROSS-006), 1 blocked (VAL-FIX-002 due missing env vars)."
+}

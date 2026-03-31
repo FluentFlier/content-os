@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@hello-pangea/dnd": "^17.0.0",
-    "@insforge/sdk": "^1.2.0",
+    "@insforge/sdk": "^1.2.2",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "lucide-react": "^0.468.0",

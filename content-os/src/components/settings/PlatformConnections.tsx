@@ -30,8 +30,8 @@ const PLATFORM_META: Record<
 > = {
   instagram: { label: "Instagram", color: "#E4405F", icon: "IG" },
   linkedin: { label: "LinkedIn", color: "#0A66C2", icon: "in" },
-  twitter: { label: "X / Twitter", color: "#0F172A", icon: "\u{1D54F}" },
-  threads: { label: "Threads", color: "#0F172A", icon: "@" },
+  twitter: { label: "X / Twitter", color: "#E7E5E4", icon: "\u{1D54F}" },
+  threads: { label: "Threads", color: "#E7E5E4", icon: "@" },
 };
 
 export default function PlatformConnections({
@@ -111,7 +111,7 @@ export default function PlatformConnections({
 
   return (
     <>
-      <p className="text-sm text-[#94A3B8] mb-4">
+      <p className="text-sm text-[#71717A] mb-4">
         Connect accounts via OAuth or enter API keys manually.
       </p>
       <div className="space-y-3">
@@ -129,7 +129,7 @@ export default function PlatformConnections({
             return (
               <div
                 key={platform}
-                className="border-[0.5px] border-[#0F172A]/12 rounded-[12px] overflow-hidden"
+                className="border-[0.5px] border-[#FAFAFA]/12 rounded-[12px] overflow-hidden"
               >
                 {/* Card header */}
                 <button
@@ -137,7 +137,7 @@ export default function PlatformConnections({
                   onClick={() =>
                     setExpandedPlatform(isExpanded ? null : platform)
                   }
-                  className="w-full flex items-center justify-between py-3 px-4 bg-[#F8FAFC] hover:bg-[#F1F5F9] transition-colors"
+                  className="w-full flex items-center justify-between py-3 px-4 bg-[#18181B] hover:bg-[#27272A] transition-colors"
                 >
                   <div className="flex items-center gap-3">
                     <span
@@ -146,11 +146,11 @@ export default function PlatformConnections({
                     >
                       {meta.icon}
                     </span>
-                    <span className="text-[13px] font-medium text-[#0F172A]">
+                    <span className="text-[13px] font-medium text-[#FAFAFA]">
                       {meta.label}
                     </span>
                     {isOAuthConnected && (
-                      <span className="text-[10px] font-medium px-2 py-0.5 rounded-[3px] bg-[#EAF3DE] text-[#3B6D11]">
+                      <span className="text-[10px] font-medium px-2 py-0.5 rounded-[3px] bg-[rgba(16,185,129,0.15)] text-[#3B6D11]">
                         OAuth
                       </span>
                     )}
@@ -160,24 +160,24 @@ export default function PlatformConnections({
                       </span>
                     )}
                     {!isOAuthConnected && !hasManualKeys && (
-                      <span className="text-[10px] px-2 py-0.5 rounded-[3px] bg-[#F8FAFC] text-[#94A3B8]">
+                      <span className="text-[10px] px-2 py-0.5 rounded-[3px] bg-[#18181B] text-[#71717A]">
                         Not configured
                       </span>
                     )}
                   </div>
                   {isExpanded ? (
-                    <ChevronDown size={16} className="text-[#94A3B8]" />
+                    <ChevronDown size={16} className="text-[#71717A]" />
                   ) : (
-                    <ChevronRight size={16} className="text-[#94A3B8]" />
+                    <ChevronRight size={16} className="text-[#71717A]" />
                   )}
                 </button>
 
                 {/* Expanded body */}
                 {isExpanded && (
-                  <div className="p-4 space-y-4 border-t-[0.5px] border-[#0F172A]/12">
+                  <div className="p-4 space-y-4 border-t-[0.5px] border-[#FAFAFA]/12">
                     {/* OAuth section */}
                     <div>
-                      <span className="text-[10px] font-medium tracking-[0.10em] uppercase text-[#94A3B8] block mb-2">
+                      <span className="text-[10px] font-medium tracking-[0.10em] uppercase text-[#71717A] block mb-2">
                         OAUTH CONNECTION
                       </span>
                       {isOAuthConnected ? (
@@ -198,7 +198,7 @@ export default function PlatformConnections({
                               e.stopPropagation();
                               onDisconnect(platform);
                             }}
-                            className="flex items-center gap-1 px-3 py-1.5 text-[11px] text-[#475569] border-[0.5px] border-[#0F172A]/12 rounded-[6px] hover:border-[#0F172A]/25 transition-colors disabled:opacity-60"
+                            className="flex items-center gap-1 px-3 py-1.5 text-[11px] text-[#A1A1AA] border-[0.5px] border-[#FAFAFA]/12 rounded-[6px] hover:border-[#FAFAFA]/25 transition-colors disabled:opacity-60"
                           >
                             <Unplug size={12} />
                             {isDisconnecting ? "..." : "Disconnect"}
@@ -217,10 +217,10 @@ export default function PlatformConnections({
 
                     {/* Manual keys section */}
                     <div>
-                      <span className="text-[10px] font-medium tracking-[0.10em] uppercase text-[#94A3B8] block mb-2">
+                      <span className="text-[10px] font-medium tracking-[0.10em] uppercase text-[#71717A] block mb-2">
                         MANUAL API KEYS
                       </span>
-                      <p className="text-[11px] text-[#94A3B8] mb-3">
+                      <p className="text-[11px] text-[#71717A] mb-3">
                         Enter your own API credentials as a fallback to OAuth.
                       </p>
 
@@ -231,7 +231,7 @@ export default function PlatformConnections({
                       />
 
                       <div className="flex items-center justify-between mt-3">
-                        <span className="text-[12px] text-[#0F172A]">
+                        <span className="text-[12px] text-[#FAFAFA]">
                           Enable manual keys
                         </span>
                         <Toggle
@@ -320,19 +320,19 @@ function PasswordField({
 
   return (
     <div>
-      <label className="block text-xs text-[#94A3B8] mb-1">{label}</label>
+      <label className="block text-xs text-[#71717A] mb-1">{label}</label>
       <div className="relative">
         <input
           type={visible ? "text" : "password"}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={label}
-          className="w-full bg-[#F8FAFC] border-[0.5px] border-[#0F172A]/12 rounded-[7px] px-3 py-2 pr-10 text-sm font-mono text-[#0F172A] placeholder:text-[#94A3B8] focus:outline-none focus:border-[#0F172A]/40 transition-colors"
+          className="w-full bg-[#18181B] border-[0.5px] border-[#FAFAFA]/12 rounded-[7px] px-3 py-2 pr-10 text-sm font-mono text-[#FAFAFA] placeholder:text-[#71717A] focus:outline-none focus:border-[#FAFAFA]/40 transition-colors"
         />
         <button
           type="button"
           onClick={() => setVisible(!visible)}
-          className="absolute right-2 top-1/2 -translate-y-1/2 text-[#94A3B8] hover:text-[#0F172A] transition-colors"
+          className="absolute right-2 top-1/2 -translate-y-1/2 text-[#71717A] hover:text-[#FAFAFA] transition-colors"
         >
           {visible ? <EyeOff size={16} /> : <Eye size={16} />}
         </button>
@@ -355,7 +355,7 @@ function Toggle({
       aria-checked={enabled}
       onClick={() => onChange(!enabled)}
       className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-        enabled ? "bg-[#6366F1]" : "bg-[#F1F5F9]"
+        enabled ? "bg-[#6366F1]" : "bg-[#27272A]"
       }`}
     >
       <span

@@ -21,7 +21,7 @@ export function GenerateOutput({ text, loading, children }: GenerateOutputProps)
 
   if (loading) {
     return (
-      <div className="bg-[#F8FAFC] border-[0.5px] border-[rgba(26,23,20,0.12)] rounded-[12px] p-[13px_14px] space-y-3">
+      <div className="bg-[#18181B] border-[0.5px] border-[rgba(255,255,255,0.12)] rounded-[12px] p-[13px_14px] space-y-3">
         <SkeletonLines count={3} />
       </div>
     );
@@ -31,8 +31,8 @@ export function GenerateOutput({ text, loading, children }: GenerateOutputProps)
 
   return (
     <>
-      <div className="bg-[#F8FAFC] border-[0.5px] border-[rgba(26,23,20,0.12)] rounded-[12px] p-[13px_14px] space-y-4">
-        <pre className="whitespace-pre-wrap font-['Space_Grotesk'] text-[13px] text-[#0F172A] leading-[1.55]">
+      <div className="bg-[#18181B] border-[0.5px] border-[rgba(255,255,255,0.12)] rounded-[12px] p-[13px_14px] space-y-4">
+        <pre className="whitespace-pre-wrap font-body text-[13px] text-[#FAFAFA] leading-[1.55]">
           {text}
         </pre>
         <div className="flex flex-wrap gap-2">
@@ -120,13 +120,13 @@ function SaveToLibraryModal({
         value={title}
         onChange={(e) => setTitle(e.target.value)}
         placeholder="Post title"
-        className="w-full bg-[#F8FAFC] border-[0.5px] border-[rgba(26,23,20,0.12)] rounded-[7px] px-3 py-2 font-['Space_Grotesk'] text-[13px] text-[#0F172A] placeholder:text-[#94A3B8] focus:outline-none focus:border-[rgba(26,23,20,0.40)] transition-colors duration-100"
+        className="w-full bg-[#18181B] border-[0.5px] border-[rgba(255,255,255,0.12)] rounded-[7px] px-3 py-2 font-body text-[13px] text-[#FAFAFA] placeholder:text-[#71717A] focus:outline-none focus:border-[rgba(255,255,255,0.40)] transition-colors duration-100"
       />
       <div className="flex gap-3">
         <select
           value={pillar}
           onChange={(e) => setPillar(e.target.value)}
-          className="flex-1 bg-[#F8FAFC] border-[0.5px] border-[rgba(26,23,20,0.12)] rounded-[7px] px-3 py-2 font-['Space_Grotesk'] text-[13px] text-[#0F172A] focus:outline-none focus:border-[rgba(26,23,20,0.40)] transition-colors duration-100"
+          className="flex-1 bg-[#18181B] border-[0.5px] border-[rgba(255,255,255,0.12)] rounded-[7px] px-3 py-2 font-body text-[13px] text-[#FAFAFA] focus:outline-none focus:border-[rgba(255,255,255,0.40)] transition-colors duration-100"
         >
           {pillarList.map((p) => (
             <option key={p.value} value={p.value}>
@@ -137,7 +137,7 @@ function SaveToLibraryModal({
         <select
           value={platform}
           onChange={(e) => setPlatform(e.target.value as Platform)}
-          className="flex-1 bg-[#F8FAFC] border-[0.5px] border-[rgba(26,23,20,0.12)] rounded-[7px] px-3 py-2 font-['Space_Grotesk'] text-[13px] text-[#0F172A] focus:outline-none focus:border-[rgba(26,23,20,0.40)] transition-colors duration-100"
+          className="flex-1 bg-[#18181B] border-[0.5px] border-[rgba(255,255,255,0.12)] rounded-[7px] px-3 py-2 font-body text-[13px] text-[#FAFAFA] focus:outline-none focus:border-[rgba(255,255,255,0.40)] transition-colors duration-100"
         >
           {PLATFORMS.map((p) => (
             <option key={p} value={p}>
@@ -146,7 +146,7 @@ function SaveToLibraryModal({
           ))}
         </select>
       </div>
-      {error && <p className="font-['Space_Grotesk'] text-[13px] text-[#6366F1]">{error}</p>}
+      {error && <p className="font-body text-[13px] text-[#6366F1]">{error}</p>}
       <div className="flex gap-3 justify-end">
         <Button variant="ghost" size="sm" onClick={onClose}>
           Cancel

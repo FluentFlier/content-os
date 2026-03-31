@@ -179,7 +179,7 @@ export function usePillars(): UsePillarsReturn {
     const found = pillars.find((p) => p.value === value);
     if (found) return found.color;
     if (PILLAR_COLORS[value as Pillar]) return PILLAR_COLORS[value as Pillar];
-    return '#94A3B8';
+    return '#71717A';
   };
 
   const getBadgeBg = (value: string): string => {

@@ -1,0 +1,125 @@
+{
+  "groupId": "curl-api-flows",
+  "testedAt": "2026-03-30T13:32:06Z",
+  "isolation": {
+    "baseUrl": "http://localhost:3000",
+    "missionDir": "/Users/anirudhmanjesh/.factory/missions/fbcce583-7257-4bc1-9707-8c0ee4dcc7ec",
+    "assertionIds": ["VAL-FIX-008", "VAL-FIX-009", "VAL-MU-004"],
+    "thirdPartyApiCalls": false,
+    "testDataScope": "No persistent records created; only local API request payloads were sent."
+  },
+  "toolsUsed": ["curl", "shell"],
+  "assertions": [
+    {
+      "id": "VAL-FIX-008",
+      "title": "Creating a post with a custom pillar name succeeds",
+      "status": "blocked",
+      "steps": [
+        {
+          "action": "POST /api/posts with custom pillar 'personal-growth' (unauthenticated)",
+          "expected": "201 Created with created post payload",
+          "observed": "401 Unauthorized with {\"error\":\"Unauthorized\"}"
+        },
+        {
+          "action": "Set local dispatch-token via POST /api/auth and retry POST /api/posts",
+          "expected": "Authenticated request reaches create-post logic and returns 201",
+          "observed": "401 Unauthorized again; dummy cookie is not a valid InsForge auth session"
+        }
+      ],
+      "evidence": {
+        "requestResponse": [
+          "POST /api/posts -> 401 (unauth)",
+          "POST /api/auth -> 200 (cookie set)",
+          "POST /api/posts -> 401 (dummy cookie)"
+        ],
+        "files": [
+          "multi-user-landing/curl-api-flows/VAL-FIX-008-unauth.txt",
+          "multi-user-landing/curl-api-flows/auth-cookie-setup.txt",
+          "multi-user-landing/curl-api-flows/VAL-FIX-008-dummy-cookie.txt"
+        ]
+      },
+      "issues": "Blocked by missing valid authenticated InsForge session cookie; route exits at auth guard before custom-pillar insert path can be validated."
+    },
+    {
+      "id": "VAL-FIX-009",
+      "title": "POST /api/posts rejects invalid and extra fields",
+      "status": "blocked",
+      "steps": [
+        {
+          "action": "POST /api/posts with missing title (unauthenticated)",
+          "expected": "400 validation error",
+          "observed": "401 Unauthorized"
+        },
+        {
+          "action": "POST /api/posts with extra unknown field (unauthenticated)",
+          "expected": "400 validation error",
+          "observed": "401 Unauthorized"
+        },
+        {
+          "action": "Retry both invalid payloads with dummy dispatch-token cookie",
+          "expected": "400 validation errors after auth",
+          "observed": "401 Unauthorized for both requests"
+        }
+      ],
+      "evidence": {
+        "requestResponse": [
+          "POST /api/posts (missing title) -> 401 (unauth)",
+          "POST /api/posts (extra field) -> 401 (unauth)",
+          "POST /api/posts (missing title, dummy cookie) -> 401",
+          "POST /api/posts (extra field, dummy cookie) -> 401"
+        ],
+        "files": [
+          "multi-user-landing/curl-api-flows/VAL-FIX-009-missing-title-unauth.txt",
+          "multi-user-landing/curl-api-flows/VAL-FIX-009-extra-field-unauth.txt",
+          "multi-user-landing/curl-api-flows/VAL-FIX-009-missing-title-dummy-cookie.txt",
+          "multi-user-landing/curl-api-flows/VAL-FIX-009-extra-field-dummy-cookie.txt"
+        ]
+      },
+      "issues": "Blocked by auth prerequisite; unable to reach Zod validation branch that should return 400 for invalid payloads."
+    },
+    {
+      "id": "VAL-MU-004",
+      "title": "AI generation uses per-user context",
+      "status": "blocked",
+      "steps": [
+        {
+          "action": "POST /api/generate with prompt (unauthenticated)",
+          "expected": "200 with generated personalized content",
+          "observed": "401 Unauthorized"
+        },
+        {
+          "action": "Retry POST /api/generate using dummy dispatch-token cookie",
+          "expected": "Authenticated request returns generated text personalized to user context",
+          "observed": "401 Unauthorized"
+        }
+      ],
+      "evidence": {
+        "requestResponse": [
+          "POST /api/generate -> 401 (unauth)",
+          "POST /api/generate -> 401 (dummy cookie)"
+        ],
+        "files": [
+          "multi-user-landing/curl-api-flows/VAL-MU-004-unauth.txt",
+          "multi-user-landing/curl-api-flows/VAL-MU-004-dummy-cookie.txt"
+        ]
+      },
+      "issues": "Blocked by missing valid authenticated InsForge session; cannot observe generated output to confirm per-user context behavior."
+    }
+  ],
+  "frictions": [
+    {
+      "description": "Authenticated API assertions could not proceed because no valid InsForge session token was available via curl-only flow.",
+      "resolved": false,
+      "resolution": "Attempted local cookie setup via /api/auth using a dummy token; auth guard still returned 401.",
+      "affectedAssertions": ["VAL-FIX-008", "VAL-FIX-009", "VAL-MU-004"]
+    }
+  ],
+  "blockers": [
+    {
+      "description": "Repo root .env.local is missing and no reusable authenticated test credentials/session cookie were available for curl execution.",
+      "affectedAssertions": ["VAL-FIX-008", "VAL-FIX-009", "VAL-MU-004"],
+      "quickFixAttempted": "Verified .env.local absence and attempted to set dispatch-token via /api/auth; protected routes still returned 401."
+    }
+  ],
+  "summary": "Tested 3 assigned curl assertions. 0 passed, 0 failed, 3 blocked due to missing valid authenticated InsForge session for protected API routes."
+}

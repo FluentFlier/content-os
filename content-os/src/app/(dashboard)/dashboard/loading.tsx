@@ -9,7 +9,7 @@ export default function DashboardLoading() {
       {/* Stats Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="bg-[#FFFFFF] border-[0.5px] border-[rgba(26,23,20,0.12)] rounded-[12px] p-[13px_14px] space-y-2">
+          <div key={i} className="bg-[#09090B] border-[0.5px] border-[rgba(255,255,255,0.12)] rounded-[12px] p-[13px_14px] space-y-2">
             <div className="flex items-center gap-3">
               <Skeleton className="w-4 h-4" />
               <Skeleton className="h-6 w-10" />
@@ -21,7 +21,7 @@ export default function DashboardLoading() {
 
       {/* Middle row: Up Next + Prompt */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-        <div className="bg-[#FFFFFF] border-[0.5px] border-[rgba(26,23,20,0.12)] rounded-[12px] p-[13px_14px] space-y-3">
+        <div className="bg-[#09090B] border-[0.5px] border-[rgba(255,255,255,0.12)] rounded-[12px] p-[13px_14px] space-y-3">
           <Skeleton className="h-3 w-16" />
           {Array.from({ length: 3 }).map((_, i) => (
             <div key={i} className="flex items-center gap-3">
@@ -31,14 +31,14 @@ export default function DashboardLoading() {
             </div>
           ))}
         </div>
-        <div className="bg-[#FFFFFF] border-[0.5px] border-[rgba(26,23,20,0.12)] rounded-[12px] p-[13px_14px] space-y-3">
+        <div className="bg-[#09090B] border-[0.5px] border-[rgba(255,255,255,0.12)] rounded-[12px] p-[13px_14px] space-y-3">
           <Skeleton className="h-3 w-28" />
           <Skeleton className="h-16 w-full" />
         </div>
       </div>
 
       {/* Backlog skeleton */}
-      <div className="bg-[#FFFFFF] border-[0.5px] border-[rgba(26,23,20,0.12)] rounded-[12px] p-[13px_14px] space-y-3">
+      <div className="bg-[#09090B] border-[0.5px] border-[rgba(255,255,255,0.12)] rounded-[12px] p-[13px_14px] space-y-3">
         <Skeleton className="h-3 w-16" />
         {Array.from({ length: 3 }).map((_, i) => (
           <div key={i} className="flex items-center gap-3">
@@ -54,7 +54,7 @@ export default function DashboardLoading() {
         <Skeleton className="h-3 w-24" />
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="flex flex-col items-center gap-2 bg-[#F8FAFC] border-[0.5px] border-[rgba(26,23,20,0.12)] rounded-[7px] p-[10px_14px]">
+            <div key={i} className="flex flex-col items-center gap-2 bg-[#18181B] border-[0.5px] border-[rgba(255,255,255,0.12)] rounded-[7px] p-[10px_14px]">
               <Skeleton className="w-[18px] h-[18px]" />
               <Skeleton className="h-3 w-16" />
             </div>

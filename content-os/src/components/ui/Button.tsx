@@ -17,9 +17,9 @@ const variantStyles: Record<Variant, string> = {
   primary:
     'bg-[#6366F1] text-white border-0 hover:opacity-90',
   secondary:
-    'bg-[#F8FAFC] border-[0.5px] border-[rgba(26,23,20,0.12)] text-[#0F172A] hover:bg-[#F1F5F9]',
+    'bg-[#18181B] border-[0.5px] border-[rgba(255,255,255,0.12)] text-[#FAFAFA] hover:bg-[#27272A]',
   ghost:
-    'bg-transparent border-[0.5px] border-[rgba(26,23,20,0.12)] text-[#475569] hover:bg-[#F1F5F9]',
+    'bg-transparent border-[0.5px] border-[rgba(255,255,255,0.12)] text-[#A1A1AA] hover:bg-[#27272A]',
 };
 
 const sizeStyles: Record<Size, string> = {
@@ -46,7 +46,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       <button
         ref={ref}
         disabled={disabled || loading}
-        className={`inline-flex items-center justify-center gap-2 rounded-[7px] font-['Space_Grotesk'] font-medium transition-all duration-100 disabled:opacity-50 disabled:pointer-events-none ${variantStyles[variant]} ${padding} ${className}`}
+        className={`inline-flex items-center justify-center gap-2 rounded-[7px] font-body font-medium transition-all duration-100 disabled:opacity-50 disabled:pointer-events-none ${variantStyles[variant]} ${padding} ${className}`}
         {...rest}
       >
         {loading && <Skeleton className="h-4 w-4 rounded" />}

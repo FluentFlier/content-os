@@ -22,10 +22,10 @@ export function Tabs({ tabs, activeTab, onChange, variant = 'default', className
             key={tab.id}
             data-tab={tab.id}
             onClick={() => onChange(tab.id)}
-            className={`whitespace-nowrap px-4 py-[7px] text-[13px] font-['Space_Grotesk'] font-medium rounded-[20px] border-[0.5px] transition-all duration-100 shrink-0 ${
+            className={`whitespace-nowrap px-4 py-[7px] text-[13px] font-body font-medium rounded-[20px] border-[0.5px] transition-all duration-100 shrink-0 ${
               activeTab === tab.id
-                ? 'border-[#6366F1] text-[#6366F1] bg-[#EEF2FF]'
-                : 'border-[rgba(26,23,20,0.12)] text-[#475569] hover:text-[#0F172A] bg-transparent'
+                ? 'border-[#6366F1] text-[#6366F1] bg-[rgba(99,102,241,0.12)]'
+                : 'border-[rgba(255,255,255,0.12)] text-[#A1A1AA] hover:text-[#FAFAFA] bg-transparent'
             }`}
           >
             {tab.label}
@@ -36,16 +36,16 @@ export function Tabs({ tabs, activeTab, onChange, variant = 'default', className
   }
 
   return (
-    <div className={`flex gap-1 overflow-x-auto pb-[1px] scrollbar-hide border-b-[0.5px] border-[rgba(26,23,20,0.12)] ${className}`}>
+    <div className={`flex gap-1 overflow-x-auto pb-[1px] scrollbar-hide border-b-[0.5px] border-[rgba(255,255,255,0.12)] ${className}`}>
       {tabs.map((tab) => (
         <button
           key={tab.id}
           data-tab={tab.id}
           onClick={() => onChange(tab.id)}
-          className={`whitespace-nowrap px-4 py-2 font-['Space_Grotesk'] font-medium text-[13px] border-b-[1.5px] transition-colors duration-100 shrink-0 ${
+          className={`whitespace-nowrap px-4 py-2 font-body font-medium text-[13px] border-b-[1.5px] transition-colors duration-100 shrink-0 ${
             activeTab === tab.id
-              ? 'border-[#0F172A] text-[#0F172A]'
-              : 'border-transparent text-[#475569] hover:text-[#0F172A]'
+              ? 'border-[#FAFAFA] text-[#FAFAFA]'
+              : 'border-transparent text-[#A1A1AA] hover:text-[#FAFAFA]'
           }`}
         >
           {tab.label}

@@ -92,7 +92,7 @@ export async function generateContent(
 
   const client = getServerClient();
   const completion = await client.ai.chat.completions.create({
-    model: 'anthropic/claude-sonnet-4-20250514',
+    model: 'anthropic/claude-sonnet-4.5',
     messages: [
       { role: 'system', content: systemPrompt },
       { role: 'user', content: prompt },

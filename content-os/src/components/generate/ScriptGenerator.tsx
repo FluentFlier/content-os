@@ -136,19 +136,19 @@ CTA: One direct question.`;
   return (
     <div className="space-y-5">
       <div>
-        <label className="block font-['Space_Grotesk'] text-[13px] text-[#475569] mb-2">Content Pillar</label>
+        <label className="block font-body text-[13px] text-[#A1A1AA] mb-2">Content Pillar</label>
         <div className="flex flex-wrap gap-2">
           {pillarList.map((p) => (
             <button
               key={p.value}
               onClick={() => setPillar(p.value)}
-              className="px-4 py-1.5 rounded-[20px] font-['Space_Grotesk'] text-[13px] font-medium transition-all duration-100"
+              className="px-4 py-1.5 rounded-[20px] font-body text-[13px] font-medium transition-all duration-100"
               style={{
-                backgroundColor: '#F8FAFC',
-                color: pillar === p.value ? p.color : '#475569',
+                backgroundColor: '#18181B',
+                color: pillar === p.value ? p.color : '#A1A1AA',
                 border: pillar === p.value
                   ? `1.5px solid ${p.color}`
-                  : '0.5px solid rgba(26,23,20,0.12)',
+                  : '0.5px solid rgba(255,255,255,0.12)',
               }}
             >
               {p.label}
@@ -158,7 +158,7 @@ CTA: One direct question.`;
       </div>
 
       <div>
-        <label className="block font-['Space_Grotesk'] text-[13px] text-[#475569] mb-2">
+        <label className="block font-body text-[13px] text-[#A1A1AA] mb-2">
           Topic (optional)
         </label>
         <textarea
@@ -166,7 +166,7 @@ CTA: One direct question.`;
           onChange={(e) => setTopic(e.target.value)}
           rows={3}
           placeholder="Enter a specific topic or leave blank for a general script..."
-          className="w-full bg-[#F8FAFC] border-[0.5px] border-[rgba(26,23,20,0.12)] rounded-[7px] px-4 py-3 font-['Space_Grotesk'] text-[13px] text-[#0F172A] placeholder:text-[#94A3B8] focus:outline-none focus:border-[rgba(26,23,20,0.40)] resize-none transition-colors duration-100"
+          className="w-full bg-[#18181B] border-[0.5px] border-[rgba(255,255,255,0.12)] rounded-[7px] px-4 py-3 font-body text-[13px] text-[#FAFAFA] placeholder:text-[#71717A] focus:outline-none focus:border-[rgba(255,255,255,0.40)] resize-none transition-colors duration-100"
         />
       </div>
 
@@ -174,7 +174,7 @@ CTA: One direct question.`;
         Generate Script
       </Button>
 
-      {error && <p className="font-['Space_Grotesk'] text-[13px] text-[#6366F1]">{error}</p>}
+      {error && <p className="font-body text-[13px] text-[#6366F1]">{error}</p>}
 
       <GenerateOutput text={output} loading={loading} />
     </div>

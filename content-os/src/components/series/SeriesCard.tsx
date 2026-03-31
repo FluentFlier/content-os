@@ -34,19 +34,19 @@ export default function SeriesCard({
 
   return (
     <div
-      className={`bg-[#FFFFFF] border-[0.5px] border-[#0F172A]/12 rounded-[12px] transition-all ${
+      className={`bg-[#09090B] border-[0.5px] border-[#FAFAFA]/12 rounded-[12px] transition-all ${
         isExpanded ? 'md:col-span-2' : ''
       }`}
     >
       {/* Card header */}
       <button
         onClick={onToggleExpand}
-        className="w-full text-left p-[13px_14px] hover:bg-[#F1F5F9] rounded-t-[12px] transition-colors"
+        className="w-full text-left p-[13px_14px] hover:bg-[#27272A] rounded-t-[12px] transition-colors"
       >
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
-              <h3 className="font-heading text-[16px] font-[700] text-[#0F172A] truncate">
+              <h3 className="font-heading text-[16px] font-[700] text-[#FAFAFA] truncate">
                 {series.name}
               </h3>
               <span
@@ -62,26 +62,26 @@ export default function SeriesCard({
             </div>
 
             {series.description && (
-              <p className="text-[13px] text-[#475569] line-clamp-2 mb-3 leading-[1.55]">
+              <p className="text-[13px] text-[#A1A1AA] line-clamp-2 mb-3 leading-[1.55]">
                 {series.description}
               </p>
             )}
 
             {/* Progress bar */}
             <div className="space-y-1.5">
-              <div className="h-1.5 bg-[#F1F5F9] rounded-full overflow-hidden">
+              <div className="h-1.5 bg-[#27272A] rounded-full overflow-hidden">
                 <div
                   className="h-full bg-[#6366F1] rounded-full transition-all duration-300"
                   style={{ width: `${progress}%` }}
                 />
               </div>
-              <p className="text-[11px] text-[#94A3B8]">
+              <p className="text-[11px] text-[#71717A]">
                 {completedParts} of {total} parts complete
               </p>
             </div>
           </div>
 
-          <div className="shrink-0 mt-1 text-[#94A3B8]">
+          <div className="shrink-0 mt-1 text-[#71717A]">
             {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
           </div>
         </div>
@@ -89,9 +89,9 @@ export default function SeriesCard({
 
       {/* Expanded view */}
       {isExpanded && (
-        <div className="border-t-[0.5px] border-[#0F172A]/12 p-[13px_14px] space-y-4">
+        <div className="border-t-[0.5px] border-[#FAFAFA]/12 p-[13px_14px] space-y-4">
           {series.description && (
-            <p className="text-[13px] text-[#475569] leading-[1.55]">{series.description}</p>
+            <p className="text-[13px] text-[#A1A1AA] leading-[1.55]">{series.description}</p>
           )}
 
           {children}
@@ -100,18 +100,18 @@ export default function SeriesCard({
           <div className="flex justify-end pt-2">
             {confirmingDelete ? (
               <div className="flex items-center gap-2">
-                <span className="text-[11px] text-[#94A3B8]">
+                <span className="text-[11px] text-[#71717A]">
                   Delete this series?
                 </span>
                 <button
                   onClick={onDelete}
-                  className="px-3 py-1 rounded-[3px] text-[10px] font-medium bg-[#EEF2FF] text-[#6366F1] hover:opacity-80 transition-opacity"
+                  className="px-3 py-1 rounded-[3px] text-[10px] font-medium bg-[rgba(99,102,241,0.12)] text-[#6366F1] hover:opacity-80 transition-opacity"
                 >
                   Confirm
                 </button>
                 <button
                   onClick={onCancelDelete}
-                  className="px-3 py-1 rounded-[3px] text-[10px] font-medium text-[#94A3B8] hover:text-[#0F172A] transition-colors"
+                  className="px-3 py-1 rounded-[3px] text-[10px] font-medium text-[#71717A] hover:text-[#FAFAFA] transition-colors"
                 >
                   Cancel
                 </button>
@@ -119,7 +119,7 @@ export default function SeriesCard({
             ) : (
               <button
                 onClick={onConfirmDelete}
-                className="flex items-center gap-1 text-[11px] text-[#94A3B8] hover:text-[#6366F1] transition-colors"
+                className="flex items-center gap-1 text-[11px] text-[#71717A] hover:text-[#6366F1] transition-colors"
               >
                 <Trash2 size={13} />
                 Delete Series

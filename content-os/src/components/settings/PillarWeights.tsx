@@ -21,7 +21,7 @@ export default function PillarWeights({
 }: PillarWeightsProps) {
   return (
     <>
-      <p className="text-sm text-[#94A3B8] mb-4">
+      <p className="text-sm text-[#71717A] mb-4">
         Set how many posts per week for each content pillar (0-7).
       </p>
       <div className="space-y-4 mb-4">
@@ -35,7 +35,7 @@ export default function PillarWeights({
                   className="w-3 h-3 rounded-full flex-shrink-0"
                   style={{ backgroundColor: pillar.color }}
                 />
-                <span className="text-sm text-[#0F172A] truncate">
+                <span className="text-sm text-[#FAFAFA] truncate">
                   {pillar.name}
                 </span>
               </div>
@@ -52,7 +52,7 @@ export default function PillarWeights({
                 }
                 className="flex-1 accent-[#6366F1] h-2 cursor-pointer"
               />
-              <span className="text-sm text-[#94A3B8] w-16 text-right">
+              <span className="text-sm text-[#71717A] w-16 text-right">
                 {weight}/week
               </span>
             </div>

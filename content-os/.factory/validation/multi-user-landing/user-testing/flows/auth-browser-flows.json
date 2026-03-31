@@ -1,0 +1,683 @@
+{
+  "groupId": "auth-browser-flows",
+  "testedAt": "2026-03-30T13:33:30.782431Z",
+  "isolation": {
+    "missionDir": "/Users/anirudhmanjesh/.factory/missions/fbcce583-7257-4bc1-9707-8c0ee4dcc7ec",
+    "baseUrl": "http://localhost:3000",
+    "browserSession": "auth-browser-flows-fbcce583",
+    "isolatedProfile": true,
+    "testUser": "not-created (signup blocked by runtime env error)"
+  },
+  "toolsUsed": [
+    "agent-browser"
+  ],
+  "assertions": [
+    {
+      "id": "VAL-FIX-001",
+      "title": "Settings page loads without crash for new users",
+      "status": "blocked",
+      "steps": [
+        {
+          "action": "Navigate to /settings",
+          "expected": "Settings form renders",
+          "observed": "Redirected to /login with Next error overlay (Loading..., 2 errors)"
+        },
+        {
+          "action": "Check console errors",
+          "expected": "No creator_profile runtime crash",
+          "observed": "Runtime stops at missing NEXT_PUBLIC_INSFORGE_* env vars before settings can render"
+        }
+      ],
+      "evidence": {
+        "screenshots": [
+          "multi-user-landing/auth-browser-flows/blocked-settings.png"
+        ],
+        "consoleErrors": "Missing NEXT_PUBLIC_INSFORGE_URL or NEXT_PUBLIC_INSFORGE_ANON_KEY (repeated runtime exception on each auth/protected route load).",
+        "network": "Only document/static asset requests and Next stack-frame error fetches were captured; expected app/API calls could not run after runtime boot failure."
+      },
+      "issues": "Blocked by missing NEXT_PUBLIC_INSFORGE_URL/NEXT_PUBLIC_INSFORGE_ANON_KEY in dev runtime; could not reach rendered Settings UI."
+    },
+    {
+      "id": "VAL-FIX-003",
+      "title": "Series page 'Create Series' navigates to Generate with Series tab active",
+      "status": "blocked",
+      "steps": [
+        {
+          "action": "Navigate to /series",
+          "expected": "Series page and Create Series CTA visible",
+          "observed": "Route redirected to broken login state with env error overlay"
+        },
+        {
+          "action": "Attempt to inspect actionable elements",
+          "expected": "Clickable Create Series button",
+          "observed": "Only 'Hide Errors' button available from overlay"
+        }
+      ],
+      "evidence": {
+        "screenshots": [
+          "multi-user-landing/auth-browser-flows/blocked-series.png"
+        ],
+        "consoleErrors": "Missing NEXT_PUBLIC_INSFORGE_URL or NEXT_PUBLIC_INSFORGE_ANON_KEY (repeated runtime exception on each auth/protected route load).",
+        "network": "Only document/static asset requests and Next stack-frame error fetches were captured; expected app/API calls could not run after runtime boot failure."
+      },
+      "issues": "Cannot access /series UI due auth route redirection plus login runtime env failure."
+    },
+    {
+      "id": "VAL-FIX-004",
+      "title": "Ideas 'Convert to Script' carries generated text to Generate page",
+      "status": "blocked",
+      "steps": [
+        {
+          "action": "Navigate to /ideas",
+          "expected": "Ideas list and Convert to Script actions visible",
+          "observed": "Redirected to login error overlay"
+        },
+        {
+          "action": "Attempt conversion flow",
+          "expected": "Navigate to /generate with prefilled output",
+          "observed": "No ideas UI available due runtime env crash"
+        }
+      ],
+      "evidence": {
+        "screenshots": [
+          "multi-user-landing/auth-browser-flows/blocked-ideas.png"
+        ],
+        "consoleErrors": "Missing NEXT_PUBLIC_INSFORGE_URL or NEXT_PUBLIC_INSFORGE_ANON_KEY (repeated runtime exception on each auth/protected route load).",
+        "network": "Only document/static asset requests and Next stack-frame error fetches were captured; expected app/API calls could not run after runtime boot failure."
+      },
+      "issues": "Ideas flow inaccessible because auth/login surface fails before rendering."
+    },
+    {
+      "id": "VAL-FIX-005",
+      "title": "Story Bank 'Convert to Post' button is clickable and creates a post",
+      "status": "blocked",
+      "steps": [
+        {
+          "action": "Navigate to /story-bank",
+          "expected": "Story cards visible",
+          "observed": "Redirected to login error overlay"
+        },
+        {
+          "action": "Attempt to click Convert to Post",
+          "expected": "Used state + new library post",
+          "observed": "Story Bank UI never rendered"
+        }
+      ],
+      "evidence": {
+        "screenshots": [
+          "multi-user-landing/auth-browser-flows/blocked-story-bank.png"
+        ],
+        "consoleErrors": "Missing NEXT_PUBLIC_INSFORGE_URL or NEXT_PUBLIC_INSFORGE_ANON_KEY (repeated runtime exception on each auth/protected route load).",
+        "network": "Only document/static asset requests and Next stack-frame error fetches were captured; expected app/API calls could not run after runtime boot failure."
+      },
+      "issues": "Story Bank route blocked behind broken auth runtime."
+    },
+    {
+      "id": "VAL-FIX-006",
+      "title": "Mobile nav includes Story Bank, Ideas, Series, and Analytics",
+      "status": "blocked",
+      "steps": [
+        {
+          "action": "Set viewport to 390x844 and open /dashboard",
+          "expected": "Bottom nav visible with all destinations",
+          "observed": "Redirected to /login with runtime error overlay"
+        },
+        {
+          "action": "Inspect mobile navigation options",
+          "expected": "All required links reachable",
+          "observed": "No app nav rendered"
+        }
+      ],
+      "evidence": {
+        "screenshots": [
+          "multi-user-landing/auth-browser-flows/blocked-dashboard-mobile-390x844.png"
+        ],
+        "consoleErrors": "Missing NEXT_PUBLIC_INSFORGE_URL or NEXT_PUBLIC_INSFORGE_ANON_KEY (repeated runtime exception on each auth/protected route load).",
+        "network": "Only document/static asset requests and Next stack-frame error fetches were captured; expected app/API calls could not run after runtime boot failure."
+      },
+      "issues": "Mobile nav cannot be validated because authenticated shell never loads."
+    },
+    {
+      "id": "VAL-FIX-007",
+      "title": "All headings render in Syne font",
+      "status": "blocked",
+      "steps": [
+        {
+          "action": "Open authenticated dashboard view target",
+          "expected": "Heading elements available for computed style checks",
+          "observed": "Dashboard inaccessible (redirect to broken login runtime)"
+        },
+        {
+          "action": "Attempt heading font inspection",
+          "expected": "fontFamily starts with Syne",
+          "observed": "No target headings available in blocked state"
+        }
+      ],
+      "evidence": {
+        "screenshots": [
+          "multi-user-landing/auth-browser-flows/blocked-dashboard.png"
+        ],
+        "consoleErrors": "Missing NEXT_PUBLIC_INSFORGE_URL or NEXT_PUBLIC_INSFORGE_ANON_KEY (repeated runtime exception on each auth/protected route load).",
+        "network": "Only document/static asset requests and Next stack-frame error fetches were captured; expected app/API calls could not run after runtime boot failure."
+      },
+      "issues": "Font assertion scoped to app headings could not be measured due auth runtime failure."
+    },
+    {
+      "id": "VAL-FIX-010",
+      "title": "Library bulk delete and status change use API routes",
+      "status": "blocked",
+      "steps": [
+        {
+          "action": "Navigate to /library",
+          "expected": "Library table with selectable rows",
+          "observed": "Redirected to login error overlay"
+        },
+        {
+          "action": "Check network during attempted bulk op",
+          "expected": "/api/posts* requests",
+          "observed": "No bulk-op requests possible; only Next error/asset requests captured"
+        }
+      ],
+      "evidence": {
+        "screenshots": [
+          "multi-user-landing/auth-browser-flows/blocked-library.png"
+        ],
+        "consoleErrors": "Missing NEXT_PUBLIC_INSFORGE_URL or NEXT_PUBLIC_INSFORGE_ANON_KEY (repeated runtime exception on each auth/protected route load).",
+        "network": "Only document/static asset requests and Next stack-frame error fetches were captured; expected app/API calls could not run after runtime boot failure."
+      },
+      "issues": "Library UI and bulk actions unavailable due missing auth env runtime prerequisites."
+    },
+    {
+      "id": "VAL-FIX-011",
+      "title": "TodaysPrompt caches result across navigations",
+      "status": "blocked",
+      "steps": [
+        {
+          "action": "Open /dashboard, navigate away, return",
+          "expected": "Only one /api/generate call across visits",
+          "observed": "Could not enter dashboard; redirected to broken login state"
+        },
+        {
+          "action": "Inspect network calls",
+          "expected": "Prompt API observable",
+          "observed": "No prompt generation calls executed"
+        }
+      ],
+      "evidence": {
+        "screenshots": [
+          "multi-user-landing/auth-browser-flows/blocked-dashboard.png",
+          "multi-user-landing/auth-browser-flows/blocked-library.png"
+        ],
+        "consoleErrors": "Missing NEXT_PUBLIC_INSFORGE_URL or NEXT_PUBLIC_INSFORGE_ANON_KEY (repeated runtime exception on each auth/protected route load).",
+        "network": "Only document/static asset requests and Next stack-frame error fetches were captured; expected app/API calls could not run after runtime boot failure."
+      },
+      "issues": "Dashboard prompt component never mounted due auth runtime failure."
+    },
+    {
+      "id": "VAL-MU-001",
+      "title": "New user signup redirects to onboarding",
+      "status": "blocked",
+      "steps": [
+        {
+          "action": "Open landing page and click Get Started",
+          "expected": "Signup form loads and account can be created",
+          "observed": "Reached /login?mode=signup with runtime env error overlay"
+        },
+        {
+          "action": "Attempt proceed to /dashboard",
+          "expected": "Redirect to /onboarding for new user",
+          "observed": "No signup/login possible due missing env vars"
+        }
+      ],
+      "evidence": {
+        "screenshots": [
+          "multi-user-landing/auth-browser-flows/landing-route-check.png",
+          "multi-user-landing/auth-browser-flows/login-after-landing-cta.png",
+          "multi-user-landing/auth-browser-flows/blocked-dashboard.png"
+        ],
+        "consoleErrors": "Missing NEXT_PUBLIC_INSFORGE_URL or NEXT_PUBLIC_INSFORGE_ANON_KEY (repeated runtime exception on each auth/protected route load).",
+        "network": "Only document/static asset requests and Next stack-frame error fetches were captured; expected app/API calls could not run after runtime boot failure."
+      },
+      "issues": "Cannot create/authenticate test user because login page crashes at runtime from missing NEXT_PUBLIC_INSFORGE_* vars."
+    },
+    {
+      "id": "VAL-MU-002",
+      "title": "Onboarding multi-step flow saves all data",
+      "status": "blocked",
+      "steps": [
+        {
+          "action": "Navigate to /onboarding",
+          "expected": "4-step onboarding form visible",
+          "observed": "Redirect/auth path ends at broken login runtime"
+        },
+        {
+          "action": "Attempt step progression",
+          "expected": "Data saved through all steps",
+          "observed": "Onboarding UI not reachable"
+        }
+      ],
+      "evidence": {
+        "screenshots": [
+          "multi-user-landing/auth-browser-flows/blocked-onboarding.png"
+        ],
+        "consoleErrors": "Missing NEXT_PUBLIC_INSFORGE_URL or NEXT_PUBLIC_INSFORGE_ANON_KEY (repeated runtime exception on each auth/protected route load).",
+        "network": "Only document/static asset requests and Next stack-frame error fetches were captured; expected app/API calls could not run after runtime boot failure."
+      },
+      "issues": "Onboarding flow blocked by inability to establish authenticated session."
+    },
+    {
+      "id": "VAL-MU-003",
+      "title": "Post-onboarding redirect to dashboard with profile loaded",
+      "status": "blocked",
+      "steps": [
+        {
+          "action": "Attempt complete onboarding then load /dashboard",
+          "expected": "Dashboard with display name",
+          "observed": "Cannot complete onboarding due login runtime failure"
+        }
+      ],
+      "evidence": {
+        "screenshots": [
+          "multi-user-landing/auth-browser-flows/blocked-onboarding.png",
+          "multi-user-landing/auth-browser-flows/blocked-dashboard.png"
+        ],
+        "consoleErrors": "Missing NEXT_PUBLIC_INSFORGE_URL or NEXT_PUBLIC_INSFORGE_ANON_KEY (repeated runtime exception on each auth/protected route load).",
+        "network": "Only document/static asset requests and Next stack-frame error fetches were captured; expected app/API calls could not run after runtime boot failure."
+      },
+      "issues": "Dependent prerequisite (successful signup/onboarding) is blocked by missing env vars."
+    },
+    {
+      "id": "VAL-MU-005",
+      "title": "Custom pillars appear in all UIs",
+      "status": "blocked",
+      "steps": [
+        {
+          "action": "Attempt open Generate/Library/Ideas/Analytics with user context",
+          "expected": "Custom pillars present in each UI",
+          "observed": "All protected routes redirect into broken login runtime"
+        }
+      ],
+      "evidence": {
+        "screenshots": [
+          "multi-user-landing/auth-browser-flows/blocked-generate.png",
+          "multi-user-landing/auth-browser-flows/blocked-library.png",
+          "multi-user-landing/auth-browser-flows/blocked-ideas.png",
+          "multi-user-landing/auth-browser-flows/blocked-analytics.png"
+        ],
+        "consoleErrors": "Missing NEXT_PUBLIC_INSFORGE_URL or NEXT_PUBLIC_INSFORGE_ANON_KEY (repeated runtime exception on each auth/protected route load).",
+        "network": "Only document/static asset requests and Next stack-frame error fetches were captured; expected app/API calls could not run after runtime boot failure."
+      },
+      "issues": "Custom-pillar propagation cannot be exercised without authenticated user session."
+    },
+    {
+      "id": "VAL-MU-006",
+      "title": "No hardcoded personal references in default UI",
+      "status": "blocked",
+      "steps": [
+        {
+          "action": "Attempt validate non-original-user authenticated UI output",
+          "expected": "No personal references in rendered app",
+          "observed": "Unable to create/login non-original user due signup runtime failure"
+        }
+      ],
+      "evidence": {
+        "screenshots": [
+          "multi-user-landing/auth-browser-flows/login-after-landing-cta.png"
+        ],
+        "consoleErrors": "Missing NEXT_PUBLIC_INSFORGE_URL or NEXT_PUBLIC_INSFORGE_ANON_KEY (repeated runtime exception on each auth/protected route load).",
+        "network": "Only document/static asset requests and Next stack-frame error fetches were captured; expected app/API calls could not run after runtime boot failure."
+      },
+      "issues": "Assertion requires logged-in non-original user context, blocked by missing NEXT_PUBLIC_INSFORGE_* env vars."
+    },
+    {
+      "id": "VAL-UX-001",
+      "title": "Library empty state",
+      "status": "blocked",
+      "steps": [
+        {
+          "action": "Navigate to /library as test user",
+          "expected": "Helpful empty-state message + CTA",
+          "observed": "Redirected to broken login route"
+        }
+      ],
+      "evidence": {
+        "screenshots": [
+          "multi-user-landing/auth-browser-flows/blocked-library.png"
+        ],
+        "consoleErrors": "Missing NEXT_PUBLIC_INSFORGE_URL or NEXT_PUBLIC_INSFORGE_ANON_KEY (repeated runtime exception on each auth/protected route load).",
+        "network": "Only document/static asset requests and Next stack-frame error fetches were captured; expected app/API calls could not run after runtime boot failure."
+      },
+      "issues": "Library page never renders due auth runtime blocker."
+    },
+    {
+      "id": "VAL-UX-002",
+      "title": "Ideas empty state",
+      "status": "blocked",
+      "steps": [
+        {
+          "action": "Navigate to /ideas",
+          "expected": "Helpful empty-state message",
+          "observed": "Redirected to broken login route"
+        }
+      ],
+      "evidence": {
+        "screenshots": [
+          "multi-user-landing/auth-browser-flows/blocked-ideas.png"
+        ],
+        "consoleErrors": "Missing NEXT_PUBLIC_INSFORGE_URL or NEXT_PUBLIC_INSFORGE_ANON_KEY (repeated runtime exception on each auth/protected route load).",
+        "network": "Only document/static asset requests and Next stack-frame error fetches were captured; expected app/API calls could not run after runtime boot failure."
+      },
+      "issues": "Ideas page unavailable behind broken auth runtime."
+    },
+    {
+      "id": "VAL-UX-003",
+      "title": "Story Bank empty state",
+      "status": "blocked",
+      "steps": [
+        {
+          "action": "Navigate to /story-bank",
+          "expected": "Empty-state with generate link",
+          "observed": "Redirected to broken login route"
+        }
+      ],
+      "evidence": {
+        "screenshots": [
+          "multi-user-landing/auth-browser-flows/blocked-story-bank.png"
+        ],
+        "consoleErrors": "Missing NEXT_PUBLIC_INSFORGE_URL or NEXT_PUBLIC_INSFORGE_ANON_KEY (repeated runtime exception on each auth/protected route load).",
+        "network": "Only document/static asset requests and Next stack-frame error fetches were captured; expected app/API calls could not run after runtime boot failure."
+      },
+      "issues": "Story Bank route blocked before UI render."
+    },
+    {
+      "id": "VAL-UX-004",
+      "title": "Series empty state",
+      "status": "blocked",
+      "steps": [
+        {
+          "action": "Navigate to /series",
+          "expected": "Series empty-state + CTA",
+          "observed": "Redirected to broken login route"
+        }
+      ],
+      "evidence": {
+        "screenshots": [
+          "multi-user-landing/auth-browser-flows/blocked-series.png"
+        ],
+        "consoleErrors": "Missing NEXT_PUBLIC_INSFORGE_URL or NEXT_PUBLIC_INSFORGE_ANON_KEY (repeated runtime exception on each auth/protected route load).",
+        "network": "Only document/static asset requests and Next stack-frame error fetches were captured; expected app/API calls could not run after runtime boot failure."
+      },
+      "issues": "Series page inaccessible due auth runtime failure."
+    },
+    {
+      "id": "VAL-UX-005",
+      "title": "Loading skeletons on data-fetching pages",
+      "status": "blocked",
+      "steps": [
+        {
+          "action": "Navigate to Dashboard/Library/Analytics",
+          "expected": "Skeletons visible during fetch",
+          "observed": "No page content mounted due auth/login runtime crash"
+        }
+      ],
+      "evidence": {
+        "screenshots": [
+          "multi-user-landing/auth-browser-flows/blocked-dashboard.png",
+          "multi-user-landing/auth-browser-flows/blocked-library.png",
+          "multi-user-landing/auth-browser-flows/blocked-analytics.png"
+        ],
+        "consoleErrors": "Missing NEXT_PUBLIC_INSFORGE_URL or NEXT_PUBLIC_INSFORGE_ANON_KEY (repeated runtime exception on each auth/protected route load).",
+        "network": "Only document/static asset requests and Next stack-frame error fetches were captured; expected app/API calls could not run after runtime boot failure."
+      },
+      "issues": "Data-fetching views unavailable due upstream auth env blocker."
+    },
+    {
+      "id": "VAL-UX-006",
+      "title": "Error boundaries catch component errors",
+      "status": "blocked",
+      "steps": [
+        {
+          "action": "Attempt access app routes and observe fallback handling",
+          "expected": "User-friendly boundary UI with retry",
+          "observed": "Only Next dev error overlay for missing env vars appears"
+        }
+      ],
+      "evidence": {
+        "screenshots": [
+          "multi-user-landing/auth-browser-flows/login-signup-initial.png"
+        ],
+        "consoleErrors": "Missing NEXT_PUBLIC_INSFORGE_URL or NEXT_PUBLIC_INSFORGE_ANON_KEY (repeated runtime exception on each auth/protected route load).",
+        "network": "Only document/static asset requests and Next stack-frame error fetches were captured; expected app/API calls could not run after runtime boot failure."
+      },
+      "issues": "Cannot validate app-level error boundary behavior while runtime fails at configuration bootstrap."
+    },
+    {
+      "id": "VAL-CROSS-001",
+      "title": "Full user journey - Landing to published post",
+      "status": "blocked",
+      "steps": [
+        {
+          "action": "Open / and click Get Started",
+          "expected": "Proceed through signup -> onboarding -> dashboard",
+          "observed": "Blocked at /login?mode=signup runtime env error"
+        }
+      ],
+      "evidence": {
+        "screenshots": [
+          "multi-user-landing/auth-browser-flows/landing-route-check.png",
+          "multi-user-landing/auth-browser-flows/login-after-landing-cta.png"
+        ],
+        "consoleErrors": "Missing NEXT_PUBLIC_INSFORGE_URL or NEXT_PUBLIC_INSFORGE_ANON_KEY (repeated runtime exception on each auth/protected route load).",
+        "network": "Only document/static asset requests and Next stack-frame error fetches were captured; expected app/API calls could not run after runtime boot failure."
+      },
+      "issues": "Journey blocked at first auth step due missing NEXT_PUBLIC_INSFORGE_* vars."
+    },
+    {
+      "id": "VAL-CROSS-002",
+      "title": "Content lifecycle - Idea to analytics",
+      "status": "blocked",
+      "steps": [
+        {
+          "action": "Attempt lifecycle starting at /ideas",
+          "expected": "Idea progresses through generate/library/calendar/publish/analytics",
+          "observed": "Cannot enter /ideas due broken auth runtime"
+        }
+      ],
+      "evidence": {
+        "screenshots": [
+          "multi-user-landing/auth-browser-flows/blocked-ideas.png",
+          "multi-user-landing/auth-browser-flows/blocked-analytics.png"
+        ],
+        "consoleErrors": "Missing NEXT_PUBLIC_INSFORGE_URL or NEXT_PUBLIC_INSFORGE_ANON_KEY (repeated runtime exception on each auth/protected route load).",
+        "network": "Only document/static asset requests and Next stack-frame error fetches were captured; expected app/API calls could not run after runtime boot failure."
+      },
+      "issues": "Lifecycle flow blocked by inability to authenticate/load protected pages."
+    },
+    {
+      "id": "VAL-CROSS-003",
+      "title": "Story mining flow",
+      "status": "blocked",
+      "steps": [
+        {
+          "action": "Attempt Story Bank mine and convert",
+          "expected": "Converted post appears in Library",
+          "observed": "Story Bank inaccessible (redirect to broken login runtime)"
+        }
+      ],
+      "evidence": {
+        "screenshots": [
+          "multi-user-landing/auth-browser-flows/blocked-story-bank.png",
+          "multi-user-landing/auth-browser-flows/blocked-library.png"
+        ],
+        "consoleErrors": "Missing NEXT_PUBLIC_INSFORGE_URL or NEXT_PUBLIC_INSFORGE_ANON_KEY (repeated runtime exception on each auth/protected route load).",
+        "network": "Only document/static asset requests and Next stack-frame error fetches were captured; expected app/API calls could not run after runtime boot failure."
+      },
+      "issues": "Cross-flow prerequisites unavailable due auth runtime blocker."
+    },
+    {
+      "id": "VAL-CROSS-005",
+      "title": "Teleprompter flow",
+      "status": "blocked",
+      "steps": [
+        {
+          "action": "Attempt Generate -> Library -> Teleprompter",
+          "expected": "Script opens in full-screen teleprompter",
+          "observed": "Generate/Library/Teleprompter routes inaccessible due login runtime error"
+        }
+      ],
+      "evidence": {
+        "screenshots": [
+          "multi-user-landing/auth-browser-flows/blocked-generate.png",
+          "multi-user-landing/auth-browser-flows/blocked-teleprompter.png"
+        ],
+        "consoleErrors": "Missing NEXT_PUBLIC_INSFORGE_URL or NEXT_PUBLIC_INSFORGE_ANON_KEY (repeated runtime exception on each auth/protected route load).",
+        "network": "Only document/static asset requests and Next stack-frame error fetches were captured; expected app/API calls could not run after runtime boot failure."
+      },
+      "issues": "Flow blocked because authenticated app shell cannot initialize."
+    },
+    {
+      "id": "VAL-CROSS-007",
+      "title": "Mobile navigation covers all pages",
+      "status": "blocked",
+      "steps": [
+        {
+          "action": "Set viewport 390x844 and open protected shell",
+          "expected": "Bottom nav works across all pages",
+          "observed": "Redirected to broken login runtime; no bottom nav rendered"
+        }
+      ],
+      "evidence": {
+        "screenshots": [
+          "multi-user-landing/auth-browser-flows/blocked-dashboard-mobile-390x844.png"
+        ],
+        "consoleErrors": "Missing NEXT_PUBLIC_INSFORGE_URL or NEXT_PUBLIC_INSFORGE_ANON_KEY (repeated runtime exception on each auth/protected route load).",
+        "network": "Only document/static asset requests and Next stack-frame error fetches were captured; expected app/API calls could not run after runtime boot failure."
+      },
+      "issues": "Mobile nav validation blocked by auth/login runtime failure."
+    },
+    {
+      "id": "VAL-CROSS-008",
+      "title": "Settings persistence - custom pillars propagate",
+      "status": "blocked",
+      "steps": [
+        {
+          "action": "Attempt set custom pillars in /settings then verify downstream pages",
+          "expected": "Pillars appear in Generate/Library/Calendar/Ideas/Analytics",
+          "observed": "Cannot access /settings or downstream pages in authenticated mode"
+        }
+      ],
+      "evidence": {
+        "screenshots": [
+          "multi-user-landing/auth-browser-flows/blocked-settings.png",
+          "multi-user-landing/auth-browser-flows/blocked-generate.png",
+          "multi-user-landing/auth-browser-flows/blocked-library.png",
+          "multi-user-landing/auth-browser-flows/blocked-ideas.png",
+          "multi-user-landing/auth-browser-flows/blocked-analytics.png"
+        ],
+        "consoleErrors": "Missing NEXT_PUBLIC_INSFORGE_URL or NEXT_PUBLIC_INSFORGE_ANON_KEY (repeated runtime exception on each auth/protected route load).",
+        "network": "Only document/static asset requests and Next stack-frame error fetches were captured; expected app/API calls could not run after runtime boot failure."
+      },
+      "issues": "Persistence propagation flow blocked by missing frontend env required for auth runtime."
+    }
+  ],
+  "frictions": [
+    {
+      "description": "On login/signup and all protected-route attempts, the Next.js error overlay became the only interactive surface (Hide Errors button), preventing normal flow interactions.",
+      "resolved": false,
+      "resolution": "No safe local fix inside validator scope; documented blocker and continued route-by-route evidence capture.",
+      "affectedAssertions": [
+        "VAL-FIX-001",
+        "VAL-FIX-003",
+        "VAL-FIX-004",
+        "VAL-FIX-005",
+        "VAL-FIX-006",
+        "VAL-FIX-007",
+        "VAL-FIX-010",
+        "VAL-FIX-011",
+        "VAL-MU-001",
+        "VAL-MU-002",
+        "VAL-MU-003",
+        "VAL-MU-005",
+        "VAL-MU-006",
+        "VAL-UX-001",
+        "VAL-UX-002",
+        "VAL-UX-003",
+        "VAL-UX-004",
+        "VAL-UX-005",
+        "VAL-UX-006",
+        "VAL-CROSS-001",
+        "VAL-CROSS-002",
+        "VAL-CROSS-003",
+        "VAL-CROSS-005",
+        "VAL-CROSS-007",
+        "VAL-CROSS-008"
+      ]
+    },
+    {
+      "description": "Repeated stack-frame error fetches created noisy network logs and obscured functional API traffic.",
+      "resolved": true,
+      "resolution": "Filtered observations to blocker-specific signals and captured route screenshots per assertion.",
+      "affectedAssertions": [
+        "VAL-FIX-001",
+        "VAL-FIX-003",
+        "VAL-FIX-004",
+        "VAL-FIX-005",
+        "VAL-FIX-006",
+        "VAL-FIX-007",
+        "VAL-FIX-010",
+        "VAL-FIX-011",
+        "VAL-MU-001",
+        "VAL-MU-002",
+        "VAL-MU-003",
+        "VAL-MU-005",
+        "VAL-MU-006",
+        "VAL-UX-001",
+        "VAL-UX-002",
+        "VAL-UX-003",
+        "VAL-UX-004",
+        "VAL-UX-005",
+        "VAL-UX-006",
+        "VAL-CROSS-001",
+        "VAL-CROSS-002",
+        "VAL-CROSS-003",
+        "VAL-CROSS-005",
+        "VAL-CROSS-007",
+        "VAL-CROSS-008"
+      ]
+    }
+  ],
+  "blockers": [
+    {
+      "description": "Frontend runtime missing required env vars: NEXT_PUBLIC_INSFORGE_URL and NEXT_PUBLIC_INSFORGE_ANON_KEY. This crashes login/signup and prevents authenticated app shell from rendering.",
+      "affectedAssertions": [
+        "VAL-FIX-001",
+        "VAL-FIX-003",
+        "VAL-FIX-004",
+        "VAL-FIX-005",
+        "VAL-FIX-006",
+        "VAL-FIX-007",
+        "VAL-FIX-010",
+        "VAL-FIX-011",
+        "VAL-MU-001",
+        "VAL-MU-002",
+        "VAL-MU-003",
+        "VAL-MU-005",
+        "VAL-MU-006",
+        "VAL-UX-001",
+        "VAL-UX-002",
+        "VAL-UX-003",
+        "VAL-UX-004",
+        "VAL-UX-005",
+        "VAL-UX-006",
+        "VAL-CROSS-001",
+        "VAL-CROSS-002",
+        "VAL-CROSS-003",
+        "VAL-CROSS-005",
+        "VAL-CROSS-007",
+        "VAL-CROSS-008"
+      ],
+      "quickFixAttempted": "Retried loads across /login?mode=signup and protected routes, reloaded session, and verified repo root lacks .env.local. Block persisted."
+    }
+  ],
+  "summary": "Tested 25 assigned assertions with one isolated agent-browser session: 0 pass, 0 fail, 25 blocked due missing NEXT_PUBLIC_INSFORGE_* runtime configuration in the running dev server."
+}

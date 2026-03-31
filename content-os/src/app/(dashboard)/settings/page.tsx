@@ -40,6 +40,7 @@ interface ConnectedAccount {
   account_name: string | null;
   account_id: string | null;
   connected_at: string;
+  connection_method?: string | null;
 }
 
 function Section({
@@ -319,6 +320,18 @@ export default function SettingsPage() {
 
   /* ---- Connected accounts ---- */
 
+  async function refreshAccounts() {
+    try {
+      const res = await fetch("/api/social-accounts");
+      if (res.ok) {
+        const data = await res.json();
+        setConnectedAccounts(data.accounts ?? []);
+      }
+    } catch {
+      // silently fail
+    }
+  }
+
   async function disconnectAccount(platform: string) {
     setDisconnecting(platform);
     try {
@@ -407,15 +420,11 @@ export default function SettingsPage() {
 
       <Section title="Platform Connections">
         <PlatformConnections
-          platformConfig={platformConfig}
-          onPlatformConfigChange={setPlatformConfig}
           connectedAccounts={connectedAccounts}
           onConnect={connectAccount}
           onDisconnect={disconnectAccount}
           disconnecting={disconnecting}
-          onSave={savePlatformConfig}
-          saving={platformSaving}
-          saved={platformSaved}
+          onAccountsRefresh={refreshAccounts}
         />
       </Section>
 

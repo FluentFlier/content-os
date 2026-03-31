@@ -11,7 +11,7 @@ export async function GET(): Promise<NextResponse> {
   const client = getServerClient();
   const { data, error } = await client.database
     .from('social_accounts')
-    .select('id, platform, account_name, account_id, connected_at, token_expires_at')
+    .select('id, platform, account_name, account_id, connected_at, token_expires_at, connection_method')
     .eq('user_id', user.id);
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });

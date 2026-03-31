@@ -32,6 +32,7 @@ export function StoryMine() {
   const [error, setError] = useState('');
   const [savingStory, setSavingStory] = useState(false);
   const [storySaved, setStorySaved] = useState(false);
+  const [savedStoryId, setSavedStoryId] = useState<string | null>(null);
   const [converting, setConverting] = useState(false);
 
   const generate = async () => {
@@ -63,6 +64,7 @@ Use every specific detail from the memory. Never genericize. No em dashes.`;
       const text = await callGenerate(prompt);
       setOutput(text);
       setStorySaved(false);
+      setSavedStoryId(null);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Generation failed');
     } finally {
@@ -91,7 +93,7 @@ Use every specific detail from the memory. Never genericize. No em dashes.`;
         ? pillarRaw
         : null;
 
-      const { error: dbError } = await insforge.database
+      const { data: storyData, error: dbError } = await insforge.database
         .from('story_bank')
         .insert({
           user_id: userData.user.id,
@@ -106,6 +108,7 @@ Use every specific detail from the memory. Never genericize. No em dashes.`;
         .select()
         .single();
       if (dbError) throw dbError;
+      if (storyData?.id) setSavedStoryId(storyData.id);
       setStorySaved(true);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Failed to save');
@@ -149,6 +152,19 @@ Use every specific detail from the memory. Never genericize. No em dashes.`;
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
         throw new Error(body.error || 'Failed to create post');
+      }
+
+      const { post: newPost } = await res.json();
+
+      // Mark story bank entry as used if it was previously saved
+      if (savedStoryId && newPost?.id) {
+        await fetch(`/api/story-bank/${savedStoryId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ used: true, used_post_id: newPost.id }),
+        }).catch(() => {
+          // Non-critical: post was created, story marking is best-effort
+        });
       }
 
       toast('Post created');

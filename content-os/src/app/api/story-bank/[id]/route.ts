@@ -37,6 +37,14 @@ export async function PATCH(
     category: z.string().max(200).optional(),
     tags: z.array(z.string().max(100)).max(20).optional(),
     source: z.string().max(500).optional(),
+    raw_memory: z.string().max(10000).optional(),
+    mined_angle: z.string().max(2000).nullable().optional(),
+    mined_hook: z.string().max(2000).nullable().optional(),
+    mined_script: z.string().max(10000).nullable().optional(),
+    mined_caption_line: z.string().max(2000).nullable().optional(),
+    pillar: z.string().max(200).nullable().optional(),
+    used: z.boolean().optional(),
+    used_post_id: z.string().uuid().nullable().optional(),
   });
 
   const parsed = StoryUpdateSchema.safeParse(body);

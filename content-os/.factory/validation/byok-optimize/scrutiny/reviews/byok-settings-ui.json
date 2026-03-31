@@ -1,0 +1,39 @@
+{
+  "featureId": "byok-settings-ui",
+  "reviewedAt": "2026-03-31T08:41:38Z",
+  "commitId": "e661415",
+  "transcriptSkeletonReviewed": true,
+  "diffReviewed": true,
+  "status": "fail",
+  "codeReview": {
+    "summary": "The feature implements the BYOK settings UI, masked inputs with Eye toggles, Save/Test actions, and metadata-only social account responses. However, a blocking connection_method transition bug means badge state is not reliable when moving from BYOK to OAuth.",
+    "issues": [
+      {
+        "file": "src/app/api/social-accounts/callback/twitter/route.ts",
+        "line": 64,
+        "severity": "blocking",
+        "description": "OAuth callback upserts do not set `connection_method: 'oauth'` (same omission in linkedin:70, instagram:91, threads:74). If a row was previously saved via BYOK (`connection_method='byok'`), reconnecting with OAuth updates tokens but leaves `connection_method` as `byok`. Since PlatformConnections derives badge state from this field (`src/components/settings/PlatformConnections.tsx:70-73`), badges can remain \"Manual Keys\" after OAuth connect, violating the required badge updates on connect/disconnect."
+      },
+      {
+        "file": "src/app/(dashboard)/settings/page.tsx",
+        "line": 103,
+        "severity": "non_blocking",
+        "description": "Legacy platformConfig-related state and save handler remain unused after the PlatformConnections prop contract change (declarations at lines 103, 122, 123; handler at line 295). This is dead code that increases maintenance risk around settings behavior."
+      }
+    ]
+  },
+  "sharedStateObservations": [
+    {
+      "area": "knowledge",
+      "observation": "Shared architecture knowledge does not document the `social_accounts.connection_method` lifecycle contract, even though both UI badge logic and publishing behavior now depend on it.",
+      "evidence": ".factory/library/architecture.md documents social routes but not connection_method transitions. BYOK writes `connection_method: 'byok'` (src/app/api/social-accounts/byok/route.ts:70), while OAuth callbacks omit it (e.g., src/app/api/social-accounts/callback/twitter/route.ts:64-75)."
+    },
+    {
+      "area": "skills",
+      "observation": "The fullstack-worker skill requires API checks with a valid auth cookie, but there is no documented way in shared state to obtain one in this mission flow; worker verification fell back to fake-cookie Unauthorized responses plus code inspection.",
+      "evidence": ".factory/skills/fullstack-worker/SKILL.md:49 says \"For API features: use curl with valid auth cookie\"; transcript for workerSessionId 44e5e73a-2bf9-47b6-87f6-25eccf3ae1c8 includes curl with `dispatch-token=fake-token` and Unauthorized result."
+    }
+  ],
+  "addressesFailureFrom": null,
+  "summary": "Review result: fail. The feature largely matches UI requirements, but a blocking `connection_method` consistency bug prevents reliable badge updates after BYOK-to-OAuth transitions."
+}

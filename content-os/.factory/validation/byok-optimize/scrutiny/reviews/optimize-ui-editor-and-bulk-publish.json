@@ -1,0 +1,34 @@
+{
+  "featureId": "optimize-ui-editor-and-bulk-publish",
+  "reviewedAt": "2026-03-31T08:40:55Z",
+  "commitId": "e9d84e202bdca40faa4a8d75a78f20c80fd949bd",
+  "transcriptSkeletonReviewed": true,
+  "diffReviewed": true,
+  "status": "fail",
+  "codeReview": {
+    "summary": "The feature adds the required UI surfaces (Generate Variants + BulkPublishPanel), but BulkPublishPanel determines publish success from stale React state after async operations, which can prevent post status updates after successful bulk publishing.",
+    "issues": [
+      {
+        "file": "src/components/library/BulkPublishPanel.tsx",
+        "line": 176,
+        "severity": "blocking",
+        "description": "After `await Promise.allSettled(...)`, success is computed from `platformStates` in the current closure (`const results = Object.entries(platformStates)`). Because state updates from `publishToPlatform` are async, this often reads pre-publish state and skips `onPublishSuccess` even when one or more platforms published successfully."
+      },
+      {
+        "file": "src/components/library/BulkPublishPanel.tsx",
+        "line": 188,
+        "severity": "blocking",
+        "description": "`handleRetry` checks `platformStates[platform]` immediately after awaiting `publishToPlatform(platform)`, again reading stale state and potentially skipping `onPublishSuccess` after a successful retry."
+      }
+    ]
+  },
+  "sharedStateObservations": [
+    {
+      "area": "skills",
+      "observation": "The fullstack-worker skill assumes UI verification is always runnable, but this worker hit an auth-blocked environment and could not complete in-app verification of the new drawer flows.",
+      "evidence": "worker-transcripts.jsonl entry for session 26090b2f-f3bb-4511-bb22-d0f7f0791f1f shows agent-browser redirected to /login; handoff.skillFeedback suggests documenting this blocker; .factory/skills/fullstack-worker/SKILL.md step 5 currently assumes direct UI access."
+    }
+  ],
+  "addressesFailureFrom": null,
+  "summary": "Fail: bulk publish success handling is unreliable due to stale state reads, so the parent callback that marks posts as posted may not run even when publishing succeeds."
+}

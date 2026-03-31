@@ -1,0 +1,33 @@
+{
+  "featureId": "publish-byok-fallback",
+  "reviewedAt": "2026-03-31T08:40:30Z",
+  "commitId": "a667cdd58dcc157f141784bd54475654f084ad78",
+  "transcriptSkeletonReviewed": true,
+  "diffReviewed": true,
+  "status": "pass",
+  "codeReview": {
+    "summary": "The commit implements BYOK fallback publishing in POST /api/publish, adds Twitter OAuth 1.0a BYOK support, preserves OAuth publish flow, and returns a clear 400 error for Instagram requests without imageUrl. The feature behavior in the mission description is covered end-to-end.",
+    "issues": [
+      {
+        "file": "content-os/src/app/api/publish/route.ts",
+        "line": 207,
+        "severity": "non_blocking",
+        "description": "OAuth lookup uses `.neq('connection_method', 'byok')`, but SQL/PostgREST `neq` does not match NULL values. The comment says OAuth should include rows where connection_method is null or non-byok. Legacy rows with NULL connection_method would be skipped and could incorrectly fall through to BYOK/no-account handling."
+      }
+    ]
+  },
+  "sharedStateObservations": [
+    {
+      "area": "skills",
+      "observation": "The social-worker procedure requires curl route validation, but this worker session completed with build/lint/diff-only verification and still marked `followedProcedure: true`. This indicates the skill procedure and practical verification expectations are drifting.",
+      "evidence": "Transcript skeleton for workerSessionId 94d7edaf-6140-497a-9fed-ad7cf15b3558 shows `npm run build`, `npm run lint`, and git diff checks, with no curl calls. Handoff `verification.commandsRun` also contains no curl commands while `skillFeedback.followedProcedure` is true."
+    },
+    {
+      "area": "skills",
+      "observation": "Worker feedback indicates a recurring optimization opportunity (check existing diff first because feature may already be partially implemented), but this guidance is not currently captured in the social-worker skill.",
+      "evidence": "Handoff `skillFeedback.suggestedChanges` explicitly requests adding guidance: 'check git diff early saves time' for pre-implemented feature cases."
+    }
+  ],
+  "addressesFailureFrom": null,
+  "summary": "Review completed for publish-byok-fallback at commit a667cdd58dcc157f141784bd54475654f084ad78. Feature requirements are implemented and review passes, with one non-blocking edge-case issue in OAuth account lookup and two skill-level shared-state observations."
+}

@@ -1,0 +1,28 @@
+{
+  "featureId": "auto-optimize-on-save",
+  "reviewedAt": "2026-03-31T08:41:16Z",
+  "commitId": "70f1a21",
+  "transcriptSkeletonReviewed": true,
+  "diffReviewed": true,
+  "status": "fail",
+  "codeReview": {
+    "summary": "The feature adds the settings toggle, persistence key, and background trigger wiring for POST/PATCH posts, but the PATCH trigger condition does not actually verify content changes and causes unintended auto-optimization runs.",
+    "issues": [
+      {
+        "file": "src/app/api/posts/[id]/route.ts",
+        "line": 75,
+        "severity": "blocking",
+        "description": "Auto-optimize is triggered whenever `script` or `caption` fields are present in PATCH payload (`parsed.data.script !== undefined || parsed.data.caption !== undefined`), not when their values changed. The editor autosave sends the full form including both fields on blur (`src/components/library/PostEditorDrawer.tsx:51-53`), so unrelated edits (title, notes, status flow) can repeatedly generate duplicate variant posts. This violates the expected behavior that optimization runs on script/caption change."
+      }
+    ]
+  },
+  "sharedStateObservations": [
+    {
+      "area": "skills",
+      "observation": "The fullstack-worker skill requires agent-browser/manual UI verification for UI features, but this worker session did not run agent-browser or dev-server checks and still reported `skillFeedback.followedProcedure: true` in handoff.",
+      "evidence": "Skill requirement: .factory/skills/fullstack-worker/SKILL.md (Required Skills + Manual verification section). Transcript check for worker b783cdbf-7adb-436a-a517-52f52e7d28a7 shows `containsAgentBrowser: false`, `containsDevServerStart: false`, `containsCurl: false`, while handoff verification only lists build/lint."
+    }
+  ],
+  "addressesFailureFrom": null,
+  "summary": "Review failed due to a blocking correctness issue in PATCH auto-optimize triggering logic that can create repeated unwanted variants on normal autosaves. Shared-state note: skill procedure enforcement appears inconsistent with this worker's verification steps."
+}

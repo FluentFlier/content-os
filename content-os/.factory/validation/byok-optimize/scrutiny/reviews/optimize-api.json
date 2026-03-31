@@ -1,0 +1,34 @@
+{
+  "featureId": "optimize-api",
+  "reviewedAt": "2026-03-31T08:44:32Z",
+  "commitId": "1f09500",
+  "transcriptSkeletonReviewed": true,
+  "diffReviewed": true,
+  "status": "fail",
+  "codeReview": {
+    "summary": "Reviewed feature metadata, handoff, transcript skeleton, and commit 1f09500. The route correctly adds auth gating, Zod input validation, platform-specific prompting, and thread metadata fields, but it does not enforce character-limit guarantees required by expected behavior.",
+    "issues": [
+      {
+        "file": "src/app/api/optimize/route.ts",
+        "line": 200,
+        "severity": "blocking",
+        "description": "Non-Twitter variants are returned without any post-generation hard length enforcement. `processStandardContent` only trims content and reports `characterCount`, while `PLATFORM_LIMITS` is never applied, so LinkedIn/Instagram/Threads outputs can exceed 3000/2200/500 and violate the requirement that each variant respect platform limits."
+      },
+      {
+        "file": "src/app/api/optimize/route.ts",
+        "line": 125,
+        "severity": "blocking",
+        "description": "If AI output already contains `---TWEET---`, the handler returns `threadParts` as-is without validating each part against the 280-character tweet limit. Oversized thread segments can therefore be returned as valid Twitter thread metadata."
+      }
+    ]
+  },
+  "sharedStateObservations": [
+    {
+      "area": "skills",
+      "observation": "The social-worker verification procedure requires valid-auth plus invalid-auth API checks, but this run only exercised unauthenticated 401 paths and still marked procedure-followed. The skill should define an explicit blocked-path protocol or auth-fixture fallback for auth-required endpoint validation.",
+      "evidence": "social-worker SKILL.md step 7 states: \"Test routes via curl (valid auth, invalid auth, invalid input)\". Transcript skeleton for session c1b21e84-0c35-4f5d-b7c7-4b58f34fff95 shows optimize endpoint curls all returning 401 due missing valid token, including invalid-input attempts."
+    }
+  ],
+  "addressesFailureFrom": null,
+  "summary": "Fail. The optimize API route is present, but platform limit compliance is not reliably enforced for non-Twitter variants or AI-delimited Twitter thread parts."
+}

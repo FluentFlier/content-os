@@ -30,6 +30,10 @@ Dispatch is a Next.js 14 App Router application (TypeScript, Tailwind CSS 3.4) t
 - Platform clients: `src/lib/platforms/{twitter,linkedin,instagram,threads}.ts`
 - Token encryption: AES-256-GCM via `src/lib/crypto.ts`
 - Unified publish endpoint: `POST /api/publish`
+- `social_accounts.connection_method` contract:
+  - BYOK saves must persist `connection_method='byok'`
+  - OAuth callbacks must persist `connection_method='oauth'`
+  - UI status badges and publish fallback logic depend on this field and can misclassify accounts if left null/stale
 
 ### Content Pipeline
 - Posts move through status pipeline: idea -> scripted -> filmed -> edited -> posted

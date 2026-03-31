@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { X, Wand2, Copy, MonitorPlay, Trash2 } from 'lucide-react';
+import { X, Wand2, Copy, MonitorPlay, Trash2, Clock } from 'lucide-react';
 import type { Post, Series } from '@/lib/types';
 import type { Status, Platform } from '@/lib/constants';
 import { PLATFORMS, STATUSES, STATUS_LABELS } from '@/lib/constants';
@@ -31,6 +31,7 @@ export default function PostEditorDrawer({ post, series, onClose, onSave, onDele
     platform: post.platform,
     status: post.status,
     scheduled_date: post.scheduled_date ?? '',
+    scheduled_publish_at: post.scheduled_publish_at ?? '',
     hook: post.hook ?? '',
     script: post.script ?? '',
     caption: post.caption ?? '',
@@ -52,6 +53,7 @@ export default function PostEditorDrawer({ post, series, onClose, onSave, onDele
           ...form,
           series_id: form.series_id || null,
           scheduled_date: form.scheduled_date || null,
+          scheduled_publish_at: form.scheduled_publish_at || null,
           updated_at: new Date().toISOString(),
         }),
       });
@@ -224,6 +226,29 @@ export default function PostEditorDrawer({ post, series, onClose, onSave, onDele
               onBlur={autoSave}
               className={inputClass}
             />
+          </label>
+
+          {/* Scheduled publish time */}
+          <label className="block">
+            <span className={labelClass}>
+              <span className="flex items-center gap-1">
+                <Clock size={12} />
+                Auto-Publish At
+              </span>
+            </span>
+            <input
+              type="datetime-local"
+              value={form.scheduled_publish_at ? form.scheduled_publish_at.slice(0, 16) : ''}
+              onChange={(e) => {
+                const val = e.target.value;
+                update('scheduled_publish_at', val ? new Date(val).toISOString() : '');
+              }}
+              onBlur={autoSave}
+              className={inputClass}
+            />
+            <span className="text-[10px] text-[#71717A] mt-1 block">
+              Set a date and time to auto-publish this post via cron
+            </span>
           </label>
 
           {/* Hook */}

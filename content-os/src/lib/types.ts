@@ -22,6 +22,9 @@ export interface Post {
   follows_gained: number | null;
   series_id: string | null;
   series_position: number | null;
+  variant_group_id: string | null;
+  source_platform: string | null;
+  scheduled_publish_at: string | null;
   created_at: string;
   updated_at: string;
 }

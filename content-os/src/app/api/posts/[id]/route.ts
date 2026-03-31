@@ -25,6 +25,7 @@ const UpdatePostSchema = z.object({
   follows_gained: z.number().nullable().optional(),
   variant_group_id: z.string().uuid().nullable().optional(),
   source_platform: z.string().nullable().optional(),
+  scheduled_publish_at: z.string().nullable().optional(),
   updated_at: z.string().optional(),
 }).strict();
 

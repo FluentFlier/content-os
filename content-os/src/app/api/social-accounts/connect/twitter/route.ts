@@ -1,8 +1,14 @@
 import { NextResponse } from 'next/server';
 import { TwitterApi } from 'twitter-api-v2';
+import { getAuthenticatedUser } from '@/lib/insforge/server';
 
 // GET: Redirect to Twitter OAuth 2.0 authorization with PKCE
 export async function GET(): Promise<NextResponse> {
+  const user = await getAuthenticatedUser();
+  if (!user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   const clientId = process.env.TWITTER_CLIENT_ID;
   const clientSecret = process.env.TWITTER_CLIENT_SECRET;
 

@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { TwitterApi } from 'twitter-api-v2';
+import { getAuthenticatedUser, getServerClient } from '@/lib/insforge/server';
+import { encryptToken } from '@/lib/crypto';
 
 // GET: Handle Twitter OAuth 2.0 callback
 export async function GET(request: NextRequest): Promise<NextResponse> {
@@ -23,11 +25,18 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     return redirectWithError('Missing code or state from Twitter');
   }
 
+  // Validate state against cookie (CSRF protection)
   const codeVerifier = request.cookies.get('twitter_code_verifier')?.value;
   const storedState = request.cookies.get('twitter_oauth_state')?.value;
 
   if (!codeVerifier || state !== storedState) {
     return redirectWithError('Invalid OAuth state. Try connecting again.');
+  }
+
+  // Authenticate user
+  const user = await getAuthenticatedUser();
+  if (!user) {
+    return redirectWithError('Not authenticated. Please log in first.');
   }
 
   const callbackUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'}/api/social-accounts/callback/twitter`;
@@ -48,29 +57,32 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       ? new Date(Date.now() + expiresIn * 1000).toISOString()
       : null;
 
-    // Save the account via our own API
+    // Store tokens directly via database (no self-fetch)
+    const db = getServerClient().database;
+    const { error: dbError } = await db
+      .from('social_accounts')
+      .upsert(
+        {
+          user_id: user.id,
+          platform: 'twitter',
+          account_name: `@${me.data.username}`,
+          account_id: me.data.id,
+          access_token: encryptToken(accessToken),
+          refresh_token: refreshToken ? encryptToken(refreshToken) : null,
+          token_expires_at: expiresAt,
+          connected_at: new Date().toISOString(),
+        },
+        { onConflict: 'user_id,platform' }
+      );
+
+    if (dbError) {
+      console.error('[Twitter Callback] DB error:', dbError.message);
+      return redirectWithError('Failed to save Twitter connection');
+    }
+
+    // Redirect back to settings with success and clear OAuth cookies
     const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
-    const dispatchToken = request.cookies.get('dispatch-token')?.value;
-
-    await fetch(`${appUrl}/api/social-accounts`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Cookie: `dispatch-token=${dispatchToken}`,
-      },
-      body: JSON.stringify({
-        platform: 'twitter',
-        account_name: `@${me.data.username}`,
-        account_id: me.data.id,
-        access_token: accessToken,
-        refresh_token: refreshToken ?? null,
-        token_expires_at: expiresAt,
-      }),
-    });
-
-    // Redirect back to settings with success
     const response = NextResponse.redirect(`${appUrl}/settings?connected=twitter`);
-    // Clear OAuth cookies
     response.cookies.set('twitter_code_verifier', '', { maxAge: 0, path: '/' });
     response.cookies.set('twitter_oauth_state', '', { maxAge: 0, path: '/' });
     return response;

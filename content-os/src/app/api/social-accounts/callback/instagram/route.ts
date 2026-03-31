@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getAuthenticatedUser, getServerClient } from '@/lib/insforge/server';
+import { encryptToken } from '@/lib/crypto';
 
 // GET: Handle Instagram/Facebook OAuth callback
 export async function GET(request: NextRequest): Promise<NextResponse> {
@@ -18,8 +20,15 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   if (error) return redirectWithError(`Instagram auth denied: ${error}`);
   if (!code || !state) return redirectWithError('Missing code or state');
 
+  // Validate state against cookie (CSRF protection)
   const storedState = request.cookies.get('instagram_oauth_state')?.value;
-  if (state !== storedState) return redirectWithError('Invalid OAuth state');
+  if (state !== storedState) return redirectWithError('Invalid OAuth state. Try connecting again.');
+
+  // Authenticate user
+  const user = await getAuthenticatedUser();
+  if (!user) {
+    return redirectWithError('Not authenticated. Please log in first.');
+  }
 
   const callbackUrl = `${appUrl}/api/social-accounts/callback/instagram`;
 
@@ -45,7 +54,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const pagesRes = await fetch(
       `https://graph.facebook.com/v19.0/me/accounts?access_token=${longToken}`
     );
-    let igAccountId = null;
+    let igAccountId: string | null = null;
     let igUsername = 'Instagram';
 
     if (pagesRes.ok) {
@@ -75,22 +84,30 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       ? new Date(Date.now() + expiresIn * 1000).toISOString()
       : null;
 
-    const dispatchToken = request.cookies.get('dispatch-token')?.value;
-    await fetch(`${appUrl}/api/social-accounts`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Cookie: `dispatch-token=${dispatchToken}`,
-      },
-      body: JSON.stringify({
-        platform: 'instagram',
-        account_name: igUsername,
-        account_id: igAccountId,
-        access_token: longToken,
-        token_expires_at: expiresAt,
-      }),
-    });
+    // Store tokens directly via database (no self-fetch)
+    const db = getServerClient().database;
+    const { error: dbError } = await db
+      .from('social_accounts')
+      .upsert(
+        {
+          user_id: user.id,
+          platform: 'instagram',
+          account_name: igUsername,
+          account_id: igAccountId,
+          access_token: encryptToken(longToken),
+          refresh_token: null,
+          token_expires_at: expiresAt,
+          connected_at: new Date().toISOString(),
+        },
+        { onConflict: 'user_id,platform' }
+      );
 
+    if (dbError) {
+      console.error('[Instagram Callback] DB error:', dbError.message);
+      return redirectWithError('Failed to save Instagram connection');
+    }
+
+    // Redirect to settings and clear OAuth cookies
     const response = NextResponse.redirect(`${appUrl}/settings?connected=instagram`);
     response.cookies.set('instagram_oauth_state', '', { maxAge: 0, path: '/' });
     return response;

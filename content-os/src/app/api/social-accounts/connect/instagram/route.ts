@@ -1,7 +1,13 @@
 import { NextResponse } from 'next/server';
+import { getAuthenticatedUser } from '@/lib/insforge/server';
 
 // GET: Redirect to Instagram/Facebook OAuth
 export async function GET(): Promise<NextResponse> {
+  const user = await getAuthenticatedUser();
+  if (!user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   const appId = process.env.INSTAGRAM_APP_ID;
 
   if (!appId) {

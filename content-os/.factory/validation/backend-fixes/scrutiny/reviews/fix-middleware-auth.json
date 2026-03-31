@@ -1,15 +1,26 @@
 {
   "featureId": "fix-middleware-auth",
-  "reviewedAt": "2026-03-31T00:43:14Z",
-  "commitId": "1221428",
+  "reviewedAt": "2026-03-31T00:50:56Z",
+  "commitId": "1221428f1d6ca05c296d815b937be006f2384a30",
   "transcriptSkeletonReviewed": true,
   "diffReviewed": true,
   "status": "pass",
   "codeReview": {
-    "summary": "Implementation in src/middleware.ts matches the feature contract: all listed protected routes (and subpaths) require a dispatch-token cookie and redirect to /login with 307 when absent; /login redirects authenticated users to /dashboard with 307; existing x-pathname request-header forwarding logic remains in place for pass-through requests.",
+    "summary": "The middleware change in src/middleware.ts implements the requested behavior: protected routes and subpaths now redirect to /login with 307 when dispatch-token is absent, authenticated /login requests redirect to /dashboard, and existing x-pathname forwarding logic is preserved for pass-through requests.",
     "issues": []
   },
-  "sharedStateObservations": [],
+  "sharedStateObservations": [
+    {
+      "area": "knowledge",
+      "observation": "The distinction between forwarded request headers and response headers is not documented in mission shared state, which caused explicit verification confusion around x-pathname.",
+      "evidence": "worker transcript skeleton (session dbeb932d-463d-45b8-985e-ef429cbef9f5) includes: \"Header not visible in response (set on request, not response - expected)\"; src/app/(dashboard)/layout.tsx:12 consumes x-pathname via headers()."
+    },
+    {
+      "area": "skills",
+      "observation": "The fullstack-worker verification guidance says API features should be tested with a valid auth cookie, but this feature verification used a fake cookie. Skill guidance could clarify that cookie-presence middleware checks can be validated without a full authenticated session.",
+      "evidence": ".factory/skills/fullstack-worker/SKILL.md step 5 says \"use curl with valid auth cookie\"; transcript command used \"curl --cookie dispatch-token=fake-token http://localhost:3000/login\"."
+    }
+  ],
   "addressesFailureFrom": null,
-  "summary": "Reviewed handoff, commit diff, transcript skeleton, mission AGENTS.md, services.yaml, and library docs. No blocking or non-blocking defects were found for this feature; implementation satisfies the described behavior."
+  "summary": "Reviewed feature metadata, handoff, commit diff, transcript skeleton, skill instructions, mission AGENTS.md, services.yaml, and library docs. No blocking or non-blocking implementation defects found; feature passes code review with shared-state documentation/procedure observations noted."
 }

@@ -1,15 +1,21 @@
 {
   "featureId": "fix-oauth-routes-auth-and-refactor",
-  "reviewedAt": "2026-03-31T00:43:24Z",
+  "reviewedAt": "2026-03-31T00:51:08Z",
   "commitId": "7af90bf",
   "transcriptSkeletonReviewed": true,
   "diffReviewed": true,
   "status": "pass",
   "codeReview": {
-    "summary": "Reviewed handoff, transcript skeleton, and commit 7af90bf. The implementation covers the feature requirements: auth checks were added to all 4 connect routes with 401 responses, callbacks validate state, self-fetch to /api/social-accounts was removed, tokens are encrypted before direct DB upsert, OAuth cookies are cleared on success, and callbacks redirect to /settings with connected/error query params.",
+    "summary": "Reviewed feature metadata, worker handoff, transcript skeleton, and commit 7af90bf diff. Implementation satisfies the feature requirements: all 4 connect routes now enforce auth with 401, all 4 callback routes validate OAuth state, callbacks store tokens via direct getServerClient().database upsert (no self-fetch), tokens are encrypted before persistence, OAuth cookies are cleared on success, and callbacks redirect to /settings with success/error query params.",
     "issues": []
   },
-  "sharedStateObservations": [],
+  "sharedStateObservations": [
+    {
+      "area": "conventions",
+      "observation": "Mission-level API route convention is slightly misaligned for OAuth callbacks. AGENTS.md says all API routes should call getAuthenticatedUser() as the first line and return 401 when missing auth, but callback flows intentionally validate OAuth state first and use redirect error UX instead of JSON 401.",
+      "evidence": "Mission AGENTS.md lines 33-34 define first-line auth + 401. Callback handlers currently return redirectWithError('Not authenticated. Please log in first.') at src/app/api/social-accounts/callback/twitter/route.ts:39, linkedin/route.ts:30, instagram/route.ts:30, threads/route.ts:30."
+    }
+  ],
   "addressesFailureFrom": null,
-  "summary": "Feature implementation is consistent with description and expected behavior; no blocking or non-blocking defects were identified from the reviewed diff and transcript evidence."
+  "summary": "Code review passed with no blocking or non-blocking defects in the feature diff. One shared-state convention mismatch was observed between generic API-route guidance and OAuth callback UX/auth flow behavior."
 }

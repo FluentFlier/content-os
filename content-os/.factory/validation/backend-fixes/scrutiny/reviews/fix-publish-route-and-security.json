@@ -1,50 +1,50 @@
 {
   "featureId": "fix-publish-route-and-security",
-  "reviewedAt": "2026-03-31T00:43:25Z",
+  "reviewedAt": "2026-03-31T00:52:37Z",
   "commitId": "e18c8c1",
   "transcriptSkeletonReviewed": true,
   "diffReviewed": true,
   "status": "fail",
   "codeReview": {
-    "summary": "The current codebase state does satisfy the publish/security checks (publish route uses Zod enum validation, /api/generate has 429 rate limiting, no dangerouslySetInnerHTML usage, and claude.ts default prompt is generic). However, the feature commit is not scoped to this feature and includes a large set of unrelated changes/artifacts, so the feature review fails on change isolation and traceability.",
+    "summary": "The publish/security checks are present in code (publish route enum validation, generate route rate limiting, no dangerous HTML rendering, and generic system prompt). However, this feature commit is not isolated: it bundles large unrelated UI/theme and artifact changes, so the feature-level review fails on scope and traceability.",
     "issues": [
       {
         "file": "content-os/.factory/validation/multi-user-landing/user-testing/flows/auth-browser-flows.json",
         "line": 1,
         "severity": "blocking",
-        "description": "Commit e18c8c1 for this backend publish/security feature includes a 683-line validation artifact from a different mission area (multi-user-landing). This is out-of-scope for the feature and breaks reviewability/traceability of the publish-security work."
+        "description": "Feature commit e18c8c1 includes multi-user-landing validation artifacts from a different mission (`missionDir` points to fbcce583-... in this file). This is out of scope for publish-route/security work and makes the feature diff non-reviewable as an isolated unit."
       },
       {
         "file": "content-os/src/components/ui/Tabs.tsx",
         "line": 39,
         "severity": "blocking",
-        "description": "Commit e18c8c1 includes unrelated UI theme changes (e.g., border/text color rewrites in Tabs and many other dashboard/UI files) that are not part of publish route or security verification. Feature commit is contaminated with broad unrelated modifications."
+        "description": "The commit includes broad UI restyling changes unrelated to publish route/security validation (Tabs plus many dashboard/component files). Mixing unrelated functional surface area into this feature commit breaks change isolation and increases regression risk."
       },
       {
         "file": "content-os/tsconfig.tsbuildinfo",
         "line": 1,
         "severity": "non_blocking",
-        "description": "A generated TypeScript build artifact was committed in this feature commit. This adds unnecessary churn and should typically be excluded from scoped feature commits."
+        "description": "Generated TypeScript build output was committed. This should be excluded to reduce churn and avoid noisy diffs."
       }
     ]
   },
   "sharedStateObservations": [
     {
-      "area": "conventions",
-      "observation": "Mission/shared conventions do not explicitly require verifying staged diff scope before commit (e.g., checking staged files are only feature-relevant).",
-      "evidence": "Transcript skeleton shows `git add -A .` followed by broad staging and final commit with 79 files, including unrelated UI and validation artifacts."
+      "area": "skills",
+      "observation": "fullstack-worker skill does not enforce monorepo-scoped staging safeguards before commit.",
+      "evidence": "SKILL.md step 7 only says to commit. Transcript shows `git add -A .` and then broad staging/unstaging iterations before committing 79 files."
     },
     {
-      "area": "skills",
-      "observation": "fullstack-worker SKILL.md lacks an explicit safeguard to enforce path-scoped staging and staged-diff review in monorepo contexts.",
-      "evidence": "Skill procedure step 7 says 'Commit with a descriptive message' but does not require `git diff --cached` scope checks; transcript shows worker confusion around repo root (`git rev-parse --show-toplevel` => /Users/anirudhmanjesh/hackathons)."
+      "area": "conventions",
+      "observation": "Conventions exist for path-scoped staging, but there is no shared enforcement mechanism to block unrelated/generated files.",
+      "evidence": "Mission AGENTS.md requires scoped staging and excluding generated artifacts, yet commit e18c8c1 still includes `content-os/tsconfig.tsbuildinfo` and unrelated `.factory/validation/multi-user-landing/*` artifacts."
     },
     {
       "area": "knowledge",
-      "observation": "Repository-level knowledge about monorepo git root being one directory above content-os is not captured in shared library docs and caused avoidable staging mistakes.",
-      "evidence": "Worker transcript includes multiple corrective git commands (`git add content-os/`, `git reset HEAD`) before commit; .factory/library/environment.md does not document git-root/pathspec constraints."
+      "observation": "Monorepo git-root/pathspec context is still easy to miss during feature work.",
+      "evidence": "Transcript shows worker discovery step `git rev-parse --show-toplevel` => `/Users/anirudhmanjesh/hackathons` after staging confusion, indicating this operational context was not effectively surfaced early."
     }
   ],
   "addressesFailureFrom": null,
-  "summary": "Feature requirements appear satisfied in code, but the reviewed commit is not isolated to publish/security work and includes substantial unrelated files. Marked fail due to blocking scope/traceability issues in the committed diff."
+  "summary": "Reviewed handoff, transcript skeleton, skill, and commit diff for e18c8c1. Security/publish behaviors are present in code, but the feature commit is contaminated with unrelated changes and artifacts, so review status is fail."
 }

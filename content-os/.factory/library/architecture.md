@@ -73,6 +73,7 @@ src/
 - All API routes: `getAuthenticatedUser()` first, 401 if null, scope by user_id
 - InsForge SDK returns `{data, error}` for all operations
 - Database inserts use array format: `[{...}]`
+- Middleware `x-pathname` is a forwarded request header (set via `NextResponse.next({ request: { headers } })`) consumed with `headers()` in server components; it is not expected in HTTP response headers.
 - Styling: dark theme (#09090B, #18181B), Plus Jakarta Sans for display/headings, Inter for body
 - No em dashes anywhere in code, UI, or AI prompts
 - Components use lucide-react for icons

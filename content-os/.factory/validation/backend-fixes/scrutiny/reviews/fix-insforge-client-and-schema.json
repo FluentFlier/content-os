@@ -1,15 +1,15 @@
 {
   "featureId": "fix-insforge-client-and-schema",
-  "reviewedAt": "2026-03-31T00:43:13Z",
+  "reviewedAt": "2026-03-31T00:51:19Z",
   "commitId": "ac039be",
   "transcriptSkeletonReviewed": true,
   "diffReviewed": true,
   "status": "pass",
   "codeReview": {
-    "summary": "Implementation matches the feature contract: InsForge client now throws a descriptive missing-env error, duplicate src/lib/schema.sql is removed, db/schema.sql remains the schema source and includes creator_profile/social_accounts plus the three requested posts columns, and posts.pillar has no hardcoded CHECK constraint.",
+    "summary": "Reviewed commit ac039be against the feature contract. getInsforgeClient now throws a descriptive missing-env error, src/lib/schema.sql is removed, db/schema.sql is the sole schema file and contains creator_profile/social_accounts plus posts.variant_group_id, posts.source_platform, and posts.scheduled_publish_at, and no posts.pillar CHECK constraint is present.",
     "issues": []
   },
   "sharedStateObservations": [],
   "addressesFailureFrom": null,
-  "summary": "Reviewed handoff, transcript skeleton, and commit ac039be. No blocking or non-blocking defects found relative to the requested behavior."
+  "summary": "Pass. Transcript skeleton, handoff, and diff all align with expected behavior; no blocking or non-blocking defects found."
 }

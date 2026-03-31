@@ -1,0 +1,103 @@
+{
+  "milestone": "backend-fixes",
+  "round": 1,
+  "status": "fail",
+  "assertionsSummary": {
+    "total": 22,
+    "passed": 13,
+    "failed": 0,
+    "blocked": 9
+  },
+  "passedAssertions": [
+    "VAL-AUTH-001",
+    "VAL-AUTH-003",
+    "VAL-AUTH-005",
+    "VAL-AUTH-006",
+    "VAL-AUTH-007",
+    "VAL-BACKEND-001",
+    "VAL-BACKEND-002",
+    "VAL-BACKEND-003",
+    "VAL-BACKEND-006",
+    "VAL-SCHEMA-003",
+    "VAL-SECURITY-001",
+    "VAL-SECURITY-003",
+    "VAL-SECURITY-004"
+  ],
+  "failedAssertions": [],
+  "blockedAssertions": [
+    {
+      "id": "VAL-AUTH-002",
+      "blockedBy": "Needs real authenticated browser session to verify /login redirect behavior for signed-in user; no valid session bootstrap available."
+    },
+    {
+      "id": "VAL-AUTH-004",
+      "blockedBy": "Callback validation path is gated by missing platform OAuth API credentials in environment, preventing deterministic state-mismatch validation."
+    },
+    {
+      "id": "VAL-BACKEND-004",
+      "blockedBy": "Requires authenticated dashboard session; login flow unavailable in validation env due missing usable InsForge runtime credentials/session."
+    },
+    {
+      "id": "VAL-BACKEND-005",
+      "blockedBy": "Requires authenticated /video-studio UI access; auth/login path unavailable in current validation context."
+    },
+    {
+      "id": "VAL-SCHED-001",
+      "blockedBy": "Datetime-local PostEditorDrawer scheduling UI is part of the later scheduled-publishing milestone, not available in backend-fixes validation scope."
+    },
+    {
+      "id": "VAL-SCHEMA-001",
+      "blockedBy": "variant_group_id behavioral flow depends on optimize/variant features scheduled for later milestone; only schema column existence is currently verifiable."
+    },
+    {
+      "id": "VAL-SCHEMA-002",
+      "blockedBy": "source_platform behavioral assertions depend on optimize feature and variant creation flow from later milestone."
+    },
+    {
+      "id": "VAL-SECURITY-002",
+      "blockedBy": "Rate-limit 429 path requires authenticated dispatch-token; unauthenticated calls only reach 401 guard."
+    },
+    {
+      "id": "VAL-ZOD-001",
+      "blockedBy": "Contract includes byok/optimize routes that are not implemented until byok-optimize milestone, so full route-set validation is deferred."
+    }
+  ],
+  "appliedUpdates": [
+    {
+      "target": "user-testing.md",
+      "description": "Added Flow Validator Guidance sections for api-curl and agent-browser isolation boundaries.",
+      "source": "setup"
+    },
+    {
+      "target": "user-testing.md",
+      "description": "Added troubleshooting note for transient .next module error (`Cannot find module './9276.js'`) and documented auth prerequisite for /api/generate rate-limit validation.",
+      "source": "flow-report"
+    }
+  ],
+  "previousRound": null,
+  "generatedAt": "2026-03-31T01:09:43.885360+00:00",
+  "flowReports": [
+    ".factory/validation/backend-fixes/user-testing/flows/group-a.json",
+    ".factory/validation/backend-fixes/user-testing/flows/group-b.json",
+    ".factory/validation/backend-fixes/user-testing/flows/group-c.json",
+    ".factory/validation/backend-fixes/user-testing/flows/group-d.json",
+    ".factory/validation/backend-fixes/user-testing/flows/group-e.json",
+    ".factory/validation/backend-fixes/user-testing/flows/group-f.json"
+  ],
+  "orchestratorOverride": {
+    "overridden": true,
+    "reason": "9 blocked assertions moved to polish milestone (cross-area-flow-fixes) because they require InsForge/OAuth credentials that user has not yet provided. 13/22 assertions passed. Blocked assertions will be validated when credentials are available in later milestones.",
+    "movedAssertions": [
+      "VAL-AUTH-002",
+      "VAL-AUTH-004",
+      "VAL-BACKEND-004",
+      "VAL-BACKEND-005",
+      "VAL-SCHED-001",
+      "VAL-SCHEMA-001",
+      "VAL-SCHEMA-002",
+      "VAL-SECURITY-002",
+      "VAL-ZOD-001"
+    ],
+    "timestamp": "2026-03-31T01:12:00Z"
+  }
+}

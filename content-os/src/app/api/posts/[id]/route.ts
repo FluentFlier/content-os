@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthenticatedUser, getServerClient } from '@/lib/insforge/server';
 import { z } from 'zod';
+import { triggerAutoOptimize } from '@/lib/auto-optimize';
 
 const UpdatePostSchema = z.object({
   title: z.string().min(1).optional(),
@@ -22,6 +23,8 @@ const UpdatePostSchema = z.object({
   comments: z.number().nullable().optional(),
   shares: z.number().nullable().optional(),
   follows_gained: z.number().nullable().optional(),
+  variant_group_id: z.string().uuid().nullable().optional(),
+  source_platform: z.string().nullable().optional(),
   updated_at: z.string().optional(),
 }).strict();
 
@@ -67,6 +70,30 @@ export async function PATCH(
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  // Trigger auto-optimize in background if script or caption changed
+  const hasContentChange =
+    parsed.data.script !== undefined || parsed.data.caption !== undefined;
+
+  if (hasContentChange && data) {
+    const content = parsed.data.script || parsed.data.caption;
+    if (content && data.platform) {
+      const origin = request.nextUrl.origin;
+      const cookieHeader = request.headers.get('cookie') ?? '';
+      // Fire-and-forget: do not await
+      triggerAutoOptimize({
+        userId: user.id,
+        postId: params.id,
+        content,
+        sourcePlatform: data.platform,
+        requestCookies: cookieHeader,
+        origin,
+      }).catch((err) => {
+        console.error('[posts] Auto-optimize trigger error:', err);
+      });
+    }
+  }
+
   return NextResponse.json({ post: data });
 }
 

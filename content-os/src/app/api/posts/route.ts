@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthenticatedUser, getServerClient } from '@/lib/insforge/server';
 import { z } from 'zod';
+import { triggerAutoOptimize } from '@/lib/auto-optimize';
 
 const CreatePostSchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -75,5 +76,24 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  // Trigger auto-optimize in background if content is present
+  const content = parsed.data.script || parsed.data.caption;
+  if (content && data?.id) {
+    const origin = request.nextUrl.origin;
+    const cookieHeader = request.headers.get('cookie') ?? '';
+    // Fire-and-forget: do not await
+    triggerAutoOptimize({
+      userId: user.id,
+      postId: data.id,
+      content,
+      sourcePlatform: parsed.data.platform,
+      requestCookies: cookieHeader,
+      origin,
+    }).catch((err) => {
+      console.error('[posts] Auto-optimize trigger error:', err);
+    });
+  }
+
   return NextResponse.json({ post: data }, { status: 201 });
 }

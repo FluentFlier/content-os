@@ -13,6 +13,7 @@ import PlatformDefaults from "@/components/settings/PlatformDefaults";
 import BioGenerator from "@/components/settings/BioGenerator";
 import PlatformConnections from "@/components/settings/PlatformConnections";
 import ProfileEditor from "@/components/settings/ProfileEditor";
+import AutoOptimizeToggle from "@/components/settings/AutoOptimizeToggle";
 
 /* ------------------------------------------------------------------ */
 /*  Constants                                                          */
@@ -130,6 +131,11 @@ export default function SettingsPage() {
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileSaved, setProfileSaved] = useState(false);
 
+  // Section 8: Auto-Optimize
+  const [autoOptimize, setAutoOptimize] = useState(false);
+  const [autoOptimizeSaving, setAutoOptimizeSaving] = useState(false);
+  const [autoOptimizeSaved, setAutoOptimizeSaved] = useState(false);
+
   // Connected Accounts (OAuth)
   const [connectedAccounts, setConnectedAccounts] = useState<ConnectedAccount[]>([]);
   const [disconnecting, setDisconnecting] = useState<string | null>(null);
@@ -202,6 +208,8 @@ export default function SettingsPage() {
               if (parsed.crossPostReminders !== undefined)
                 setCrossPostReminders(parsed.crossPostReminders);
             } catch { /* ignore parse errors */ }
+          } else if (s.key === "auto_optimize_on_save") {
+            setAutoOptimize(s.value === "true");
           }
         }
 
@@ -275,6 +283,13 @@ export default function SettingsPage() {
     );
     setPlatformDefaultsSaving(false);
     flashSaved(setPlatformDefaultsSaved);
+  }
+
+  async function saveAutoOptimize() {
+    setAutoOptimizeSaving(true);
+    await upsertSetting("auto_optimize_on_save", String(autoOptimize));
+    setAutoOptimizeSaving(false);
+    flashSaved(setAutoOptimizeSaved);
   }
 
   async function savePlatformConfig() {
@@ -425,6 +440,16 @@ export default function SettingsPage() {
           onDisconnect={disconnectAccount}
           disconnecting={disconnecting}
           onAccountsRefresh={refreshAccounts}
+        />
+      </Section>
+
+      <Section title="Auto-Optimize">
+        <AutoOptimizeToggle
+          enabled={autoOptimize}
+          onChange={setAutoOptimize}
+          onSave={saveAutoOptimize}
+          saving={autoOptimizeSaving}
+          saved={autoOptimizeSaved}
         />
       </Section>
 

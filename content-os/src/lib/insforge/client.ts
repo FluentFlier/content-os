@@ -9,11 +9,15 @@ export function getInsforgeClient(): ReturnType<typeof createClient> {
   const anonKey = process.env.NEXT_PUBLIC_INSFORGE_ANON_KEY;
 
   if (!url || !anonKey) {
-    if (typeof window === 'undefined') {
-      // During SSR/build, return a dummy client that won't be used
-      return createClient({ baseUrl: 'https://placeholder.insforge.app', anonKey: 'placeholder' }) as ReturnType<typeof createClient>;
-    }
-    throw new Error('Missing NEXT_PUBLIC_INSFORGE_URL or NEXT_PUBLIC_INSFORGE_ANON_KEY');
+    const missing = [
+      !url && 'NEXT_PUBLIC_INSFORGE_URL',
+      !anonKey && 'NEXT_PUBLIC_INSFORGE_ANON_KEY',
+    ].filter(Boolean).join(', ');
+
+    throw new Error(
+      `InsForge client cannot be initialized: missing environment variable(s): ${missing}. ` +
+      'Add them to .env.local and restart the dev server.'
+    );
   }
 
   client = createClient({ baseUrl: url, anonKey });

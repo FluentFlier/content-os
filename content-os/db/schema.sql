@@ -62,6 +62,9 @@ create table if not exists posts (
   follows_gained int,
   series_id uuid references series(id) on delete set null,
   series_position int,
+  variant_group_id uuid,
+  source_platform text,
+  scheduled_publish_at timestamptz,
   created_at timestamptz default now() not null,
   updated_at timestamptz default now() not null
 );

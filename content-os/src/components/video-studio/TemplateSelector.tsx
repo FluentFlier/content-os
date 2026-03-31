@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import {
   MessageSquare,
   Zap,
@@ -49,57 +48,35 @@ const TEMPLATES: Template[] = [
   },
 ];
 
-interface TemplateSelectorProps {
-  onSelect?: (templateId: string) => void;
-}
-
-export default function TemplateSelector({ onSelect }: TemplateSelectorProps) {
-  const [selected, setSelected] = useState<string | null>(null);
-
-  const handleSelect = (id: string) => {
-    setSelected(id);
-    onSelect?.(id);
-  };
-
+export default function TemplateSelector() {
   return (
     <div className="space-y-3">
-      <h3 className="font-heading text-[15px] font-[700] text-[#0F172A]">
-        Templates
-      </h3>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-        {TEMPLATES.map((template) => {
-          const isSelected = selected === template.id;
-          return (
-            <button
-              key={template.id}
-              onClick={() => handleSelect(template.id)}
-              className={`text-left rounded-lg p-4 transition-all duration-150 ${
-                isSelected
-                  ? 'bg-[#EEF2FF] border-[1.5px] border-[#6366F1]'
-                  : 'bg-[#F8FAFC] border-[0.5px] border-[#0F172A]/12 hover:border-[#0F172A]/25'
-              }`}
-            >
-              {/* Thumbnail placeholder */}
-              <div
-                className={`flex items-center justify-center w-full h-24 rounded-md mb-3 ${
-                  isSelected ? 'bg-[#6366F1]/10 text-[#6366F1]' : 'bg-[#F1F5F9] text-[#94A3B8]'
-                }`}
-              >
-                {template.icon}
-              </div>
-              <p
-                className={`font-body text-[13px] font-medium ${
-                  isSelected ? 'text-[#6366F1]' : 'text-[#0F172A]'
-                }`}
-              >
-                {template.title}
-              </p>
-              <p className="font-body text-[11px] text-[#94A3B8] mt-1 line-clamp-2">
-                {template.description}
-              </p>
-            </button>
-          );
-        })}
+      <div className="flex items-center gap-2">
+        <h3 className="font-heading text-[15px] font-[700] text-[#FAFAFA]">
+          Templates
+        </h3>
+        <span className="inline-flex items-center px-2 py-0.5 rounded-[3px] bg-[#27272A] text-[10px] font-body font-medium text-[#71717A] tracking-[0.05em] uppercase">
+          Coming Soon
+        </span>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 opacity-50 pointer-events-none">
+        {TEMPLATES.map((template) => (
+          <div
+            key={template.id}
+            className="text-left rounded-lg p-4 bg-[#18181B] border-[0.5px] border-[#FAFAFA]/12"
+          >
+            {/* Thumbnail placeholder */}
+            <div className="flex items-center justify-center w-full h-24 rounded-md mb-3 bg-[#27272A] text-[#71717A]">
+              {template.icon}
+            </div>
+            <p className="font-body text-[13px] font-medium text-[#FAFAFA]">
+              {template.title}
+            </p>
+            <p className="font-body text-[11px] text-[#71717A] mt-1 line-clamp-2">
+              {template.description}
+            </p>
+          </div>
+        ))}
       </div>
     </div>
   );

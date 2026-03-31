@@ -1,12 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
+
+const AuthTokenSchema = z.object({
+  token: z.string().min(1, 'Token is required'),
+});
 
 // POST: Set auth cookie after login
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
-    const { token } = await request.json();
-    if (!token || typeof token !== 'string') {
-      return NextResponse.json({ error: 'Missing token' }, { status: 400 });
+    let body: unknown;
+    try { body = await request.json(); } catch { return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 }); }
+
+    const parsed = AuthTokenSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json({ error: parsed.error.message }, { status: 400 });
     }
+
+    const { token } = parsed.data;
 
     const response = NextResponse.json({ ok: true });
     response.cookies.set('dispatch-token', token, {

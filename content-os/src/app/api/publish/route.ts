@@ -4,7 +4,7 @@ import * as twitterClient from '@/lib/platforms/twitter';
 import * as linkedinClient from '@/lib/platforms/linkedin';
 import * as instagramClient from '@/lib/platforms/instagram';
 import * as threadsClient from '@/lib/platforms/threads';
-import { decryptToken } from '@/lib/crypto';
+import { decryptToken, encryptToken } from '@/lib/crypto';
 import { z } from 'zod';
 
 type SocialPlatform = 'twitter' | 'linkedin' | 'instagram' | 'threads';
@@ -72,7 +72,6 @@ async function ensureFreshToken(
 
   if (refreshed?.success && refreshed.accessToken) {
     // Persist refreshed tokens (encrypted)
-    const { encryptToken } = await import('@/lib/crypto');
     const updatePayload: Record<string, unknown> = {
       access_token: encryptToken(refreshed.accessToken),
       connected_at: new Date().toISOString(),
@@ -125,23 +124,35 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   const client = getServerClient();
 
   // Get the social account for this platform
-  const { data: account, error: accountError } = await client.database
+  const { data: accountRow, error: accountError } = await client.database
     .from('social_accounts')
     .select('*')
     .eq('user_id', user.id)
     .eq('platform', platform)
     .single();
 
-  if (accountError || !account) {
+  if (accountError || !accountRow) {
     return NextResponse.json(
       { error: `No ${platform} account connected. Connect it in Settings.` },
       { status: 400 }
     );
   }
 
+  const account: SocialAccountRow = {
+    id: accountRow.id,
+    user_id: accountRow.user_id,
+    platform: accountRow.platform,
+    account_name: accountRow.account_name ?? null,
+    account_id: accountRow.account_id ?? null,
+    access_token: accountRow.access_token,
+    refresh_token: accountRow.refresh_token ?? null,
+    token_expires_at: accountRow.token_expires_at ?? null,
+    connected_at: accountRow.connected_at,
+  };
+
   // Ensure token is fresh (refresh if expired)
   const freshToken = await ensureFreshToken(
-    account as SocialAccountRow,
+    account,
     platform,
     client
   );

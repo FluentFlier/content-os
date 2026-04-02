@@ -16,10 +16,50 @@ interface GenerateOutputProps {
   loading: boolean;
   sourcePlatform?: Platform;
   children?: React.ReactNode;
+  onTextUpdate?: (newText: string) => void;
 }
 
-export function GenerateOutput({ text, loading, sourcePlatform, children }: GenerateOutputProps) {
+export function GenerateOutput({ text, loading, sourcePlatform, children, onTextUpdate }: GenerateOutputProps) {
   const [showSave, setShowSave] = useState(false);
+  const [humanizing, setHumanizing] = useState(false);
+  const [aiScore, setAiScore] = useState<number | null>(null);
+  const [scoring, setScoring] = useState(false);
+
+  async function handleHumanize() {
+    setHumanizing(true);
+    try {
+      const res = await fetch('/api/humanize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }),
+      });
+      if (!res.ok) throw new Error('Humanization failed');
+      const { text: humanized } = await res.json();
+      if (onTextUpdate) onTextUpdate(humanized);
+    } catch (err) {
+      console.error('Humanize error:', err);
+    } finally {
+      setHumanizing(false);
+    }
+  }
+
+  async function handleScore() {
+    setScoring(true);
+    try {
+      const res = await fetch('/api/humanize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, scoreOnly: true }),
+      });
+      if (!res.ok) throw new Error('Scoring failed');
+      const { score } = await res.json();
+      setAiScore(score);
+    } catch {
+      setAiScore(null);
+    } finally {
+      setScoring(false);
+    }
+  }
 
   if (loading) {
     return (
@@ -37,7 +77,7 @@ export function GenerateOutput({ text, loading, sourcePlatform, children }: Gene
         <pre className="whitespace-pre-wrap font-body text-[13px] text-[#FAFAFA] leading-[1.55]">
           {text}
         </pre>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <CopyButton text={text} />
           <Button
             variant="secondary"
@@ -45,6 +85,26 @@ export function GenerateOutput({ text, loading, sourcePlatform, children }: Gene
             onClick={() => setShowSave(true)}
           >
             Save to Library
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={handleHumanize}
+            loading={humanizing}
+          >
+            Humanize
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleScore}
+            loading={scoring}
+          >
+            {aiScore !== null ? (
+              <span className={aiScore > 60 ? 'text-[#FCA5A5]' : aiScore > 30 ? 'text-[#FCD34D]' : 'text-[#6EE7B7]'}>
+                AI Score: {aiScore}/100
+              </span>
+            ) : 'Check AI Score'}
           </Button>
           {children}
         </div>

@@ -5,29 +5,52 @@ import { getInsforgeClient } from "@/lib/insforge/client";
 
 function getAccessToken(): string | null {
   const client = getInsforgeClient();
-  // TokenManager is on both client and client.auth at runtime
-  const tm =
-    (client as unknown as Record<string, unknown>).tokenManager ??
-    (client.auth as unknown as Record<string, unknown>).tokenManager;
-  if (tm && typeof (tm as { getAccessToken?: () => string | null }).getAccessToken === "function") {
-    return (tm as { getAccessToken: () => string | null }).getAccessToken();
+  // Try multiple paths to find the tokenManager at runtime
+  // The SDK declares tokenManager as private in TypeScript but it's a regular
+  // property at runtime (not a # private field), so we can access it.
+  const candidates = [
+    (client as unknown as Record<string, unknown>).tokenManager,
+    (client.auth as unknown as Record<string, unknown>).tokenManager,
+  ];
+  for (const tm of candidates) {
+    if (tm && typeof tm === "object") {
+      const mgr = tm as { getAccessToken?: () => string | null; getSession?: () => { accessToken?: string } | null };
+      // Try getAccessToken first
+      if (typeof mgr.getAccessToken === "function") {
+        const token = mgr.getAccessToken();
+        if (token) return token;
+      }
+      // Fallback: try getSession().accessToken
+      if (typeof mgr.getSession === "function") {
+        const session = mgr.getSession();
+        if (session?.accessToken) return session.accessToken;
+      }
+    }
   }
   return null;
 }
 
 async function syncTokenToCookie(): Promise<boolean> {
-  const token = getAccessToken();
-  if (!token) return false;
-  try {
-    const res = await fetch("/api/auth", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ token }),
-    });
-    return res.ok;
-  } catch {
-    return false;
+  // Try up to 3 times with increasing delay, since the SDK may still be
+  // saving the session after OAuth code exchange
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const token = getAccessToken();
+    if (token) {
+      try {
+        const res = await fetch("/api/auth", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token }),
+        });
+        if (res.ok) return true;
+      } catch {
+        // network error, retry
+      }
+    }
+    // Wait before retrying (200ms, 500ms, 1000ms)
+    await new Promise((r) => setTimeout(r, (attempt + 1) * 300));
   }
+  return false;
 }
 
 export default function LoginPage() {
@@ -92,7 +115,12 @@ export default function LoginPage() {
       const { data } = await client.auth.getCurrentUser();
       if (data?.user) {
         setStatus("Syncing session...");
-        await syncTokenToCookie();
+        const synced = await syncTokenToCookie();
+        if (!synced) {
+          setError("Session found but cookie sync failed. Try signing in again.");
+          setReady(true);
+          return;
+        }
         window.location.replace("/dashboard");
         return;
       }

@@ -10,6 +10,8 @@ import {
   PlusCircle,
   Lightbulb,
   ArrowRight,
+  Link2,
+  AlertCircle,
 } from 'lucide-react';
 import { getServerClient, getAuthenticatedUser } from '@/lib/insforge/server';
 import type { Post, ContentIdea } from '@/lib/types';
@@ -92,7 +94,7 @@ export default async function DashboardPage() {
   const today = new Date().toISOString().slice(0, 10);
 
   // Fire all queries in parallel
-  const [weekPostsRes, pipelineRes, postedRes, streakRes, upNextRes, recentRes, ideasRes, weekScheduleRes] =
+  const [weekPostsRes, pipelineRes, postedRes, streakRes, upNextRes, recentRes, ideasRes, weekScheduleRes, profileRes, socialRes] =
     await Promise.all([
       client.database.from('posts').select('id').eq('user_id', uid).eq('status', 'posted').gte('posted_date', start).lte('posted_date', end),
       client.database.from('posts').select('id').eq('user_id', uid).neq('status', 'posted').neq('status', 'idea'),
@@ -102,6 +104,8 @@ export default async function DashboardPage() {
       client.database.from('posts').select('*').eq('user_id', uid).order('updated_at', { ascending: false }).limit(5),
       client.database.from('content_ideas').select('*').eq('user_id', uid).eq('converted', false).order('priority', { ascending: true }).limit(3),
       client.database.from('posts').select('title, pillar, status').eq('user_id', uid).gte('scheduled_date', start).lte('scheduled_date', end),
+      client.database.from('creator_profile').select('display_name, content_pillars, voice_description, onboarding_complete').eq('user_id', uid).maybeSingle(),
+      client.database.from('social_accounts').select('platform, connection_method').eq('user_id', uid),
     ]);
 
   const postsThisWeek = weekPostsRes.data?.length ?? 0;
@@ -117,6 +121,15 @@ export default async function DashboardPage() {
   const recentActivity = (recentRes.data as Post[]) ?? [];
   const backlog = (ideasRes.data as ContentIdea[]) ?? [];
 
+  // Setup progress
+  const creatorProfile = profileRes.data;
+  const connectedPlatforms = (socialRes.data ?? []).map((s: { platform: string }) => s.platform);
+  const hasProfile = Boolean(creatorProfile?.display_name && creatorProfile?.content_pillars);
+  const hasVoice = Boolean(creatorProfile?.voice_description);
+  const hasConnections = connectedPlatforms.length > 0;
+  const allPlatforms = ['twitter', 'linkedin', 'instagram', 'threads'];
+  const setupComplete = hasProfile && hasVoice && hasConnections;
+
   // Build summary for AI prompt
   const weekPosts = weekScheduleRes.data ?? [];
   const postsSummary =
@@ -127,11 +140,48 @@ export default async function DashboardPage() {
       : 'No posts this week yet.';
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8">
+    <div className="max-w-5xl mx-auto space-y-6">
       {/* Greeting */}
       <h1 className="font-display font-[800] text-[21px] text-[#FAFAFA] tracking-[-0.02em] leading-[1.2] pt-2">
-        What are we building today?
+        {creatorProfile?.display_name ? `Hey ${creatorProfile.display_name.split(' ')[0]}, what are we shipping?` : 'What are we building today?'}
       </h1>
+
+      {/* Setup checklist -- only show if setup is incomplete */}
+      {!setupComplete && (
+        <section className="bg-[#09090B] border-[0.5px] border-[rgba(129,140,248,0.25)] rounded-[12px] p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <AlertCircle size={14} className="text-[#818CF8]" />
+            <span className="text-[12px] font-medium text-[#FAFAFA]">Finish setting up to unlock publishing</span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <SetupStep done={hasProfile} label="Set up profile" href="/settings" />
+            <SetupStep done={hasVoice} label="Define your voice" href="/voice-lab" />
+            <SetupStep done={hasConnections} label="Connect a platform" href="/settings" />
+          </div>
+        </section>
+      )}
+
+      {/* Connection status */}
+      {hasConnections && (
+        <div className="flex items-center gap-2 flex-wrap">
+          <Link2 size={12} className="text-[#52525B]" />
+          {allPlatforms.map((p) => {
+            const connected = connectedPlatforms.includes(p);
+            return (
+              <span key={p} className={`text-[10px] font-medium px-2 py-0.5 rounded-[3px] capitalize ${
+                connected
+                  ? 'bg-[rgba(16,185,129,0.12)] text-[#10B981]'
+                  : 'bg-[#18181B] text-[#52525B]'
+              }`}>
+                {p === 'twitter' ? 'X' : p}
+              </span>
+            );
+          })}
+          {connectedPlatforms.length < 4 && (
+            <Link href="/settings" className="text-[10px] text-[#818CF8] hover:text-[#A5B4FC] transition-colors">+ connect more</Link>
+          )}
+        </div>
+      )}
 
       {/* Stats Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -314,6 +364,27 @@ function QuickAction({
       <span className="font-body text-[11px] text-[#A1A1AA] group-hover:text-[#FAFAFA] transition-colors duration-100 text-center">
         {label}
       </span>
+    </Link>
+  );
+}
+
+function SetupStep({ done, label, href }: { done: boolean; label: string; href: string }) {
+  return (
+    <Link
+      href={href}
+      className={`flex items-center gap-2 px-3 py-2.5 rounded-[7px] text-[12px] transition-colors ${
+        done
+          ? 'bg-[rgba(16,185,129,0.08)] text-[#10B981]'
+          : 'bg-[#18181B] text-[#A1A1AA] hover:bg-[#27272A]'
+      }`}
+    >
+      {done ? (
+        <CheckCircle2 size={14} className="text-[#10B981] shrink-0" />
+      ) : (
+        <span className="w-3.5 h-3.5 rounded-full border border-[#52525B] shrink-0" />
+      )}
+      <span className={done ? 'line-through opacity-60' : ''}>{label}</span>
+      {!done && <ArrowRight size={12} className="ml-auto text-[#52525B]" />}
     </Link>
   );
 }

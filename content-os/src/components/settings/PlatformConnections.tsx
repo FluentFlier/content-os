@@ -166,8 +166,11 @@ export default function PlatformConnections({
 
   return (
     <>
-      <p className="text-sm text-[#71717A] mb-4">
+      <p className="text-sm text-[#71717A] mb-2">
         Connect accounts via OAuth or enter API keys manually.
+      </p>
+      <p className="text-[11px] text-[#52525B] mb-4">
+        OAuth requires platform developer app credentials. If OAuth fails, use the API Keys option below each platform instead.
       </p>
       <div className="space-y-3">
         {(["twitter", "linkedin", "instagram", "threads"] as const).map(

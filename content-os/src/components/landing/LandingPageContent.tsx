@@ -127,7 +127,7 @@ export default function LandingPageContent({ loggedIn }: Props) {
               {[{ n: '8', l: 'AI writing tools' }, { n: '4', l: 'Platforms' }, { n: '5', l: 'Pipeline stages' }, { n: '<1m', l: 'Setup time' }].map((s, i) => (
                 <div key={i}>
                   <div className="font-display font-[800] text-[36px] text-text-primary leading-none">{s.n}</div>
-                  <div className="text-[10px] text-text-tertiary tracking-[0.1em] uppercase mt-1">{s.l}</div>
+                  <div className="text-[11px] text-text-secondary tracking-[0.1em] uppercase mt-1">{s.l}</div>
                 </div>
               ))}
             </div>
@@ -145,10 +145,10 @@ export default function LandingPageContent({ loggedIn }: Props) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {features.map((f, i) => (
               <Fade key={i} delay={i * 60}>
-                <div className="group rounded-xl p-6 bg-bg-secondary border border-border hover:border-coral/20 hover:shadow-lg hover:shadow-coral/[0.06] transition-all duration-300 hover:-translate-y-0.5 h-full">
+                <div className="group rounded-xl p-6 bg-[#111113] border border-[rgba(255,255,255,0.1)] hover:border-coral/30 hover:shadow-lg hover:shadow-coral/[0.08] transition-all duration-300 hover:-translate-y-0.5 h-full">
                   <span className="inline-block px-2 py-0.5 rounded text-[10px] font-medium tracking-[0.12em] text-coral bg-coral-light border border-coral/10 mb-4">{f.tag}</span>
                   <h3 className="font-display text-[16px] font-[700] text-text-primary mb-1.5">{f.title}</h3>
-                  <p className="text-[13px] text-text-secondary leading-relaxed">{f.desc}</p>
+                  <p className="text-[14px] text-[#B4B4BD] leading-relaxed">{f.desc}</p>
                 </div>
               </Fade>
             ))}
@@ -172,9 +172,9 @@ export default function LandingPageContent({ loggedIn }: Props) {
               <Fade key={i} delay={i * 120}>
                 <div className="relative pl-5 border-l border-border">
                   <div className="absolute -left-[4px] top-0 w-[7px] h-[7px] rounded-full bg-coral" style={{ boxShadow: '0 0 12px rgba(129,140,248,0.5)' }} />
-                  <span className="text-[11px] text-text-tertiary tracking-[0.08em]">{s.s}</span>
+                  <span className="text-[11px] text-text-secondary tracking-[0.08em]">{s.s}</span>
                   <h3 className="font-display text-[16px] font-[700] text-text-primary mt-2 mb-2">{s.t}</h3>
-                  <p className="text-[13px] text-text-secondary leading-relaxed">{s.d}</p>
+                  <p className="text-[14px] text-[#B4B4BD] leading-relaxed">{s.d}</p>
                 </div>
               </Fade>
             ))}

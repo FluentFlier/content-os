@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import { getInsforge } from "@/lib/insforge/client";
 import type { ContentPillarConfig, PlatformConfig, CreatorProfile, UserSetting } from "@/types/database";
 import type { Platform } from "@/lib/constants";
@@ -63,7 +64,19 @@ function Section({
 /*  Main settings page                                                 */
 /* ------------------------------------------------------------------ */
 
+const TABS = [
+  { id: 'connections', label: 'Connections' },
+  { id: 'profile', label: 'Profile' },
+  { id: 'content', label: 'Content' },
+  { id: 'tools', label: 'Tools' },
+] as const;
+
+type SettingsTab = (typeof TABS)[number]['id'];
+
 export default function SettingsPage() {
+  const searchParams = useSearchParams();
+  const initialTab = (searchParams.get('tab') as SettingsTab) || 'connections';
+  const [activeTab, setActiveTab] = useState<SettingsTab>(initialTab);
   const [userId, setUserId] = useState<string | null>(null);
   const [profile, setProfile] = useState<CreatorProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -433,96 +446,128 @@ export default function SettingsPage() {
         Settings
       </h1>
 
-      <Section title="Platform Connections">
-        <PlatformConnections
-          connectedAccounts={connectedAccounts}
-          onConnect={connectAccount}
-          onDisconnect={disconnectAccount}
-          disconnecting={disconnecting}
-          onAccountsRefresh={refreshAccounts}
-        />
-      </Section>
+      {/* Tab bar */}
+      <div className="flex gap-1 bg-[#18181B] rounded-[10px] p-1">
+        {TABS.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`flex-1 px-4 py-2 rounded-[7px] text-[13px] font-medium transition-all ${
+              activeTab === tab.id
+                ? 'bg-[#27272A] text-[#FAFAFA]'
+                : 'text-[#71717A] hover:text-[#A1A1AA]'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
 
-      <Section title="Auto-Optimize">
-        <AutoOptimizeToggle
-          enabled={autoOptimize}
-          onChange={setAutoOptimize}
-          onSave={saveAutoOptimize}
-          saving={autoOptimizeSaving}
-          saved={autoOptimizeSaved}
-        />
-      </Section>
+      {/* Tab content */}
+      {activeTab === 'connections' && (
+        <>
+          <Section title="Platform Connections">
+            <PlatformConnections
+              connectedAccounts={connectedAccounts}
+              onConnect={connectAccount}
+              onDisconnect={disconnectAccount}
+              disconnecting={disconnecting}
+              onAccountsRefresh={refreshAccounts}
+            />
+          </Section>
 
-      <Section title="Personal Context">
-        <ContextEditor
-          contextAdditions={contextAdditions}
-          onContextChange={setContextAdditions}
-          onSave={saveContext}
-          saving={contextSaving}
-          saved={contextSaved}
-        />
-      </Section>
+          <Section title="Platform Defaults">
+            <PlatformDefaults
+              defaultPlatform={defaultPlatform}
+              onDefaultPlatformChange={setDefaultPlatform}
+              crossPostReminders={crossPostReminders}
+              onCrossPostRemindersChange={setCrossPostReminders}
+              onSave={savePlatformDefaults}
+              saving={platformDefaultsSaving}
+              saved={platformDefaultsSaved}
+            />
+          </Section>
+        </>
+      )}
 
-      <Section title="Pillar Weights">
-        <PillarWeights
-          pillars={pillars}
-          pillarWeights={pillarWeights}
-          onWeightChange={setPillarWeights}
-          onSave={savePillarWeights}
-          saving={weightsSaving}
-          saved={weightsSaved}
-        />
-      </Section>
+      {activeTab === 'profile' && (
+        <>
+          <Section title="Profile Editor">
+            <ProfileEditor
+              displayName={displayName}
+              onDisplayNameChange={setDisplayName}
+              bioFacts={bioFacts}
+              onBioFactsChange={setBioFacts}
+              voiceDescription={voiceDescription}
+              onVoiceDescriptionChange={setVoiceDescription}
+              voiceRules={voiceRules}
+              onVoiceRulesChange={setVoiceRules}
+              pillars={pillars}
+              onPillarsChange={setPillars}
+              onSave={saveProfile}
+              saving={profileSaving}
+              saved={profileSaved}
+            />
+          </Section>
 
-      <Section title="Weekly Schedule Template">
-        <WeeklySchedule
-          weeklySchedule={weeklySchedule}
-          onScheduleChange={setWeeklySchedule}
-          pillarOptions={pillarOptions}
-          onSave={saveWeeklySchedule}
-          saving={scheduleSaving}
-          saved={scheduleSaved}
-        />
-      </Section>
+          <Section title="Personal Context">
+            <ContextEditor
+              contextAdditions={contextAdditions}
+              onContextChange={setContextAdditions}
+              onSave={saveContext}
+              saving={contextSaving}
+              saved={contextSaved}
+            />
+          </Section>
+        </>
+      )}
 
-      <Section title="Platform Defaults">
-        <PlatformDefaults
-          defaultPlatform={defaultPlatform}
-          onDefaultPlatformChange={setDefaultPlatform}
-          crossPostReminders={crossPostReminders}
-          onCrossPostRemindersChange={setCrossPostReminders}
-          onSave={savePlatformDefaults}
-          saving={platformDefaultsSaving}
-          saved={platformDefaultsSaved}
-        />
-      </Section>
+      {activeTab === 'content' && (
+        <>
+          <Section title="Pillar Weights">
+            <PillarWeights
+              pillars={pillars}
+              pillarWeights={pillarWeights}
+              onWeightChange={setPillarWeights}
+              onSave={savePillarWeights}
+              saving={weightsSaving}
+              saved={weightsSaved}
+            />
+          </Section>
 
-      <Section title="Profile Bio Generator">
-        <BioGenerator
-          bioGenerating={bioGenerating}
-          bios={bios}
-          onGenerate={generateBios}
-          onBiosChange={setBios}
-        />
-      </Section>
+          <Section title="Weekly Schedule Template">
+            <WeeklySchedule
+              weeklySchedule={weeklySchedule}
+              onScheduleChange={setWeeklySchedule}
+              pillarOptions={pillarOptions}
+              onSave={saveWeeklySchedule}
+              saving={scheduleSaving}
+              saved={scheduleSaved}
+            />
+          </Section>
 
-      <Section title="Profile Editor">
-        <ProfileEditor
-          displayName={displayName}
-          onDisplayNameChange={setDisplayName}
-          bioFacts={bioFacts}
-          onBioFactsChange={setBioFacts}
-          voiceDescription={voiceDescription}
-          onVoiceDescriptionChange={setVoiceDescription}
-          voiceRules={voiceRules}
-          onVoiceRulesChange={setVoiceRules}
-          pillars={pillars}
-          onPillarsChange={setPillars}
-          onSave={saveProfile}
-          saving={profileSaving}
-          saved={profileSaved}
-        />
-      </Section>
+          <Section title="Auto-Optimize">
+            <AutoOptimizeToggle
+              enabled={autoOptimize}
+              onChange={setAutoOptimize}
+              onSave={saveAutoOptimize}
+              saving={autoOptimizeSaving}
+              saved={autoOptimizeSaved}
+            />
+          </Section>
+        </>
+      )}
+
+      {activeTab === 'tools' && (
+        <Section title="Profile Bio Generator">
+          <BioGenerator
+            bioGenerating={bioGenerating}
+            bios={bios}
+            onGenerate={generateBios}
+            onBiosChange={setBios}
+          />
+        </Section>
+      )}
     </div>
   );
 }

@@ -26,6 +26,7 @@ const UpdatePostSchema = z.object({
   variant_group_id: z.string().uuid().nullable().optional(),
   source_platform: z.string().nullable().optional(),
   scheduled_publish_at: z.string().nullable().optional(),
+  image_url: z.string().nullable().optional(),
   updated_at: z.string().optional(),
 }).strict();
 

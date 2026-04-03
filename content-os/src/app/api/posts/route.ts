@@ -25,6 +25,7 @@ const CreatePostSchema = z.object({
   follows_gained: z.number().nullable().optional(),
   variant_group_id: z.string().uuid().nullable().optional(),
   source_platform: z.string().nullable().optional(),
+  image_url: z.string().nullable().optional(),
 }).strict();
 
 export async function GET(request: NextRequest): Promise<NextResponse> {

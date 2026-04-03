@@ -25,6 +25,7 @@ export interface Post {
   variant_group_id: string | null;
   source_platform: string | null;
   scheduled_publish_at: string | null;
+  image_url: string | null;
   created_at: string;
   updated_at: string;
 }

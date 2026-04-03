@@ -12,6 +12,9 @@ import PublishPanel from '@/components/library/PublishPanel';
 import GenerateVariantsSection from '@/components/library/GenerateVariantsSection';
 import BulkPublishPanel from '@/components/library/BulkPublishPanel';
 import { useToast } from '@/components/ui/Toast';
+import { ImageUpload } from '@/components/ui/ImageUpload';
+import { CharCount } from '@/components/ui/CharCount';
+import { PlatformConstraints } from '@/components/ui/PlatformConstraints';
 import Link from 'next/link';
 
 interface PostEditorDrawerProps {
@@ -39,6 +42,7 @@ export default function PostEditorDrawer({ post, series, onClose, onSave, onDele
     notes: post.notes ?? '',
     series_id: post.series_id ?? '',
     series_position: post.series_position ?? 1,
+    image_url: post.image_url ?? '',
   });
   const [showPerfModal, setShowPerfModal] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -54,6 +58,7 @@ export default function PostEditorDrawer({ post, series, onClose, onSave, onDele
           series_id: form.series_id || null,
           scheduled_date: form.scheduled_date || null,
           scheduled_publish_at: form.scheduled_publish_at || null,
+          image_url: form.image_url || null,
           updated_at: new Date().toISOString(),
         }),
       });
@@ -251,6 +256,29 @@ export default function PostEditorDrawer({ post, series, onClose, onSave, onDele
             </span>
           </label>
 
+          {/* Image */}
+          <div>
+            <span className={labelClass}>Image</span>
+            <ImageUpload
+              imageUrl={form.image_url || null}
+              onUpload={(url) => {
+                update('image_url', url);
+                setTimeout(autoSave, 100);
+              }}
+              onRemove={() => {
+                update('image_url', '');
+                setTimeout(autoSave, 100);
+              }}
+            />
+          </div>
+
+          {/* Platform constraints */}
+          <PlatformConstraints
+            platform={form.platform}
+            hasImage={Boolean(form.image_url)}
+            compact
+          />
+
           {/* Hook */}
           <label className="block">
             <span className={labelClass}>Hook</span>
@@ -272,13 +300,15 @@ export default function PostEditorDrawer({ post, series, onClose, onSave, onDele
               onChange={(e) => update('script', e.target.value)}
               onBlur={autoSave}
               className={`${inputClass} resize-none`}
-              
             />
           </label>
 
           {/* Caption */}
           <label className="block">
-            <span className={labelClass}>Caption</span>
+            <div className="flex items-center justify-between">
+              <span className={labelClass}>Caption</span>
+              <CharCount text={form.caption} platform={form.platform} />
+            </div>
             <textarea
               rows={5}
               value={form.caption}

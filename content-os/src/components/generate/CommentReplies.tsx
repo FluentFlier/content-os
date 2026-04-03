@@ -5,6 +5,13 @@ import { Button } from '@/components/ui/Button';
 import { CopyButton } from '@/components/ui/CopyButton';
 import { SkeletonLines } from '@/components/ui/Skeleton';
 
+const PLATFORM_TONES: Record<string, string> = {
+  instagram: 'Raw, direct, like texting a friend. Short. Engage genuinely. Ask a follow-up question when natural. No em dashes. Never sound like a brand.',
+  twitter: 'Punchy, witty, under 280 chars. Match the energy of the comment. Be real, not corporate.',
+  linkedin: 'Professional but warm. Add value with your reply. Reference your experience when relevant. Keep it concise.',
+  threads: 'Casual, conversational, like you are chatting with a friend. Short and natural.',
+};
+
 async function callGenerate(prompt: string): Promise<string> {
   const res = await fetch('/api/generate', {
     method: 'POST',
@@ -21,7 +28,8 @@ async function callGenerate(prompt: string): Promise<string> {
 
 export function CommentReplies() {
   const [comments, setComments] = useState('');
-  const [replies, setReplies] = useState<string[]>([]);
+  const [platform, setPlatform] = useState('instagram');
+  const [replies, setReplies] = useState<{ comment: string; reply: string }[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -33,15 +41,53 @@ export function CommentReplies() {
     setLoading(true);
     setError('');
     setReplies([]);
-    const prompt = `Write replies to these Instagram comments in the creator's voice. Raw, direct, like texting a friend. Short. Engage genuinely. Ask a follow-up question when natural. No em dashes. Never sound like a brand.
-COMMENTS: ${comments.trim()}
-Return each reply labeled Comment 1 Reply, Comment 2 Reply, etc.`;
+
+    const commentLines = comments.trim().split('\n').filter((l) => l.trim());
+    const tone = PLATFORM_TONES[platform] || PLATFORM_TONES.instagram;
+
+    const prompt = `Write replies to these ${platform} comments in the creator's voice.
+
+TONE: ${tone}
+
+COMMENTS:
+${commentLines.map((c, i) => `${i + 1}. ${c}`).join('\n')}
+
+Return each reply in this exact format:
+COMMENT 1: (original comment text)
+REPLY 1: (your reply)
+
+COMMENT 2: (original comment text)
+REPLY 2: (your reply)
+
+...and so on for all comments.`;
+
     try {
       const text = await callGenerate(prompt);
-      const replyBlocks = text
-        .split(/Comment\s*\d+\s*Reply[:\s]*/i)
-        .filter((b: string) => b.trim());
-      setReplies(replyBlocks.map((b: string) => b.trim()));
+      const pairs: { comment: string; reply: string }[] = [];
+      const blocks = text.split(/(?=COMMENT\s*\d+:)/i).filter((b) => b.trim());
+
+      for (let i = 0; i < blocks.length; i++) {
+        const block = blocks[i];
+        const replyMatch = block.match(/REPLY\s*\d+:\s*([\s\S]*?)$/i);
+        const reply = replyMatch?.[1]?.trim() || block.trim();
+        pairs.push({
+          comment: commentLines[i] || `Comment ${i + 1}`,
+          reply,
+        });
+      }
+
+      // Fallback if parsing fails
+      if (pairs.length === 0) {
+        const fallbackReplies = text.split(/Reply\s*\d+[:\s]*/i).filter((b) => b.trim());
+        for (let i = 0; i < fallbackReplies.length; i++) {
+          pairs.push({
+            comment: commentLines[i] || `Comment ${i + 1}`,
+            reply: fallbackReplies[i].trim(),
+          });
+        }
+      }
+
+      setReplies(pairs);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Generation failed');
     } finally {
@@ -51,49 +97,75 @@ Return each reply labeled Comment 1 Reply, Comment 2 Reply, etc.`;
 
   return (
     <div className="space-y-5">
+      {/* Platform selector */}
+      <div className="flex gap-2">
+        {Object.keys(PLATFORM_TONES).map((p) => (
+          <button
+            key={p}
+            type="button"
+            onClick={() => setPlatform(p)}
+            className={`px-3 py-1.5 rounded-[5px] text-[12px] font-medium capitalize transition-colors ${
+              platform === p
+                ? 'bg-[#27272A] text-[#FAFAFA]'
+                : 'text-[#71717A] hover:text-[#A1A1AA]'
+            }`}
+          >
+            {p === 'twitter' ? 'X' : p}
+          </button>
+        ))}
+      </div>
+
       <div>
         <label className="block font-body text-[13px] text-[#A1A1AA] mb-2">
-          Paste 5-10 comments
+          Paste comments (one per line)
         </label>
         <textarea
           value={comments}
           onChange={(e) => setComments(e.target.value)}
-          rows={8}
-          placeholder="Paste comments from your post, one per line..."
+          rows={6}
+          placeholder={`Paste ${platform} comments here, one per line...`}
           className="w-full bg-[#18181B] border-[0.5px] border-[rgba(255,255,255,0.12)] rounded-[7px] px-4 py-3 font-body text-[13px] text-[#FAFAFA] placeholder:text-[#71717A] focus:outline-none focus:border-[rgba(255,255,255,0.40)] resize-none transition-colors duration-100"
         />
       </div>
 
-      <Button
-        onClick={generate}
-        loading={loading}
-        disabled={!comments.trim()}
-      >
+      <Button onClick={generate} loading={loading} disabled={!comments.trim()}>
         Generate Replies
       </Button>
 
-      {error && <p className="font-body text-[13px] text-[#6366F1]">{error}</p>}
+      {error && <p className="font-body text-[13px] text-red-400">{error}</p>}
 
       {loading && (
         <div className="bg-[#18181B] border-[0.5px] border-[rgba(255,255,255,0.12)] rounded-[12px] p-[13px_14px]">
-          <SkeletonLines count={3} />
+          <SkeletonLines count={4} />
         </div>
       )}
 
       {replies.length > 0 && (
-        <div className="bg-[#18181B] border-[0.5px] border-[rgba(255,255,255,0.12)] rounded-[12px] p-[13px_14px] space-y-2">
-          {replies.map((reply, i) => (
+        <div className="space-y-3">
+          {replies.map((pair, i) => (
             <div
               key={i}
-              className="flex items-start justify-between gap-3 py-2 border-b-[0.5px] border-[rgba(255,255,255,0.12)] last:border-0"
+              className="bg-[#18181B] border-[0.5px] border-[rgba(255,255,255,0.12)] rounded-[12px] p-4 space-y-2"
             >
-              <p className="font-body text-[13px] text-[#FAFAFA] flex-1 leading-[1.55]">
-                <span className="text-[#71717A] font-medium mr-2">
-                  Reply {i + 1}:
+              {/* Original comment */}
+              <div className="flex items-start gap-2">
+                <span className="text-[10px] font-medium tracking-[0.08em] uppercase text-[#52525B] shrink-0 mt-0.5">
+                  Comment
                 </span>
-                {reply}
-              </p>
-              <CopyButton text={reply} />
+                <p className="font-body text-[12px] text-[#71717A] leading-relaxed flex-1">
+                  {pair.comment}
+                </p>
+              </div>
+              {/* Generated reply */}
+              <div className="flex items-start gap-2 pt-2 border-t-[0.5px] border-[rgba(255,255,255,0.06)]">
+                <span className="text-[10px] font-medium tracking-[0.08em] uppercase text-[#818CF8] shrink-0 mt-0.5">
+                  Reply
+                </span>
+                <p className="font-body text-[13px] text-[#FAFAFA] leading-[1.55] flex-1">
+                  {pair.reply}
+                </p>
+                <CopyButton text={pair.reply} />
+              </div>
             </div>
           ))}
         </div>

@@ -65,6 +65,7 @@ create table if not exists posts (
   variant_group_id uuid,
   source_platform text,
   scheduled_publish_at timestamptz,
+  image_url text,
   created_at timestamptz default now() not null,
   updated_at timestamptz default now() not null
 );

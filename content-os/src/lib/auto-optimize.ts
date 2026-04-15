@@ -25,15 +25,16 @@ export async function triggerAutoOptimize({
   requestCookies: string;
   origin: string;
 }): Promise<void> {
-  const client = getServerClient();
+  const client = await getServerClient();
 
-  // 1. Check user setting
+  // 1. Check user setting. Users who never toggled the flag have no row,
+  // so .maybeSingle() returns null without an error — treat as disabled.
   const { data: setting } = await client.database
     .from('user_settings')
     .select('value')
     .eq('user_id', userId)
     .eq('key', 'auto_optimize_on_save')
-    .single();
+    .maybeSingle();
 
   if (!setting || setting.value !== 'true') {
     return;
@@ -92,12 +93,14 @@ export async function triggerAutoOptimize({
     }
 
     // 5. Fetch the source post to inherit title and pillar
+    // Source post may have been deleted between the initial POST and this
+    // background job completing. maybeSingle() returns null cleanly.
     const { data: sourcePost } = await client.database
       .from('posts')
       .select('title, pillar')
       .eq('id', postId)
       .eq('user_id', userId)
-      .single();
+      .maybeSingle();
 
     if (!sourcePost) return;
 

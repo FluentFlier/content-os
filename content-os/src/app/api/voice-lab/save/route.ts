@@ -25,7 +25,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   const parsed = SaveSchema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: parsed.error.message }, { status: 400 });
 
-  const client = getServerClient();
+  const client = await getServerClient();
 
   // Update creator_profile with voice data
   const { error: profileError } = await client.database
@@ -56,16 +56,18 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     });
   }
 
-  for (const setting of settingsToSave) {
-    await client.database
-      .from('user_settings')
-      .upsert({
-        user_id: user.id,
-        key: setting.key,
-        value: setting.value,
-        updated_at: new Date().toISOString(),
-      }, { onConflict: 'user_id,key' });
-  }
+  await Promise.all(
+    settingsToSave.map((setting) =>
+      client.database
+        .from('user_settings')
+        .upsert({
+          user_id: user.id,
+          key: setting.key,
+          value: setting.value,
+          updated_at: new Date().toISOString(),
+        }, { onConflict: 'user_id,key' }),
+    ),
+  );
 
   // Store persona in Supermemory for semantic search during generation
   try {

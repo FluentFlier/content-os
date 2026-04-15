@@ -187,7 +187,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     platform: z.enum(['twitter', 'linkedin', 'instagram', 'threads']),
     content: z.string().min(1).max(25000),
     caption: z.string().max(25000).optional(),
-    imageUrl: z.string().url().optional(),
+    imageUrl: z.string().url().max(2048).optional(),
   });
 
   const parsed = PublishSchema.safeParse(body);

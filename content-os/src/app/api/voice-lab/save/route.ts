@@ -4,15 +4,15 @@ import { storePersona } from '@/lib/supermemory';
 import { z } from 'zod';
 
 const SaveSchema = z.object({
-  voice_description: z.string(),
-  voice_rules: z.string(),
+  voice_description: z.string().max(10000),
+  voice_rules: z.string().max(10000),
   vocabulary_fingerprint: z.record(z.string(), z.unknown()),
   structural_patterns: z.record(z.string(), z.unknown()),
-  exportable_prompt: z.string(),
+  exportable_prompt: z.string().max(20000),
   sample_posts: z.array(z.object({
-    content: z.string(),
-    platform: z.string().optional(),
-  })).optional(),
+    content: z.string().max(25000),
+    platform: z.string().max(100).optional(),
+  })).max(100).optional(),
 });
 
 export async function POST(request: NextRequest): Promise<NextResponse> {

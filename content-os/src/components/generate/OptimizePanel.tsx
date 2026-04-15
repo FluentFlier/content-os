@@ -361,16 +361,29 @@ function VariantCard({
           <Save size={13} />
           Save as Post
         </Button>
-        <Button
-          variant="primary"
-          size="sm"
-          onClick={onPublish}
-          loading={publishing}
-          className="gap-1.5"
-        >
-          <Send size={13} />
-          Publish Now
-        </Button>
+        {variant.platform === 'instagram' ? (
+          <Button
+            variant="primary"
+            size="sm"
+            disabled
+            title="Instagram requires an image. Save as Post and publish from the Library."
+            className="gap-1.5"
+          >
+            <Send size={13} />
+            Save as Post to publish
+          </Button>
+        ) : (
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={onPublish}
+            loading={publishing}
+            className="gap-1.5"
+          >
+            <Send size={13} />
+            Publish Now
+          </Button>
+        )}
       </div>
     </div>
   );

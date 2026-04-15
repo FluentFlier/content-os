@@ -68,10 +68,24 @@ export async function publishPost(
 
     const { id: postId } = await publishRes.json();
 
+    // The raw post ID isn't a valid URL slug; fetch the permalink.
+    let url = `https://graph.threads.net/${postId}`;
+    try {
+      const permalinkRes = await fetch(
+        `https://graph.threads.net/v1.0/${postId}?fields=permalink&access_token=${accessToken}`
+      );
+      if (permalinkRes.ok) {
+        const data = await permalinkRes.json();
+        if (data.permalink) url = data.permalink;
+      }
+    } catch {
+      // keep fallback
+    }
+
     return {
       success: true,
       platformPostId: postId,
-      url: `https://www.threads.net/post/${postId}`,
+      url,
     };
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Unknown error';

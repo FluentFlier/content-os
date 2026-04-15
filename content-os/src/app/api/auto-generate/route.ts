@@ -131,7 +131,7 @@ Return JSON:
       .insert({
         user_id: user.id,
         title: generated.hook || topic || 'Auto-generated post',
-        pillar: profile?.content_pillars?.[0]?.name || 'general',
+        pillar: (typeof profile?.content_pillars?.[0] === 'string' ? profile.content_pillars[0] : profile?.content_pillars?.[0]?.name) || 'general',
         platform,
         status: shouldAutoPublish ? 'edited' : 'scripted',
         script: generated.content,

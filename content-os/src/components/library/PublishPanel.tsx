@@ -23,6 +23,7 @@ interface PublishPanelProps {
   postId: string;
   content: string;
   caption: string;
+  imageUrl?: string | null;
   onPublishSuccess?: () => void;
 }
 
@@ -33,7 +34,7 @@ const PLATFORM_CONFIG: Record<string, { label: string; color: string; charLimit:
   threads: { label: 'Threads', color: '#E7E5E4', charLimit: 500, icon: '@' },
 };
 
-export default function PublishPanel({ postId, content, caption, onPublishSuccess }: PublishPanelProps) {
+export default function PublishPanel({ postId, content, caption, imageUrl, onPublishSuccess }: PublishPanelProps) {
   const [accounts, setAccounts] = useState<SocialAccount[]>([]);
   const [loading, setLoading] = useState(true);
   const [publishing, setPublishing] = useState<Record<string, boolean>>({});
@@ -66,15 +67,12 @@ export default function PublishPanel({ postId, content, caption, onPublishSucces
     });
 
     try {
+      const body: Record<string, unknown> = { postId, platform, content, caption };
+      if (imageUrl) body.imageUrl = imageUrl;
       const res = await fetch('/api/publish', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          postId,
-          platform,
-          content,
-          caption,
-        }),
+        body: JSON.stringify(body),
       });
 
       const data = await res.json();

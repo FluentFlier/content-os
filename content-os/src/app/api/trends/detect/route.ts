@@ -63,7 +63,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       .from('creator_profile')
       .select('display_name, bio, content_pillars, voice_description, voice_rules')
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
 
     if (profileRow) {
       profile = {
@@ -116,23 +116,27 @@ Find trends that this specific creator could ride. Be specific, not generic.`;
       return NextResponse.json({ error: 'Model returned non-array trends' }, { status: 502 });
     }
 
-    // Store trends in DB in parallel; a detected_trends upsert is a leaf write.
+    // Store trends in DB in parallel. Use allSettled so one bad upsert
+    // (e.g. type mismatch on a model-generated field) doesn't discard the
+    // rest of the successfully detected trends.
     const nowIso = new Date().toISOString();
-    await Promise.all(
+    await Promise.allSettled(
       trends
         .filter((t) => typeof t.topic === 'string' && t.topic)
         .map((trend) =>
-          client.database.from('detected_trends').upsert({
-            user_id: user.id,
-            topic: trend.topic,
-            why_trending: trend.why_trending,
-            angle: trend.angle,
-            best_platform: trend.best_platform,
-            urgency: trend.urgency,
-            draft_hook: trend.draft_hook,
-            confidence: trend.confidence,
-            detected_at: nowIso,
-          }, { onConflict: 'user_id,topic' }),
+          Promise.resolve(
+            client.database.from('detected_trends').upsert({
+              user_id: user.id,
+              topic: trend.topic,
+              why_trending: trend.why_trending,
+              angle: trend.angle,
+              best_platform: trend.best_platform,
+              urgency: trend.urgency,
+              draft_hook: trend.draft_hook,
+              confidence: trend.confidence,
+              detected_at: nowIso,
+            }, { onConflict: 'user_id,topic' }),
+          ),
         ),
     );
 

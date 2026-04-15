@@ -239,6 +239,42 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     );
   }
 
+  // Atomic claim: if a postId is provided, flip its status to 'publishing'
+  // only if it isn't already 'posted' or 'publishing'. This prevents a
+  // rapid double-click from double-posting to the platform.
+  let prevStatus: string | null = null;
+  if (postId) {
+    const { data: current } = await client.database
+      .from('posts')
+      .select('status')
+      .eq('id', postId)
+      .eq('user_id', user.id)
+      .maybeSingle();
+    if (!current) {
+      return NextResponse.json({ error: 'Post not found' }, { status: 404 });
+    }
+    prevStatus = (current.status as string) ?? 'scripted';
+    if (prevStatus === 'posted' || prevStatus === 'publishing') {
+      return NextResponse.json(
+        { error: 'Post is already being published or has been published.' },
+        { status: 409 }
+      );
+    }
+    const { data: claimed } = await client.database
+      .from('posts')
+      .update({ status: 'publishing', updated_at: new Date().toISOString() })
+      .eq('id', postId)
+      .eq('user_id', user.id)
+      .eq('status', prevStatus)
+      .select('id');
+    if (!claimed || claimed.length === 0) {
+      return NextResponse.json(
+        { error: 'Post is already being published.' },
+        { status: 409 }
+      );
+    }
+  }
+
   let result: { success: boolean; platformPostId?: string; url?: string; error?: string };
 
   if (oauthRow) {
@@ -302,6 +338,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   }
 
   if (!result.success) {
+    // Restore prior status on failure so user can retry.
+    if (postId && prevStatus) {
+      await client.database
+        .from('posts')
+        .update({ status: prevStatus, updated_at: new Date().toISOString() })
+        .eq('id', postId)
+        .eq('user_id', user.id);
+    }
     return NextResponse.json(
       { error: result.error ?? 'Publishing failed' },
       { status: 500 }

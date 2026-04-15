@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
 import { ChevronDown, Pickaxe } from "lucide-react";
 import { useToast } from "@/components/ui/Toast";
 import { getInsforge } from "@/lib/insforge/client";
@@ -12,7 +11,6 @@ import StoryGrid from "@/components/story-bank/StoryGrid";
 type UsedFilter = "all" | "unused" | "used";
 
 export default function StoryBankPage() {
-  const router = useRouter();
   const { toast } = useToast();
   const { pillars: pillarList, pillarValues } = usePillars();
   const [stories, setStories] = useState<StoryBankEntry[]>([]);
@@ -121,6 +119,7 @@ export default function StoryBankPage() {
 
   // Re-mine
   const handleRemine = async (story: StoryBankEntry) => {
+    if (!userId) return;
     setReminingId(story.id);
     try {
       const res = await fetch("/api/generate", {
@@ -163,8 +162,10 @@ export default function StoryBankPage() {
           pillar: parsedPillar && pillarValues.includes(parsedPillar)
             ? parsedPillar
             : story.pillar,
+          updated_at: new Date().toISOString(),
         })
-        .eq("id", story.id);
+        .eq("id", story.id)
+        .eq("user_id", userId);
 
       await fetchStories();
     } catch (err) {

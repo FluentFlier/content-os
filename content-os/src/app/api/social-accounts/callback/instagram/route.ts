@@ -58,7 +58,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const longToken = longData.access_token ?? access_token;
     const expiresIn = longData.expires_in;
 
-    // Get Instagram Business Account ID through Pages
+    // Walk every connected FB page for an attached Instagram Business
+    // account. The old code only checked pagesData.data[0], so users
+    // whose first page had no IG linked but a later one did would end
+    // up with account_id=null and every publish attempt would fail.
     const pagesUrl = new URL('https://graph.facebook.com/v19.0/me/accounts');
     pagesUrl.searchParams.set('access_token', longToken);
     const pagesRes = await fetch(pagesUrl);
@@ -67,27 +70,39 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     if (pagesRes.ok) {
       const pagesData = await pagesRes.json();
-      const page = pagesData.data?.[0];
-      if (page) {
+      const pages: Array<{ id: string }> = Array.isArray(pagesData.data) ? pagesData.data : [];
+      for (const page of pages) {
         const igUrl = new URL(`https://graph.facebook.com/v19.0/${encodeURIComponent(page.id)}`);
         igUrl.searchParams.set('fields', 'instagram_business_account');
         igUrl.searchParams.set('access_token', longToken);
         const igRes = await fetch(igUrl);
-        if (igRes.ok) {
-          const igData = await igRes.json();
-          igAccountId = igData.instagram_business_account?.id ?? null;
-          if (igAccountId) {
-            const profileUrl = new URL(`https://graph.facebook.com/v19.0/${encodeURIComponent(igAccountId)}`);
-            profileUrl.searchParams.set('fields', 'username');
-            profileUrl.searchParams.set('access_token', longToken);
-            const profileRes = await fetch(profileUrl);
-            if (profileRes.ok) {
-              const profileData = await profileRes.json();
-              igUsername = `@${profileData.username}`;
-            }
-          }
+        if (!igRes.ok) continue;
+        const igData = await igRes.json();
+        const candidate = igData.instagram_business_account?.id;
+        if (candidate) {
+          igAccountId = candidate;
+          break;
         }
       }
+
+      if (igAccountId) {
+        const profileUrl = new URL(`https://graph.facebook.com/v19.0/${encodeURIComponent(igAccountId)}`);
+        profileUrl.searchParams.set('fields', 'username');
+        profileUrl.searchParams.set('access_token', longToken);
+        const profileRes = await fetch(profileUrl);
+        if (profileRes.ok) {
+          const profileData = await profileRes.json();
+          if (profileData.username) igUsername = `@${profileData.username}`;
+        }
+      }
+    }
+
+    // Without an Instagram Business Account ID every future publish
+    // would 400, so refuse the connection here and tell the user why.
+    if (!igAccountId) {
+      return redirectWithError(
+        'No Instagram Business Account found on any connected Facebook Page. Convert your IG to a Business account and link it to a Page, then try again.',
+      );
     }
 
     const expiresAt = expiresIn

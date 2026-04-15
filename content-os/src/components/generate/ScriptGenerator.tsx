@@ -17,21 +17,21 @@ FLIP: What they should do or think instead, one sentence.
 CTA: One direct question.
 Under 60 seconds when spoken. No em dashes. The creator's voice only.`,
 
-  hackathon: `Generate a hackathon story Reel script. Draw from the creator's hackathon experience. Pick a specific, realistic, dramatic story.
-HOOK: Drop into the most intense moment. No setup.
-SETUP: 2 bullets -- challenge, stakes.
-TURN: 1 bullet -- what changed under pressure.
-LESSON: 1 bullet -- what this teaches about building.
-CTA: Ask viewers about their own experience.
+  tips: `Generate a quick tips Reel script based on the creator's expertise. Under 60 seconds.
+TOPIC (optional): [topic or "choose a useful tip from the creator's domain"]
+HOOK: One line that promises a specific, actionable outcome.
+TIPS: 3 short bullets. Each one immediately actionable.
+THE TRAP: 1 bullet -- common mistake people make.
+CTA: Ask which tip they will try first.
 No em dashes.`,
 
-  founder: `Generate a founder-in-public script about building the creator's product or startup.
-HOOK: One honest vulnerable sentence. Real energy, no spin.
-REALITY: 2 bullets -- what was hard or went wrong.
-PROGRESS: 1 bullet -- one thing that moved.
-LESSON: 1 bullet -- what this is teaching about startups.
-CTA: Invite builders to share their week.
-Sound like Tuesday at 11pm, not a success story. No em dashes.`,
+  story: `Generate a short personal story Reel script drawn from the creator's background.
+HOOK: Drop into the most intense or surprising moment. No setup.
+CONTEXT: 1 bullet -- just enough background.
+TURN: 1 bullet -- what changed.
+LESSON: 1 bullet -- what this teaches.
+CTA: Ask viewers about a similar experience.
+Feels real and specific, not generic. No em dashes.`,
 
   explainer: `Generate a concept explainer based on the creator's expertise. Under 60 seconds.
 TOPIC (optional): [topic or "choose one concept from the creator's domain"]
@@ -42,20 +42,19 @@ MISCONCEPTION: 1 bullet.
 CTA: Ask what to explain next.
 No em dashes.`,
 
-  origin: `Generate an origin/arc video script based on the creator's background and journey.
-HOOK: One specific detail that makes someone lean in.
-THE PATH: 2 bullets -- the unexpected parts.
-THROUGH LINE: 1 bullet -- what actually connects it all.
-NOW: 1 bullet -- where it's heading.
-CTA: Invite non-linear paths in comments.
-No em dashes.`,
+  'behind-the-scenes': `Generate a behind-the-scenes Reel script showing how the creator actually works.
+HOOK: One line that reveals something people would not expect.
+THE REALITY: 2 bullets -- what the process actually looks like.
+THE DETAIL: 1 bullet -- one specific thing viewers can steal.
+CTA: Ask what part of their process they want to see next.
+Honest, not polished. No em dashes.`,
 
-  research: `Generate a research unlocked video script that makes the creator's research feel accessible and interesting.
-HOOK: One line that makes someone who hates science want to keep watching.
-THE WEIRD PART: 2 bullets -- what is genuinely surprising about the research.
+  research: `Generate a research unlocked video script that makes interesting findings feel accessible.
+HOOK: One line that makes someone who knows nothing about this topic want to keep watching.
+THE WEIRD PART: 2 bullets -- what is genuinely surprising.
 WHY IT MATTERS: 1 bullet -- real-world stakes.
-THE META LESSON: 1 bullet -- what doing research teaches you that classes do not.
-CTA: Ask if they knew this kind of research existed.
+THE TAKEAWAY: 1 bullet -- one thing viewers can do with this information.
+CTA: Ask if they knew this kind of thing existed.
 No em dashes.`,
 };
 

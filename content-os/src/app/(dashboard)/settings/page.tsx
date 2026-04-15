@@ -15,6 +15,7 @@ import BioGenerator from "@/components/settings/BioGenerator";
 import PlatformConnections from "@/components/settings/PlatformConnections";
 import ProfileEditor from "@/components/settings/ProfileEditor";
 import AutoOptimizeToggle from "@/components/settings/AutoOptimizeToggle";
+import { invalidatePillarCache } from "@/hooks/usePillars";
 
 /* ------------------------------------------------------------------ */
 /*  Constants                                                          */
@@ -342,6 +343,8 @@ export default function SettingsPage() {
         },
         { onConflict: "user_id" }
       );
+    // Bust the in-memory pillar cache so generate tools see updated pillars immediately
+    invalidatePillarCache();
     setProfileSaving(false);
     flashSaved(setProfileSaved);
   }

@@ -1,9 +1,12 @@
+// Generic starter pillars shown before a user completes onboarding.
+// Once onboarding is done, the usePillars hook reads from creator_profile
+// and these are only used as fallback for any legacy posts.
 export const PILLARS = [
   'hot-take',
-  'hackathon',
-  'founder',
+  'tips',
+  'story',
   'explainer',
-  'origin',
+  'behind-the-scenes',
   'research',
 ] as const;
 
@@ -11,28 +14,28 @@ export type Pillar = typeof PILLARS[number];
 
 export const PILLAR_LABELS: Record<Pillar, string> = {
   'hot-take': 'Hot Take',
-  hackathon: 'Hackathon',
-  founder: 'Founder',
+  tips: 'Tips',
+  story: 'Story',
   explainer: 'Explainer',
-  origin: 'Origin',
+  'behind-the-scenes': 'Behind the Scenes',
   research: 'Research',
 };
 
 export const PILLAR_COLORS: Record<Pillar, string> = {
   'hot-take': '#EF4444',
-  hackathon: '#F59E0B',
-  founder: '#818CF8',
+  tips: '#F59E0B',
+  story: '#818CF8',
   explainer: '#A78BFA',
-  origin: '#34D399',
+  'behind-the-scenes': '#34D399',
   research: '#22D3EE',
 };
 
 export const PILLAR_BADGE_BG: Record<Pillar, string> = {
   'hot-take': 'bg-[rgba(239,68,68,0.12)] text-[#FCA5A5]',
-  hackathon: 'bg-[rgba(245,158,11,0.12)] text-[#FCD34D]',
-  founder: 'bg-[rgba(129,140,248,0.12)] text-[#A5B4FC]',
+  tips: 'bg-[rgba(245,158,11,0.12)] text-[#FCD34D]',
+  story: 'bg-[rgba(129,140,248,0.12)] text-[#A5B4FC]',
   explainer: 'bg-[rgba(167,139,250,0.12)] text-[#C4B5FD]',
-  origin: 'bg-[rgba(52,211,153,0.12)] text-[#6EE7B7]',
+  'behind-the-scenes': 'bg-[rgba(52,211,153,0.12)] text-[#6EE7B7]',
   research: 'bg-[rgba(34,211,238,0.12)] text-[#67E8F9]',
 };
 

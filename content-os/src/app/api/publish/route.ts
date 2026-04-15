@@ -30,7 +30,7 @@ interface SocialAccountRow {
 async function ensureFreshToken(
   account: SocialAccountRow,
   platform: SocialPlatform,
-  client: ReturnType<typeof getServerClient>
+  client: Awaited<ReturnType<typeof getServerClient>>
 ): Promise<string> {
   const now = new Date();
   const expiresAt = account.token_expires_at ? new Date(account.token_expires_at) : null;
@@ -195,7 +195,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     );
   }
 
-  const client = getServerClient();
+  const client = await getServerClient();
   const publishContent = caption || content;
 
   // Step 1: Check for OAuth account (connection_method is null or 'oauth')

@@ -37,7 +37,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   }
 
   // Load profile for voice matching
-  const client = getServerClient();
+  const client = await getServerClient();
   let profile: CreatorProfileForPrompt | null = null;
   try {
     const { data: profileRow } = await client.database

@@ -335,6 +335,7 @@ export default function SettingsPage() {
         {
           user_id: userId,
           display_name: displayName || "Creator",
+          bio: bioFacts,        // keep bio in sync so /api/generate sees updates
           bio_facts: bioFacts,
           voice_description: voiceDescription,
           voice_rules: voiceRules,

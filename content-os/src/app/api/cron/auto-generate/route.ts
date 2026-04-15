@@ -103,14 +103,17 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         continue;
       }
 
-      // Check how many posts already exist for today
-      const today = new Date().toISOString().split('T')[0];
+      // Check how many posts already exist for today. Use [start, nextDay)
+      // half-open range so timestamps at 23:59:59.5 aren't dropped.
+      const now = new Date();
+      const todayStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+      const tomorrowStart = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
       const { count: todayPostCount } = await adminClient.database
         .from('posts')
         .select('*', { count: 'exact', head: true })
         .eq('user_id', userId)
-        .gte('created_at', `${today}T00:00:00`)
-        .lte('created_at', `${today}T23:59:59`);
+        .gte('created_at', todayStart.toISOString())
+        .lt('created_at', tomorrowStart.toISOString());
 
       if ((todayPostCount ?? 0) >= 3) {
         results.push({ userId, status: 'daily_limit_reached', postsGenerated: 0 });

@@ -6,7 +6,7 @@ export async function GET(): Promise<NextResponse> {
   const user = await getAuthenticatedUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const client = getServerClient();
+  const client = await getServerClient();
   const { data, error } = await client
     .database.from('hashtag_sets')
     .select('*')
@@ -26,17 +26,22 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
   const HashtagSetSchema = z.object({
     name: z.string().min(1).max(200),
-    hashtags: z.array(z.string().max(200)).min(1).max(50),
-    platform: z.string().max(50).optional(),
+    tags: z.string().min(1).max(5000),
+    pillar: z.string().max(200).optional().nullable(),
+    use_count: z.number().int().min(0).optional(),
   });
 
   const parsed = HashtagSetSchema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: parsed.error.message }, { status: 400 });
 
-  const client = getServerClient();
+  const client = await getServerClient();
   const { data, error } = await client
     .database.from('hashtag_sets')
-    .insert({ ...parsed.data, user_id: user.id })
+    .insert({
+      ...parsed.data,
+      use_count: parsed.data.use_count ?? 0,
+      user_id: user.id,
+    })
     .select()
     .single();
 

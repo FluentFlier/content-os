@@ -10,7 +10,7 @@ const PLATFORM_ENUM = z.enum(['twitter', 'linkedin', 'instagram', 'threads']);
 const OptimizeSchema = z.object({
   content: z.string().min(1, 'Content is required').max(25000),
   sourcePlatform: PLATFORM_ENUM,
-  targetPlatforms: z.array(PLATFORM_ENUM).min(1, 'At least one target platform is required'),
+  targetPlatforms: z.array(PLATFORM_ENUM).min(1, 'At least one target platform is required').max(4),
   postId: z.string().uuid().optional(),
   optimizationLevel: z.enum(['light', 'full']).default('full'),
 });
@@ -278,7 +278,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       .from('creator_profile')
       .select('display_name, bio, content_pillars, voice_description, voice_rules')
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
 
     if (profileRow) {
       const contentPillars =

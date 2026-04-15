@@ -29,6 +29,11 @@ const UpdatePostSchema = z.object({
   source_platform: z.string().max(100).nullable().optional(),
   scheduled_publish_at: z.string().max(50).nullable().optional(),
   image_url: z.string().max(2048).nullable().optional(),
+  // Accepted but ignored - server rewrites updated_at itself. Callers
+  // across the dashboard (library bulk status, calendar drag, editor
+  // drawer, performance modal) all send it, so rejecting under .strict()
+  // was breaking those PATCHes with a 400.
+  updated_at: z.string().max(50).optional(),
 }).strict();
 
 export async function GET(

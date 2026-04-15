@@ -6,7 +6,7 @@ export async function GET(): Promise<NextResponse> {
   const user = await getAuthenticatedUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const client = getServerClient();
+  const client = await getServerClient();
   const { data, error } = await client
     .database.from('story_bank')
     .select('*')
@@ -25,20 +25,26 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   try { body = await request.json(); } catch { return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 }); }
 
   const StorySchema = z.object({
-    title: z.string().min(1).max(500),
-    body: z.string().max(10000).optional(),
-    category: z.string().max(200).optional(),
-    tags: z.array(z.string().max(100)).max(20).optional(),
-    source: z.string().max(500).optional(),
+    raw_memory: z.string().min(1).max(20000),
+    mined_angle: z.string().max(2000).optional().nullable(),
+    mined_hook: z.string().max(2000).optional().nullable(),
+    mined_script: z.string().max(10000).optional().nullable(),
+    mined_caption_line: z.string().max(2000).optional().nullable(),
+    pillar: z.string().max(200).optional().nullable(),
+    used: z.boolean().optional(),
   });
 
   const parsed = StorySchema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: parsed.error.message }, { status: 400 });
 
-  const client = getServerClient();
+  const client = await getServerClient();
   const { data, error } = await client
     .database.from('story_bank')
-    .insert({ ...parsed.data, user_id: user.id })
+    .insert({
+      ...parsed.data,
+      used: parsed.data.used ?? false,
+      user_id: user.id,
+    })
     .select()
     .single();
 

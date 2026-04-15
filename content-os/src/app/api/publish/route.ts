@@ -5,6 +5,7 @@ import * as linkedinClient from '@/lib/platforms/linkedin';
 import * as instagramClient from '@/lib/platforms/instagram';
 import * as threadsClient from '@/lib/platforms/threads';
 import { decryptToken, encryptToken } from '@/lib/crypto';
+import { checkRateLimit } from '@/lib/rate-limit';
 import { z } from 'zod';
 
 type SocialPlatform = 'twitter' | 'linkedin' | 'instagram' | 'threads';
@@ -164,6 +165,15 @@ async function publishWithByok(
 export async function POST(request: NextRequest): Promise<NextResponse> {
   const user = await getAuthenticatedUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  const rl = checkRateLimit(user.id);
+  if (!rl.allowed) {
+    const retryAfter = Math.ceil((rl.resetAt - Date.now()) / 1000);
+    return NextResponse.json(
+      { error: 'Rate limit exceeded. Try again later.' },
+      { status: 429, headers: { 'Retry-After': String(retryAfter) } },
+    );
+  }
 
   let body: unknown;
   try {

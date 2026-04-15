@@ -125,6 +125,7 @@ async function publishPost(
   const userId = post.user_id as string;
   const platform = post.platform as SocialPlatform;
   const content = (post.caption as string) || (post.script as string) || (post.hook as string) || (post.title as string);
+  const imageUrl = (post.image_url as string) || undefined;
 
   if (!content) {
     return { postId, success: false, error: 'No publishable content' };
@@ -183,7 +184,7 @@ async function publishPost(
         result = await linkedinClient.publishPost(freshToken, content, account.account_id ?? undefined);
         break;
       case 'instagram':
-        result = await instagramClient.publishPost(freshToken, content, account.account_id ?? undefined);
+        result = await instagramClient.publishPost(freshToken, content, account.account_id ?? undefined, imageUrl);
         break;
       case 'threads':
         result = await threadsClient.publishPost(freshToken, content, account.account_id ?? undefined);
@@ -213,7 +214,7 @@ async function publishPost(
         case 'instagram': {
           const token = credentials.access_token;
           if (!token) return { postId, success: false, error: 'Missing Instagram BYOK token' };
-          result = await instagramClient.publishPost(token, content);
+          result = await instagramClient.publishPost(token, content, undefined, imageUrl);
           break;
         }
         case 'threads': {
@@ -279,11 +280,15 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     // Query posts due for publishing. Skip 'posted' and 'publishing' to
     // avoid double-publishing when a cron run overlaps with the previous one.
     const now = new Date().toISOString();
+    // Cap each run. At 5-min cadence, 50 posts/run is enough for any real
+    // user and prevents a backfill from blowing out the serverless budget.
     const { data: duePosts, error } = await client.database
       .from('posts')
       .select('*')
       .lte('scheduled_publish_at', now)
-      .not('status', 'in', '("posted","publishing")');
+      .not('status', 'in', '("posted","publishing")')
+      .order('scheduled_publish_at', { ascending: true })
+      .limit(50);
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });

@@ -79,10 +79,25 @@ export async function publishPost(
 
     const { id: mediaId } = await publishRes.json();
 
+    // Instagram post URLs use a shortcode, not the numeric media ID.
+    // Fetch permalink via Graph API; fall back to a Graph link if unavailable.
+    let url = `https://graph.facebook.com/${mediaId}`;
+    try {
+      const permalinkRes = await fetch(
+        `https://graph.facebook.com/v19.0/${mediaId}?fields=permalink&access_token=${accessToken}`
+      );
+      if (permalinkRes.ok) {
+        const data = await permalinkRes.json();
+        if (data.permalink) url = data.permalink;
+      }
+    } catch {
+      // keep fallback
+    }
+
     return {
       success: true,
       platformPostId: mediaId,
-      url: `https://www.instagram.com/p/${mediaId}`,
+      url,
     };
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Unknown error';

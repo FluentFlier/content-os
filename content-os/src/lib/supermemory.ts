@@ -86,7 +86,7 @@ export async function listMemories(
 }
 
 export async function deleteMemory(id: string): Promise<void> {
-  await smFetch<void>(`/documents/${id}`, { method: 'DELETE' });
+  await smFetch<void>(`/documents/${encodeURIComponent(id)}`, { method: 'DELETE' });
 }
 
 /**

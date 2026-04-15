@@ -35,9 +35,13 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   const client = await getServerClient();
   const params = request.nextUrl.searchParams;
 
+  // Request the total row count along with the page so the client can
+  // render "page X of Y". Without { count: 'exact' }, count comes back
+  // null and the UI fell back to the page length — breaking pagination
+  // once the user had more than `limit` posts.
   let query = client
     .database.from('posts')
-    .select('*')
+    .select('*', { count: 'exact' })
     .eq('user_id', user.id)
     .order('created_at', { ascending: false });
 

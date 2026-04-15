@@ -83,9 +83,10 @@ export async function publishPost(
     // Fetch permalink via Graph API; fall back to a Graph link if unavailable.
     let url = `https://graph.facebook.com/${mediaId}`;
     try {
-      const permalinkRes = await fetch(
-        `https://graph.facebook.com/v19.0/${mediaId}?fields=permalink&access_token=${accessToken}`
-      );
+      const permalinkUrl = new URL(`https://graph.facebook.com/v19.0/${mediaId}`);
+      permalinkUrl.searchParams.set('fields', 'permalink');
+      permalinkUrl.searchParams.set('access_token', accessToken);
+      const permalinkRes = await fetch(permalinkUrl);
       if (permalinkRes.ok) {
         const data = await permalinkRes.json();
         if (data.permalink) url = data.permalink;
@@ -121,9 +122,12 @@ export async function refreshAccessToken(
   accessToken: string
 ): Promise<RefreshResult> {
   try {
-    const res = await fetch(
-      `https://graph.facebook.com/v19.0/oauth/access_token?grant_type=fb_exchange_token&client_id=${process.env.INSTAGRAM_APP_ID}&client_secret=${process.env.INSTAGRAM_APP_SECRET}&fb_exchange_token=${accessToken}`
-    );
+    const refreshUrl = new URL('https://graph.facebook.com/v19.0/oauth/access_token');
+    refreshUrl.searchParams.set('grant_type', 'fb_exchange_token');
+    refreshUrl.searchParams.set('client_id', process.env.INSTAGRAM_APP_ID ?? '');
+    refreshUrl.searchParams.set('client_secret', process.env.INSTAGRAM_APP_SECRET ?? '');
+    refreshUrl.searchParams.set('fb_exchange_token', accessToken);
+    const res = await fetch(refreshUrl);
 
     if (!res.ok) {
       const body = await res.text();
@@ -148,9 +152,10 @@ export async function refreshAccessToken(
 
 export async function getProfile(accessToken: string): Promise<ProfileResult | null> {
   try {
-    const res = await fetch(
-      `https://graph.facebook.com/v19.0/me?fields=id,name,username&access_token=${accessToken}`
-    );
+    const profileUrl = new URL('https://graph.facebook.com/v19.0/me');
+    profileUrl.searchParams.set('fields', 'id,name,username');
+    profileUrl.searchParams.set('access_token', accessToken);
+    const res = await fetch(profileUrl);
     if (!res.ok) return null;
     const data = await res.json();
     return {

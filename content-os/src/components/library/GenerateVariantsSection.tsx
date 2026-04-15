@@ -34,6 +34,7 @@ interface GenerateVariantsSectionProps {
   content: string;
   sourcePlatform: Platform;
   postId?: string;
+  imageUrl?: string;
   onReplaceCaption: (newCaption: string) => void;
 }
 
@@ -51,6 +52,7 @@ export default function GenerateVariantsSection({
   content,
   sourcePlatform,
   postId,
+  imageUrl,
   onReplaceCaption,
 }: GenerateVariantsSectionProps) {
   const { toast } = useToast();
@@ -190,6 +192,7 @@ export default function GenerateVariantsSection({
           platform: variant.platform,
           content: variantContent,
           caption: variantContent,
+          imageUrl,
         }),
       });
 

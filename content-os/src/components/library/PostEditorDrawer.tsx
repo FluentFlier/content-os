@@ -434,6 +434,7 @@ export default function PostEditorDrawer({ post, series, onClose, onSave, onDele
             content={form.script || form.caption || form.hook || form.title}
             sourcePlatform={form.platform as Platform}
             postId={post.id}
+            imageUrl={form.image_url || undefined}
             onReplaceCaption={(newCaption: string) => {
               setForm((f) => ({ ...f, caption: newCaption }));
               autoSave();

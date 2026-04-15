@@ -119,7 +119,7 @@ function decryptByokCredentials(encryptedJson: string): Record<string, string> {
 async function publishPost(
   post: Record<string, unknown>,
   client: ReturnType<typeof createClient>
-): Promise<{ postId: string; success: boolean; error?: string }> {
+): Promise<{ postId: string; success: boolean; error?: string; platformPostId?: string; url?: string }> {
   const postId = post.id as string;
   const userId = post.user_id as string;
   const platform = post.platform as SocialPlatform;
@@ -231,7 +231,7 @@ async function publishPost(
   }
 
   if (!result.success) {
-    return { postId, success: false, error: result.error };
+    return { postId, success: false, error: result.error, platformPostId: result.platformPostId, url: result.url };
   }
 
   // Update post status to 'posted'
@@ -245,7 +245,7 @@ async function publishPost(
     .eq('id', postId)
     .eq('user_id', userId);
 
-  return { postId, success: true };
+  return { postId, success: true, platformPostId: result.platformPostId, url: result.url };
 }
 
 /**
@@ -269,13 +269,14 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     const client = getServiceClient();
 
-    // Query posts due for publishing
+    // Query posts due for publishing. Skip 'posted' and 'publishing' to
+    // avoid double-publishing when a cron run overlaps with the previous one.
     const now = new Date().toISOString();
     const { data: duePosts, error } = await client.database
       .from('posts')
       .select('*')
       .lte('scheduled_publish_at', now)
-      .neq('status', 'posted');
+      .not('status', 'in', '("posted","publishing")');
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
@@ -285,11 +286,31 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       return NextResponse.json({ processed: 0, results: [] });
     }
 
-    // Publish each post
+    // Publish each post. Claim it by flipping to 'publishing' before calling
+    // the platform so a concurrent cron run skips it.
     const results = [];
     for (const post of duePosts) {
+      const postId = post.id as string;
+      const userId = post.user_id as string;
+      const prevStatus = (post.status as string) ?? 'scheduled';
+
+      await client.database
+        .from('posts')
+        .update({ status: 'publishing', updated_at: new Date().toISOString() })
+        .eq('id', postId)
+        .eq('user_id', userId);
+
       const result = await publishPost(post, client);
       results.push(result);
+
+      // On failure, restore prior status so the next cron run can retry.
+      if (!result.success) {
+        await client.database
+          .from('posts')
+          .update({ status: prevStatus, updated_at: new Date().toISOString() })
+          .eq('id', postId)
+          .eq('user_id', userId);
+      }
     }
 
     const successCount = results.filter((r) => r.success).length;

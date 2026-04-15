@@ -4,18 +4,18 @@ import { z } from 'zod';
 import { triggerAutoOptimize } from '@/lib/auto-optimize';
 
 const CreatePostSchema = z.object({
-  title: z.string().min(1, 'Title is required'),
-  pillar: z.string().min(1, 'Pillar is required'),
-  platform: z.string().min(1, 'Platform is required'),
-  status: z.string().optional(),
-  script: z.string().nullable().optional(),
-  caption: z.string().nullable().optional(),
-  hashtags: z.string().nullable().optional(),
-  hook: z.string().nullable().optional(),
-  notes: z.string().nullable().optional(),
-  scheduled_date: z.string().nullable().optional(),
-  posted_date: z.string().nullable().optional(),
-  series_id: z.string().nullable().optional(),
+  title: z.string().min(1, 'Title is required').max(500),
+  pillar: z.string().min(1, 'Pillar is required').max(200),
+  platform: z.string().min(1, 'Platform is required').max(100),
+  status: z.string().max(50).optional(),
+  script: z.string().max(25000).nullable().optional(),
+  caption: z.string().max(25000).nullable().optional(),
+  hashtags: z.string().max(5000).nullable().optional(),
+  hook: z.string().max(2000).nullable().optional(),
+  notes: z.string().max(10000).nullable().optional(),
+  scheduled_date: z.string().max(50).nullable().optional(),
+  posted_date: z.string().max(50).nullable().optional(),
+  series_id: z.string().max(200).nullable().optional(),
   series_position: z.number().nullable().optional(),
   views: z.number().nullable().optional(),
   likes: z.number().nullable().optional(),
@@ -24,15 +24,15 @@ const CreatePostSchema = z.object({
   shares: z.number().nullable().optional(),
   follows_gained: z.number().nullable().optional(),
   variant_group_id: z.string().uuid().nullable().optional(),
-  source_platform: z.string().nullable().optional(),
-  image_url: z.string().nullable().optional(),
+  source_platform: z.string().max(100).nullable().optional(),
+  image_url: z.string().max(2000).nullable().optional(),
 }).strict();
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const user = await getAuthenticatedUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const client = getServerClient();
+  const client = await getServerClient();
   const params = request.nextUrl.searchParams;
 
   let query = client
@@ -53,9 +53,13 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   const seriesId = params.get('series_id');
   if (seriesId) query = query.eq('series_id', seriesId);
 
-  // Pagination
-  const page = parseInt(params.get('page') ?? '1', 10);
-  const limit = Math.min(parseInt(params.get('limit') ?? '50', 10), 100);
+  // Pagination: coerce NaN/negative/zero into sane defaults so .range()
+  // never receives invalid bounds (NaN or negative numbers).
+  const rawPage = parseInt(params.get('page') ?? '1', 10);
+  const rawLimit = parseInt(params.get('limit') ?? '50', 10);
+  const page = Number.isFinite(rawPage) && rawPage > 0 ? rawPage : 1;
+  const limit =
+    Number.isFinite(rawLimit) && rawLimit > 0 ? Math.min(rawLimit, 100) : 50;
   const from = (page - 1) * limit;
   const to = from + limit - 1;
   query = query.range(from, to);
@@ -76,7 +80,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   const parsed = CreatePostSchema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: parsed.error.message }, { status: 400 });
 
-  const client = getServerClient();
+  const client = await getServerClient();
   const { data, error } = await client
     .database.from('posts')
     .insert({ ...parsed.data, user_id: user.id })

@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerClient } from '@/lib/insforge/server';
 import { generateContent, buildSystemPrompt } from '@/lib/claude';
 import type { CreatorProfileForPrompt } from '@/lib/claude';
 import { createClient } from '@insforge/sdk';
+import { timingSafeEqual } from 'crypto';
 
 /**
  * Cron endpoint for automated content generation.
@@ -14,10 +14,16 @@ import { createClient } from '@insforge/sdk';
  * Protected by CRON_SECRET bearer token.
  */
 export async function GET(request: NextRequest): Promise<NextResponse> {
-  const authHeader = request.headers.get('authorization');
+  const authHeader = request.headers.get('authorization') ?? '';
   const cronSecret = process.env.CRON_SECRET;
 
-  if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
+  if (!cronSecret) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const expected = Buffer.from(`Bearer ${cronSecret}`);
+  const provided = Buffer.from(authHeader);
+  if (provided.length !== expected.length || !timingSafeEqual(provided, expected)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -57,7 +63,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         .from('creator_profile')
         .select('display_name, bio, content_pillars, voice_description, voice_rules')
         .eq('user_id', userId)
-        .single();
+        .maybeSingle();
 
       if (!profileRow) {
         results.push({ userId, status: 'skipped_no_profile', postsGenerated: 0 });

@@ -42,6 +42,13 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   const serializedValue =
     typeof value === 'string' ? value : JSON.stringify(value ?? null);
 
+  // Cap at 100KB. Without this, a client could stash arbitrarily large
+  // blobs in a user_settings row, inflating the row and every query
+  // that joins against it.
+  if (serializedValue.length > 100_000) {
+    return NextResponse.json({ error: 'Value too large (max 100KB)' }, { status: 400 });
+  }
+
   const client = await getServerClient();
   const { data, error } = await client
     .database.from('user_settings')

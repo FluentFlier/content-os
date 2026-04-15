@@ -59,6 +59,14 @@ export async function publishPost(
 
     const { id: containerId } = await createRes.json();
 
+    // Instagram requires the container to reach status_code=FINISHED
+    // before /media_publish. Images usually finish fast; Meta docs call
+    // out skipping the check as a common reason publishes fail.
+    const ready = await waitForContainerReady(containerId, accessToken);
+    if (!ready.ok) {
+      return { success: false, error: `Instagram container not ready: ${ready.status ?? 'timeout'}` };
+    }
+
     // Step 2: Publish the container
     const publishRes = await fetch(
       `https://graph.facebook.com/v19.0/${igUserId}/media_publish`,
@@ -148,6 +156,35 @@ export async function refreshAccessToken(
     const message = err instanceof Error ? err.message : 'Unknown error';
     return { success: false, error: message };
   }
+}
+
+async function waitForContainerReady(
+  containerId: string,
+  accessToken: string,
+): Promise<{ ok: boolean; status?: string }> {
+  const deadline = Date.now() + 30_000;
+  let delay = 500;
+  while (Date.now() < deadline) {
+    const url = new URL(`https://graph.facebook.com/v19.0/${encodeURIComponent(containerId)}`);
+    url.searchParams.set('fields', 'status_code,status');
+    url.searchParams.set('access_token', accessToken);
+    try {
+      const res = await fetch(url);
+      if (res.ok) {
+        const data = await res.json();
+        const code = data.status_code ?? data.status;
+        if (code === 'FINISHED') return { ok: true, status: code };
+        if (code === 'ERROR' || code === 'EXPIRED') {
+          return { ok: false, status: code };
+        }
+      }
+    } catch {
+      // transient; retry
+    }
+    await new Promise((r) => setTimeout(r, delay));
+    delay = Math.min(delay * 2, 4000);
+  }
+  return { ok: false };
 }
 
 export async function getProfile(accessToken: string): Promise<ProfileResult | null> {

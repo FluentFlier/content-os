@@ -48,6 +48,14 @@ export async function publishPost(
 
     const { id: containerId } = await createRes.json();
 
+    // Threads requires the container to reach status=FINISHED before
+    // publishing. Text-only usually finishes in <1s but Meta explicitly
+    // warns against skipping the check. Poll up to ~20s, then give up.
+    const statusReady = await waitForContainerReady(containerId, accessToken);
+    if (!statusReady.ok) {
+      return { success: false, error: `Threads container not ready: ${statusReady.status ?? 'timeout'}` };
+    }
+
     // Step 2: Publish the container
     const publishRes = await fetch(
       `https://graph.threads.net/v1.0/${threadsUserId}/threads_publish`,
@@ -134,6 +142,34 @@ export async function refreshAccessToken(
     const message = err instanceof Error ? err.message : 'Unknown error';
     return { success: false, error: message };
   }
+}
+
+async function waitForContainerReady(
+  containerId: string,
+  accessToken: string,
+): Promise<{ ok: boolean; status?: string }> {
+  const deadline = Date.now() + 20_000;
+  let delay = 500;
+  while (Date.now() < deadline) {
+    const url = new URL(`https://graph.threads.net/v1.0/${encodeURIComponent(containerId)}`);
+    url.searchParams.set('fields', 'status,error_message');
+    url.searchParams.set('access_token', accessToken);
+    try {
+      const res = await fetch(url);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.status === 'FINISHED') return { ok: true, status: data.status };
+        if (data.status === 'ERROR' || data.status === 'EXPIRED') {
+          return { ok: false, status: data.error_message ?? data.status };
+        }
+      }
+    } catch {
+      // transient; retry
+    }
+    await new Promise((r) => setTimeout(r, delay));
+    delay = Math.min(delay * 2, 4000);
+  }
+  return { ok: false };
 }
 
 export async function getProfile(accessToken: string): Promise<ProfileResult | null> {

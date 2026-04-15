@@ -188,18 +188,45 @@ async function waitForContainerReady(
 }
 
 export async function getProfile(accessToken: string): Promise<ProfileResult | null> {
+  // IG publishing uses the Instagram Business Account ID, NOT the FB
+  // user ID returned by /me. Walk the user's Pages and return the first
+  // attached IG Business Account. The previous implementation returned
+  // the FB user ID, which caused /media and /media_publish to 400 every
+  // time the BYOK path (which has no stored account_id) fell through here.
   try {
-    const profileUrl = new URL('https://graph.facebook.com/v19.0/me');
-    profileUrl.searchParams.set('fields', 'id,name,username');
-    profileUrl.searchParams.set('access_token', accessToken);
-    const res = await fetch(profileUrl);
-    if (!res.ok) return null;
-    const data = await res.json();
-    return {
-      id: data.id,
-      name: data.name ?? data.username ?? '',
-      username: data.username ?? data.id,
-    };
+    const pagesUrl = new URL('https://graph.facebook.com/v19.0/me/accounts');
+    pagesUrl.searchParams.set('access_token', accessToken);
+    const pagesRes = await fetch(pagesUrl);
+    if (!pagesRes.ok) return null;
+    const pagesData = await pagesRes.json();
+    const pages: Array<{ id: string }> = Array.isArray(pagesData.data) ? pagesData.data : [];
+
+    for (const page of pages) {
+      const igUrl = new URL(`https://graph.facebook.com/v19.0/${encodeURIComponent(page.id)}`);
+      igUrl.searchParams.set('fields', 'instagram_business_account');
+      igUrl.searchParams.set('access_token', accessToken);
+      const igRes = await fetch(igUrl);
+      if (!igRes.ok) continue;
+      const igData = await igRes.json();
+      const igId = igData.instagram_business_account?.id;
+      if (!igId) continue;
+
+      const profileUrl = new URL(`https://graph.facebook.com/v19.0/${encodeURIComponent(igId)}`);
+      profileUrl.searchParams.set('fields', 'id,name,username');
+      profileUrl.searchParams.set('access_token', accessToken);
+      const profileRes = await fetch(profileUrl);
+      if (!profileRes.ok) {
+        return { id: igId, name: '', username: igId };
+      }
+      const data = await profileRes.json();
+      return {
+        id: data.id ?? igId,
+        name: data.name ?? data.username ?? '',
+        username: data.username ?? data.id ?? igId,
+      };
+    }
+
+    return null;
   } catch {
     return null;
   }

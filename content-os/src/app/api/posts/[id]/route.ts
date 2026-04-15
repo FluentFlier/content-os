@@ -3,6 +3,8 @@ import { getAuthenticatedUser, getServerClient } from '@/lib/insforge/server';
 import { z } from 'zod';
 import { triggerAutoOptimize } from '@/lib/auto-optimize';
 
+type RouteContext = { params: Promise<{ id: string }> };
+
 const UpdatePostSchema = z.object({
   title: z.string().min(1).optional(),
   pillar: z.string().optional(),
@@ -27,31 +29,33 @@ const UpdatePostSchema = z.object({
   source_platform: z.string().nullable().optional(),
   scheduled_publish_at: z.string().nullable().optional(),
   image_url: z.string().nullable().optional(),
-  updated_at: z.string().optional(),
 }).strict();
 
 export async function GET(
   _request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: RouteContext
 ): Promise<NextResponse> {
   const user = await getAuthenticatedUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const client = getServerClient();
+  const { id } = await params;
+
+  const client = await getServerClient();
   const { data, error } = await client
     .database.from('posts')
     .select('*')
-    .eq('id', params.id)
+    .eq('id', id)
     .eq('user_id', user.id)
-    .single();
+    .maybeSingle();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 404 });
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (!data) return NextResponse.json({ error: 'Not found' }, { status: 404 });
   return NextResponse.json({ post: data });
 }
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: RouteContext
 ): Promise<NextResponse> {
   const user = await getAuthenticatedUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -62,20 +66,22 @@ export async function PATCH(
   const parsed = UpdatePostSchema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: parsed.error.message }, { status: 400 });
 
-  const client = getServerClient();
+  const { id } = await params;
+
+  const client = await getServerClient();
 
   // Fetch existing post to compare content for auto-optimize
   const { data: existingPost } = await client
     .database.from('posts')
     .select('script, caption')
-    .eq('id', params.id)
+    .eq('id', id)
     .eq('user_id', user.id)
     .single();
 
   const { data, error } = await client
     .database.from('posts')
-    .update(parsed.data)
-    .eq('id', params.id)
+    .update({ ...parsed.data, updated_at: new Date().toISOString() })
+    .eq('id', id)
     .eq('user_id', user.id)
     .select()
     .single();
@@ -99,7 +105,7 @@ export async function PATCH(
       // Fire-and-forget: do not await
       triggerAutoOptimize({
         userId: user.id,
-        postId: params.id,
+        postId: id,
         content,
         sourcePlatform: data.platform,
         requestCookies: cookieHeader,
@@ -115,16 +121,18 @@ export async function PATCH(
 
 export async function DELETE(
   _request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: RouteContext
 ): Promise<NextResponse> {
   const user = await getAuthenticatedUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const client = getServerClient();
+  const { id } = await params;
+
+  const client = await getServerClient();
   const { error } = await client
     .database.from('posts')
     .delete()
-    .eq('id', params.id)
+    .eq('id', id)
     .eq('user_id', user.id);
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });

@@ -6,7 +6,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   const user = await getAuthenticatedUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const client = getServerClient();
+  const client = await getServerClient();
   let query = client
     .database.from('weekly_reviews')
     .select('*')
@@ -31,18 +31,20 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
   const ReviewSchema = z.object({
     week_start: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Must be YYYY-MM-DD'),
-    wins: z.string().max(5000).optional(),
-    lessons: z.string().max(5000).optional(),
-    goals_next_week: z.string().max(5000).optional(),
-    top_post_id: z.string().uuid().optional(),
-    notes: z.string().max(5000).optional(),
-    metrics: z.record(z.string(), z.unknown()).optional(),
+    posts_published: z.number().int().min(0).optional(),
+    total_views: z.number().int().min(0).optional(),
+    total_followers_gained: z.number().int().min(0).optional(),
+    top_post_id: z.string().uuid().nullable().optional(),
+    what_worked: z.string().max(5000).nullable().optional(),
+    what_to_double_down: z.string().max(5000).nullable().optional(),
+    what_to_cut: z.string().max(5000).nullable().optional(),
+    next_week_focus: z.string().max(5000).nullable().optional(),
   });
 
   const parsed = ReviewSchema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: parsed.error.message }, { status: 400 });
 
-  const client = getServerClient();
+  const client = await getServerClient();
   const { data, error } = await client
     .database.from('weekly_reviews')
     .insert({ ...parsed.data, user_id: user.id })

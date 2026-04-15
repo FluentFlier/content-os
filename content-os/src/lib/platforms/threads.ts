@@ -71,9 +71,10 @@ export async function publishPost(
     // The raw post ID isn't a valid URL slug; fetch the permalink.
     let url = `https://graph.threads.net/${postId}`;
     try {
-      const permalinkRes = await fetch(
-        `https://graph.threads.net/v1.0/${postId}?fields=permalink&access_token=${accessToken}`
-      );
+      const permalinkUrl = new URL(`https://graph.threads.net/v1.0/${postId}`);
+      permalinkUrl.searchParams.set('fields', 'permalink');
+      permalinkUrl.searchParams.set('access_token', accessToken);
+      const permalinkRes = await fetch(permalinkUrl);
       if (permalinkRes.ok) {
         const data = await permalinkRes.json();
         if (data.permalink) url = data.permalink;
@@ -109,9 +110,10 @@ export async function refreshAccessToken(
   accessToken: string
 ): Promise<RefreshResult> {
   try {
-    const res = await fetch(
-      `https://graph.threads.net/refresh_access_token?grant_type=th_refresh_token&access_token=${accessToken}`
-    );
+    const refreshUrl = new URL('https://graph.threads.net/refresh_access_token');
+    refreshUrl.searchParams.set('grant_type', 'th_refresh_token');
+    refreshUrl.searchParams.set('access_token', accessToken);
+    const res = await fetch(refreshUrl);
 
     if (!res.ok) {
       const body = await res.text();
@@ -136,9 +138,10 @@ export async function refreshAccessToken(
 
 export async function getProfile(accessToken: string): Promise<ProfileResult | null> {
   try {
-    const res = await fetch(
-      `https://graph.threads.net/v1.0/me?fields=id,username,name&access_token=${accessToken}`
-    );
+    const profileUrl = new URL('https://graph.threads.net/v1.0/me');
+    profileUrl.searchParams.set('fields', 'id,username,name');
+    profileUrl.searchParams.set('access_token', accessToken);
+    const res = await fetch(profileUrl);
     if (!res.ok) return null;
     const data = await res.json();
     return {

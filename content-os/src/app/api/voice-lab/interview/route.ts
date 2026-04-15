@@ -7,10 +7,10 @@ import { z } from 'zod';
 const InterviewSchema = z.object({
   analysis: z.record(z.string(), z.unknown()),
   answers: z.array(z.object({
-    questionId: z.string(),
-    question: z.string(),
+    questionId: z.string().max(100),
+    question: z.string().max(1000),
     answer: z.string().min(1).max(2000),
-  })),
+  })).min(1).max(50),
 });
 
 const SYNTHESIZE_PROMPT = `You are a voice synthesis expert. Given a voice analysis and interview answers, produce the final persona profile.

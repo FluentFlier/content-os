@@ -294,11 +294,22 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       const userId = post.user_id as string;
       const prevStatus = (post.status as string) ?? 'scheduled';
 
-      await client.database
+      // Atomic claim: only flip to 'publishing' if the row is still in its
+      // prior status. If a concurrent cron run already claimed it, the
+      // filter matches no rows and we skip. Without the status filter,
+      // two overlapping runs would both publish the same post.
+      const { data: claimed } = await client.database
         .from('posts')
         .update({ status: 'publishing', updated_at: new Date().toISOString() })
         .eq('id', postId)
-        .eq('user_id', userId);
+        .eq('user_id', userId)
+        .eq('status', prevStatus)
+        .select('id');
+
+      if (!claimed || claimed.length === 0) {
+        results.push({ postId, success: false, error: 'Claimed by another run' });
+        continue;
+      }
 
       const result = await publishPost(post, client);
       results.push(result);

@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { getAuthenticatedUser, getServerClient } from '@/lib/insforge/server';
+import { checkRateLimit } from '@/lib/rate-limit';
 import { z } from 'zod';
 
 const AutoEditRequestSchema = z.object({
@@ -18,6 +19,15 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   const user = await getAuthenticatedUser();
   if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const rl = checkRateLimit(user.id);
+  if (!rl.allowed) {
+    const retryAfter = Math.ceil((rl.resetAt - Date.now()) / 1000);
+    return NextResponse.json(
+      { error: 'Rate limit exceeded. Try again later.' },
+      { status: 429, headers: { 'Retry-After': String(retryAfter) } },
+    );
   }
 
   let body: unknown;
@@ -41,7 +51,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   // If captions are requested, generate AI captions
   if (options.captions) {
     try {
-      const client = getServerClient();
+      const client = await getServerClient();
       const { data: aiResponse } = await client.ai.chat.completions.create({
         model: 'anthropic/claude-sonnet-4.5',
         messages: [
@@ -58,9 +68,15 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       });
 
       const rawText = aiResponse?.choices?.[0]?.message?.content ?? '[]';
-      // Extract JSON from the response
       const jsonMatch = rawText.match(/\[[\s\S]*\]/);
-      const captions = jsonMatch ? JSON.parse(jsonMatch[0]) : [];
+      let captions: unknown = [];
+      if (jsonMatch) {
+        try {
+          captions = JSON.parse(jsonMatch[0]);
+        } catch {
+          captions = [];
+        }
+      }
 
       return NextResponse.json({
         status: 'completed',

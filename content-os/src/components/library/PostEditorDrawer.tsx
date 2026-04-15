@@ -421,6 +421,7 @@ export default function PostEditorDrawer({ post, series, onClose, onSave, onDele
             postId={post.id}
             content={form.script || form.hook || form.title}
             caption={form.caption}
+            imageUrl={form.image_url || null}
             onPublishSuccess={() => {
               setForm((f) => ({ ...f, status: 'posted' }));
               toast('Published! Post status updated.');
@@ -451,6 +452,7 @@ export default function PostEditorDrawer({ post, series, onClose, onSave, onDele
             postId={post.id}
             content={form.script || form.hook || form.title}
             caption={form.caption}
+            imageUrl={form.image_url || undefined}
             onPublishSuccess={() => {
               setForm((f) => ({ ...f, status: 'posted' }));
               toast('Published! Post status updated.');

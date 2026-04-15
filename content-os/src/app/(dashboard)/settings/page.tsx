@@ -15,6 +15,7 @@ import BioGenerator from "@/components/settings/BioGenerator";
 import PlatformConnections from "@/components/settings/PlatformConnections";
 import ProfileEditor from "@/components/settings/ProfileEditor";
 import AutoOptimizeToggle from "@/components/settings/AutoOptimizeToggle";
+import { invalidatePillarCache } from "@/hooks/usePillars";
 
 /* ------------------------------------------------------------------ */
 /*  Constants                                                          */
@@ -334,6 +335,7 @@ export default function SettingsPage() {
         {
           user_id: userId,
           display_name: displayName || "Creator",
+          bio: bioFacts,        // keep bio in sync so /api/generate sees updates
           bio_facts: bioFacts,
           voice_description: voiceDescription,
           voice_rules: voiceRules,
@@ -342,6 +344,8 @@ export default function SettingsPage() {
         },
         { onConflict: "user_id" }
       );
+    // Bust the in-memory pillar cache so generate tools see updated pillars immediately
+    invalidatePillarCache();
     setProfileSaving(false);
     flashSaved(setProfileSaved);
   }

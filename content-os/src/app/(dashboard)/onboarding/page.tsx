@@ -3,6 +3,7 @@
 import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { getInsforgeClient } from '@/lib/insforge/client';
+import { invalidatePillarCache } from '@/hooks/usePillars';
 import type { ContentPillarConfig } from '@/types/database';
 
 /* ------------------------------------------------------------------ */
@@ -152,6 +153,9 @@ export default function OnboardingPage() {
           { onConflict: 'user_id' }
         );
       if (profileError) throw profileError;
+
+      // Bust the pillar cache so the first dashboard load uses fresh custom pillars
+      invalidatePillarCache();
 
       // Seed user_settings with context_additions
       if (contextAdditions.trim()) {

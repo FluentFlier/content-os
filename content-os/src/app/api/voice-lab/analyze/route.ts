@@ -7,7 +7,7 @@ import { z } from 'zod';
 const AnalyzeSchema = z.object({
   samples: z.array(z.object({
     content: z.string().min(1).max(5000),
-    platform: z.string().optional(),
+    platform: z.string().max(100).optional(),
   })).min(1).max(20),
 });
 

@@ -79,7 +79,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         });
     }
 
-    const { data: aiResponse } = await client.ai.chat.completions.create({
+    // SDK returns the completion object directly. Destructuring { data }
+    // silently yields undefined and every caller of this route was getting
+    // back an empty compositionData object as a result.
+    const aiResponse = await client.ai.chat.completions.create({
       model: 'anthropic/claude-sonnet-4.5',
       messages: [
         { role: 'system', content: systemPrompt },

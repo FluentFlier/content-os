@@ -52,7 +52,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   if (options.captions) {
     try {
       const client = await getServerClient();
-      const { data: aiResponse } = await client.ai.chat.completions.create({
+      const aiResponse = await client.ai.chat.completions.create({
         model: 'anthropic/claude-sonnet-4.5',
         messages: [
           {

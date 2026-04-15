@@ -85,8 +85,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   const bodyParsed = DetectSchema.safeParse(rawBody);
   const niche = bodyParsed.success ? bodyParsed.data.niche : undefined;
 
-  const pillarContext = profile?.content_pillars
-    ? `Creator's content pillars: ${profile.content_pillars.map((p: { name: string }) => p.name).join(', ')}`
+  const pillarNames = (profile?.content_pillars ?? [])
+    .map((p) => (typeof p === 'string' ? p : p?.name))
+    .filter((n): n is string => typeof n === 'string' && n.trim().length > 0);
+  const pillarContext = pillarNames.length > 0
+    ? `Creator's content pillars: ${pillarNames.join(', ')}`
     : '';
 
   const nicheContext = niche ? `Creator's niche: ${niche}` : '';

@@ -155,7 +155,11 @@ Return JSON:
       .insert({
         user_id: user.id,
         title: generated.hook || topic || 'Auto-generated post',
-        pillar: profile?.content_pillars?.[0]?.name || 'general',
+        pillar: (() => {
+          const first = profile?.content_pillars?.[0];
+          if (typeof first === 'string') return first || 'general';
+          return first?.name || 'general';
+        })(),
         platform,
         status: shouldAutoPublish ? 'edited' : 'scripted',
         script: generated.content,

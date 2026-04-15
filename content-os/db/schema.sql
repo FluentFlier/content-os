@@ -112,8 +112,16 @@ create table if not exists content_ideas (
   priority text not null check (priority in ('low','medium','high')) default 'medium',
   notes text,
   converted boolean default false not null,
-  created_at timestamptz default now() not null
+  created_at timestamptz default now() not null,
+  updated_at timestamptz default now() not null
 );
+
+-- Migration: add updated_at if upgrading an existing database
+alter table content_ideas add column if not exists updated_at timestamptz default now() not null;
+
+create trigger content_ideas_updated_at
+  before update on content_ideas
+  for each row execute function update_updated_at();
 
 -- ============================================================
 -- HASHTAG SETS

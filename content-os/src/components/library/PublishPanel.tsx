@@ -1,150 +1,115 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { ExternalLink, AlertCircle, Check, Loader2, Settings } from 'lucide-react';
-import Link from 'next/link';
-
-interface SocialAccount {
-  id: string;
-  platform: string;
-  account_name: string | null;
-  account_id: string | null;
-  connected_at: string;
-}
-
-interface PublishResult {
-  platform: string;
-  success: boolean;
-  url?: string;
-  error?: string;
-}
+import { useState } from 'react';
+import { ExternalLink, AlertCircle, Check, Copy } from 'lucide-react';
 
 interface PublishPanelProps {
   postId: string;
   content: string;
   caption: string;
+  imageUrl?: string | null;
   onPublishSuccess?: () => void;
 }
 
-const PLATFORM_CONFIG: Record<string, { label: string; color: string; charLimit: number; icon: string }> = {
-  twitter: { label: 'X', color: '#E7E5E4', charLimit: 280, icon: '𝕏' },
-  linkedin: { label: 'LinkedIn', color: '#0A66C2', charLimit: 3000, icon: 'in' },
-  instagram: { label: 'Instagram', color: '#E4405F', charLimit: 2200, icon: 'IG' },
-  threads: { label: 'Threads', color: '#E7E5E4', charLimit: 500, icon: '@' },
+type Platform = 'twitter' | 'linkedin' | 'instagram' | 'threads';
+
+const PLATFORM_CONFIG: Record<Platform, { label: string; color: string; charLimit: number; icon: string; needsImage?: boolean; supportsTextIntent: boolean }> = {
+  twitter: { label: 'X', color: '#000000', charLimit: 280, icon: '𝕏', supportsTextIntent: true },
+  linkedin: { label: 'LinkedIn', color: '#0A66C2', charLimit: 3000, icon: 'in', supportsTextIntent: true },
+  threads: { label: 'Threads', color: '#000000', charLimit: 500, icon: '@', supportsTextIntent: true },
+  instagram: { label: 'Instagram', color: '#E4405F', charLimit: 2200, icon: 'IG', needsImage: true, supportsTextIntent: false },
 };
 
-export default function PublishPanel({ postId, content, caption, onPublishSuccess }: PublishPanelProps) {
-  const [accounts, setAccounts] = useState<SocialAccount[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [publishing, setPublishing] = useState<Record<string, boolean>>({});
-  const [results, setResults] = useState<Record<string, PublishResult>>({});
+const PLATFORM_ORDER: Platform[] = ['twitter', 'linkedin', 'threads', 'instagram'];
 
-  useEffect(() => {
-    fetchAccounts();
-  }, []);
-
-  async function fetchAccounts() {
-    try {
-      const res = await fetch('/api/social-accounts');
-      if (res.ok) {
-        const data = await res.json();
-        setAccounts(data.accounts ?? []);
-      }
-    } catch {
-      // silently fail
-    } finally {
-      setLoading(false);
-    }
+function buildIntentUrl(platform: Platform, text: string): string | null {
+  const enc = encodeURIComponent(text);
+  switch (platform) {
+    case 'twitter':
+      return `https://twitter.com/intent/tweet?text=${enc}`;
+    case 'threads':
+      return `https://www.threads.net/intent/post?text=${enc}`;
+    case 'linkedin':
+      // LinkedIn has no first-class text intent. Open the share composer.
+      return `https://www.linkedin.com/feed/?shareActive=true&text=${enc}`;
+    case 'instagram':
+      // No text intent. Open the web app; user pastes caption.
+      return 'https://www.instagram.com/';
+    default:
+      return null;
   }
+}
 
-  async function handlePublish(platform: string) {
-    setPublishing((prev) => ({ ...prev, [platform]: true }));
-    setResults((prev) => {
-      const next = { ...prev };
-      delete next[platform];
-      return next;
-    });
-
-    try {
-      const res = await fetch('/api/publish', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          postId,
-          platform,
-          content,
-          caption,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (res.ok && data.success) {
-        setResults((prev) => ({
-          ...prev,
-          [platform]: { platform, success: true, url: data.url },
-        }));
-        onPublishSuccess?.();
-      } else {
-        setResults((prev) => ({
-          ...prev,
-          [platform]: { platform, success: false, error: data.error ?? 'Publishing failed' },
-        }));
-      }
-    } catch {
-      setResults((prev) => ({
-        ...prev,
-        [platform]: { platform, success: false, error: 'Network error. Try again.' },
-      }));
-    } finally {
-      setPublishing((prev) => ({ ...prev, [platform]: false }));
-    }
-  }
+export default function PublishPanel({ postId, content, caption, imageUrl, onPublishSuccess }: PublishPanelProps) {
+  const [opened, setOpened] = useState<Record<string, boolean>>({});
+  const [marking, setMarking] = useState<Record<string, boolean>>({});
+  const [marked, setMarked] = useState<Record<string, boolean>>({});
+  const [copyStatus, setCopyStatus] = useState<Record<string, boolean>>({});
 
   const publishText = caption || content;
 
-  if (loading) {
-    return (
-      <div className="flex items-center gap-2 py-2">
-        <Loader2 size={14} className="animate-spin text-[#71717A]" />
-        <span className="text-[11px] text-[#71717A]">Loading accounts...</span>
-      </div>
-    );
+  async function copyToClipboard(text: string, platform: string): Promise<void> {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopyStatus((s) => ({ ...s, [platform]: true }));
+      setTimeout(() => setCopyStatus((s) => ({ ...s, [platform]: false })), 1500);
+    } catch {
+      // Clipboard API blocked; ignore — user can still post via the open tab.
+    }
   }
 
-  if (accounts.length === 0) {
-    return (
-      <div className="py-2">
-        <p className="text-[11px] text-[#71717A] mb-2">No accounts connected.</p>
-        <Link
-          href="/settings"
-          className="inline-flex items-center gap-1.5 text-[11px] text-[#6366F1] hover:opacity-80 transition-opacity"
-        >
-          <Settings size={12} /> Connect accounts in Settings
-        </Link>
-      </div>
-    );
+  function handleOpen(platform: Platform): void {
+    const url = buildIntentUrl(platform, publishText);
+    if (!url) return;
+    // Always copy first so even platforms without a text intent (IG) get the caption ready.
+    copyToClipboard(publishText, platform);
+    window.open(url, '_blank', 'noopener,noreferrer');
+    setOpened((s) => ({ ...s, [platform]: true }));
+  }
+
+  async function handleMarkPosted(platform: Platform): Promise<void> {
+    setMarking((s) => ({ ...s, [platform]: true }));
+    try {
+      const res = await fetch(`/api/posts/${postId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          status: 'posted',
+          posted_date: new Date().toISOString().split('T')[0],
+          platform,
+        }),
+      });
+      if (res.ok) {
+        setMarked((s) => ({ ...s, [platform]: true }));
+        onPublishSuccess?.();
+      }
+    } catch {
+      // No-op; user can retry.
+    } finally {
+      setMarking((s) => ({ ...s, [platform]: false }));
+    }
   }
 
   return (
     <div className="space-y-2">
-      {accounts.map((account) => {
-        const config = PLATFORM_CONFIG[account.platform];
-        if (!config) return null;
+      <p className="text-[10px] text-[#71717A] uppercase tracking-wider px-1">Publish</p>
 
+      {PLATFORM_ORDER.map((platform) => {
+        const config = PLATFORM_CONFIG[platform];
         const charCount = publishText.length;
         const overLimit = charCount > config.charLimit;
-        const result = results[account.platform];
-        const isPublishing = publishing[account.platform];
+        const wasOpened = opened[platform];
+        const wasMarked = marked[platform];
+        const isMarking = marking[platform];
+        const justCopied = copyStatus[platform];
 
         return (
-          <div key={account.id} className="space-y-1.5">
+          <div key={platform} className="space-y-1.5">
             <div className="flex items-center gap-2">
-              {/* Platform button */}
               <button
                 type="button"
-                disabled={isPublishing || result?.success}
-                onClick={() => handlePublish(account.platform)}
+                onClick={() => handleOpen(platform)}
+                disabled={wasMarked}
                 className="flex-1 flex items-center gap-2 px-3 py-2 text-[11px] bg-[#18181B] border-[0.5px] border-[#FAFAFA]/12 rounded-[7px] hover:border-[#FAFAFA]/25 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 <span
@@ -153,62 +118,64 @@ export default function PublishPanel({ postId, content, caption, onPublishSucces
                 >
                   {config.icon}
                 </span>
-
-                {isPublishing ? (
-                  <>
-                    <Loader2 size={12} className="animate-spin" />
-                    <span className="text-[#A1A1AA]">Posting...</span>
-                  </>
-                ) : result?.success ? (
+                {wasMarked ? (
                   <>
                     <Check size={12} className="text-[#3B6D11]" />
                     <span className="text-[#3B6D11]">Posted to {config.label}</span>
                   </>
+                ) : justCopied ? (
+                  <>
+                    <Copy size={12} className="text-[#6366F1]" />
+                    <span className="text-[#6366F1]">Copied — opening {config.label}…</span>
+                  </>
                 ) : (
-                  <span className="text-[#FAFAFA]">Post to {config.label}</span>
-                )}
-
-                {account.account_name && (
-                  <span className="ml-auto text-[10px] text-[#71717A]">{account.account_name}</span>
+                  <>
+                    <ExternalLink size={12} className="text-[#71717A]" />
+                    <span className="text-[#FAFAFA]">
+                      {config.supportsTextIntent ? `Open ${config.label}` : `Copy & open ${config.label}`}
+                    </span>
+                  </>
                 )}
               </button>
-            </div>
 
-            {/* Character count */}
-            <div className="flex items-center gap-1 px-1">
-              {overLimit ? (
-                <>
-                  <AlertCircle size={10} className="text-[#6366F1]" />
-                  <span className="text-[10px] text-[#6366F1]">
-                    {charCount}/{config.charLimit} characters (over limit)
-                  </span>
-                </>
-              ) : (
-                <span className="text-[10px] text-[#71717A]">
-                  {charCount}/{config.charLimit} characters
-                </span>
+              {wasOpened && !wasMarked && (
+                <button
+                  type="button"
+                  onClick={() => handleMarkPosted(platform)}
+                  disabled={isMarking}
+                  className="px-2 py-2 text-[10px] bg-[#3B6D11]/10 border-[0.5px] border-[#3B6D11]/40 text-[#86EFAC] rounded-[7px] hover:bg-[#3B6D11]/20 transition-colors disabled:opacity-60"
+                >
+                  {isMarking ? '...' : 'Mark posted'}
+                </button>
               )}
             </div>
 
-            {/* Success link */}
-            {result?.success && result.url && (
-              <a
-                href={result.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-1 px-1 text-[10px] text-[#6366F1] hover:underline"
-              >
-                <ExternalLink size={10} /> View post
-              </a>
-            )}
-
-            {/* Error message */}
-            {result && !result.success && (
-              <p className="px-1 text-[10px] text-[#6366F1]">{result.error}</p>
-            )}
+            {/* Char count + warnings */}
+            <div className="flex items-center gap-2 px-1">
+              {overLimit ? (
+                <span className="flex items-center gap-1 text-[10px] text-[#F59E0B]">
+                  <AlertCircle size={10} />
+                  {charCount}/{config.charLimit} (over limit)
+                </span>
+              ) : (
+                <span className="text-[10px] text-[#71717A]">
+                  {charCount}/{config.charLimit}
+                </span>
+              )}
+              {config.needsImage && imageUrl && (
+                <span className="text-[10px] text-[#71717A]">· image attached</span>
+              )}
+              {config.needsImage && !imageUrl && (
+                <span className="text-[10px] text-[#F59E0B]">· needs an image</span>
+              )}
+            </div>
           </div>
         );
       })}
+
+      <p className="text-[10px] text-[#71717A] px-1 pt-1 leading-[1.5]">
+        Caption is copied to your clipboard. Paste it into the platform tab that just opened, then click <span className="text-[#A1A1AA]">Mark posted</span> to update your library.
+      </p>
     </div>
   );
 }

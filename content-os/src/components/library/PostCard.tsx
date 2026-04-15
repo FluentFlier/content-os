@@ -16,6 +16,10 @@ interface PostCardProps {
 export default function PostCard({ post, selected, onSelect, onClick }: PostCardProps) {
   const { getColor } = usePillars();
   const borderColor = getColor(post.pillar);
+  const isDue =
+    post.status !== 'posted' &&
+    post.scheduled_publish_at !== null &&
+    new Date(post.scheduled_publish_at) <= new Date();
 
   return (
     <div
@@ -47,9 +51,14 @@ export default function PostCard({ post, selected, onSelect, onClick }: PostCard
         </h3>
 
         {/* Badges */}
-        <div className="flex items-center gap-[6px] mb-3">
+        <div className="flex items-center gap-[6px] mb-3 flex-wrap">
           <PillarBadge pillar={post.pillar} />
           <StatusBadge status={post.status} />
+          {isDue && (
+            <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-[#F59E0B]/15 text-[#F59E0B] border-[0.5px] border-[#F59E0B]/30 animate-pulse">
+              Due now
+            </span>
+          )}
         </div>
 
         {/* Script preview */}

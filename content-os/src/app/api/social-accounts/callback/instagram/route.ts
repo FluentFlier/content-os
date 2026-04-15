@@ -4,6 +4,11 @@ import { encryptToken } from '@/lib/crypto';
 
 // GET: Handle Instagram/Facebook OAuth callback
 export async function GET(request: NextRequest): Promise<NextResponse> {
+  const user = await getAuthenticatedUser();
+  if (!user) {
+    return redirectWithError('Not authenticated. Please log in first.');
+  }
+
   const appId = process.env.INSTAGRAM_APP_ID;
   const appSecret = process.env.INSTAGRAM_APP_SECRET;
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
@@ -23,12 +28,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   // Validate state against cookie (CSRF protection)
   const storedState = request.cookies.get('instagram_oauth_state')?.value;
   if (state !== storedState) return redirectWithError('Invalid OAuth state. Try connecting again.');
-
-  // Authenticate user
-  const user = await getAuthenticatedUser();
-  if (!user) {
-    return redirectWithError('Not authenticated. Please log in first.');
-  }
 
   const callbackUrl = `${appUrl}/api/social-accounts/callback/instagram`;
 

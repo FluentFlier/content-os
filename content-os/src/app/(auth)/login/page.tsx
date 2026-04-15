@@ -53,6 +53,27 @@ async function syncTokenToCookie(): Promise<boolean> {
   return false;
 }
 
+/**
+ * Returns "/onboarding" if the user has not completed onboarding,
+ * otherwise returns "/dashboard".
+ */
+async function getPostLoginDestination(): Promise<string> {
+  try {
+    const client = getInsforgeClient();
+    const { data: userData } = await client.auth.getCurrentUser();
+    if (!userData?.user) return "/dashboard";
+    const { data: profile } = await client.database
+      .from("creator_profile")
+      .select("onboarding_complete")
+      .eq("user_id", userData.user.id)
+      .maybeSingle();
+    if (profile?.onboarding_complete) return "/dashboard";
+    return "/onboarding";
+  } catch {
+    return "/dashboard";
+  }
+}
+
 export default function LoginPage() {
   const [ready, setReady] = useState(false);
   const [error, setError] = useState("");
@@ -99,7 +120,8 @@ export default function LoginPage() {
           setStatus("Syncing session...");
           await syncTokenToCookie();
           setStatus("Redirecting...");
-          window.location.replace("/dashboard");
+          const dest = await getPostLoginDestination();
+          window.location.replace(dest);
           return;
         }
       } catch { /* fall through */ }
@@ -121,7 +143,8 @@ export default function LoginPage() {
           setReady(true);
           return;
         }
-        window.location.replace("/dashboard");
+        const dest = await getPostLoginDestination();
+        window.location.replace(dest);
         return;
       }
     } catch { /* no session */ }

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { CopyButton } from '@/components/ui/CopyButton';
 import { SkeletonLines } from '@/components/ui/Skeleton';
 import { Modal } from '@/components/ui/Modal';
@@ -132,6 +133,9 @@ function SaveToLibraryModal({
   onClose: () => void;
   script: string;
 }) {
+  const searchParams = useSearchParams();
+  const seriesId = searchParams.get('series_id') || null;
+  const seriesPosition = searchParams.get('series_position') ? parseInt(searchParams.get('series_position')!, 10) : null;
   const { pillars: pillarList, loading: pillarsLoading } = usePillars();
   const [title, setTitle] = useState(() => {
     const firstLine = script.split('\n').find((l) => l.trim())?.trim() ?? '';
@@ -161,16 +165,19 @@ function SaveToLibraryModal({
       const insforge = getInsforgeClient();
       const { data: userData } = await insforge.auth.getCurrentUser();
       if (!userData?.user) throw new Error('Not logged in');
+      const insertPayload: Record<string, unknown> = {
+        user_id: userData.user.id,
+        title: title.trim(),
+        pillar,
+        script,
+        status: 'scripted',
+        platform,
+      };
+      if (seriesId) insertPayload.series_id = seriesId;
+      if (seriesPosition !== null) insertPayload.series_position = seriesPosition;
       const { error: dbError } = await insforge.database
         .from('posts')
-        .insert({
-          user_id: userData.user.id,
-          title: title.trim(),
-          pillar,
-          script,
-          status: 'scripted',
-          platform,
-        })
+        .insert(insertPayload)
         .select()
         .single();
       if (dbError) throw dbError;

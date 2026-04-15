@@ -6,18 +6,18 @@ import { triggerAutoOptimize } from '@/lib/auto-optimize';
 type RouteContext = { params: Promise<{ id: string }> };
 
 const UpdatePostSchema = z.object({
-  title: z.string().min(1).optional(),
-  pillar: z.string().optional(),
-  platform: z.string().optional(),
-  status: z.string().optional(),
-  script: z.string().nullable().optional(),
-  caption: z.string().nullable().optional(),
-  hashtags: z.string().nullable().optional(),
-  hook: z.string().nullable().optional(),
-  notes: z.string().nullable().optional(),
-  scheduled_date: z.string().nullable().optional(),
-  posted_date: z.string().nullable().optional(),
-  series_id: z.string().nullable().optional(),
+  title: z.string().min(1).max(500).optional(),
+  pillar: z.string().max(200).optional(),
+  platform: z.string().max(100).optional(),
+  status: z.string().max(50).optional(),
+  script: z.string().max(25000).nullable().optional(),
+  caption: z.string().max(25000).nullable().optional(),
+  hashtags: z.string().max(5000).nullable().optional(),
+  hook: z.string().max(2000).nullable().optional(),
+  notes: z.string().max(10000).nullable().optional(),
+  scheduled_date: z.string().max(50).nullable().optional(),
+  posted_date: z.string().max(50).nullable().optional(),
+  series_id: z.string().max(200).nullable().optional(),
   series_position: z.number().nullable().optional(),
   views: z.number().nullable().optional(),
   likes: z.number().nullable().optional(),
@@ -26,9 +26,9 @@ const UpdatePostSchema = z.object({
   shares: z.number().nullable().optional(),
   follows_gained: z.number().nullable().optional(),
   variant_group_id: z.string().uuid().nullable().optional(),
-  source_platform: z.string().nullable().optional(),
-  scheduled_publish_at: z.string().nullable().optional(),
-  image_url: z.string().nullable().optional(),
+  source_platform: z.string().max(100).nullable().optional(),
+  scheduled_publish_at: z.string().max(50).nullable().optional(),
+  image_url: z.string().max(2048).nullable().optional(),
 }).strict();
 
 export async function GET(
@@ -70,13 +70,16 @@ export async function PATCH(
 
   const client = await getServerClient();
 
-  // Fetch existing post to compare content for auto-optimize
+  // Fetch existing post to compare content for auto-optimize. maybeSingle
+  // returns null for a missing row instead of surfacing a PostgREST error.
   const { data: existingPost } = await client
     .database.from('posts')
     .select('script, caption')
     .eq('id', id)
     .eq('user_id', user.id)
-    .single();
+    .maybeSingle();
+
+  if (!existingPost) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
   const { data, error } = await client
     .database.from('posts')
@@ -84,9 +87,10 @@ export async function PATCH(
     .eq('id', id)
     .eq('user_id', user.id)
     .select()
-    .single();
+    .maybeSingle();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (!data) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
   // Trigger auto-optimize only if script or caption actually changed
   const scriptChanged =

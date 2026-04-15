@@ -57,6 +57,7 @@ export default function LoginPage() {
   const [ready, setReady] = useState(false);
   const [error, setError] = useState("");
   const [status, setStatus] = useState("Checking session...");
+  const [mode, setMode] = useState<"login" | "signup">("login");
   const spotRef = useRef<HTMLDivElement>(null!);
 
   const move = useCallback((e: MouseEvent) => {
@@ -72,6 +73,9 @@ export default function LoginPage() {
   }, [move]);
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setMode(params.get("mode") === "signup" ? "signup" : "login");
+
     handleAuth();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -192,9 +196,11 @@ export default function LoginPage() {
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#818CF8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" /></svg>
               </div>
               <h1 className="text-[26px] text-[#FAFAFA] font-normal tracking-[-0.02em] leading-tight" style={{ fontFamily: "'Instrument Serif', serif" }}>
-                Welcome to Dispatch
+                {mode === "signup" ? "Create your Dispatch account" : "Welcome to Dispatch"}
               </h1>
-              <p className="text-[14px] text-[#71717A] mt-2">Sign in to your content command center</p>
+              <p className="text-[14px] text-[#71717A] mt-2">
+                {mode === "signup" ? "Start your content command center with Google" : "Sign in to your content command center"}
+              </p>
             </div>
 
             {/* Card */}
@@ -211,7 +217,9 @@ export default function LoginPage() {
                   <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
                   <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
                 </svg>
-                <span className="relative">Continue with Google</span>
+                <span className="relative">
+                  {mode === "signup" ? "Sign up with Google" : "Continue with Google"}
+                </span>
                 <svg className="relative w-3.5 h-3.5 text-[#71717A] group-hover:text-[#818CF8] group-hover:translate-x-0.5 transition-all" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
               </button>
 

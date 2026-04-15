@@ -5,6 +5,7 @@ import * as linkedinClient from '@/lib/platforms/linkedin';
 import * as instagramClient from '@/lib/platforms/instagram';
 import * as threadsClient from '@/lib/platforms/threads';
 import { decryptToken, encryptToken } from '@/lib/crypto';
+import { timingSafeEqual } from 'crypto';
 
 type SocialPlatform = 'twitter' | 'linkedin' | 'instagram' | 'threads';
 
@@ -258,11 +259,17 @@ async function publishPost(
  * Protected by CRON_SECRET env var - rejects requests without valid secret.
  */
 export async function GET(request: NextRequest): Promise<NextResponse> {
-  // Validate CRON_SECRET
-  const authHeader = request.headers.get('authorization');
+  // Validate CRON_SECRET (timing-safe)
+  const authHeader = request.headers.get('authorization') ?? '';
   const cronSecret = process.env.CRON_SECRET;
 
-  if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
+  if (!cronSecret) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const expected = Buffer.from(`Bearer ${cronSecret}`);
+  const provided = Buffer.from(authHeader);
+  if (provided.length !== expected.length || !timingSafeEqual(provided, expected)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

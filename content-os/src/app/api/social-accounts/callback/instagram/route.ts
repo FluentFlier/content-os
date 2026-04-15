@@ -33,10 +33,15 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   const callbackUrl = `${appUrl}/api/social-accounts/callback/instagram`;
 
   try {
-    // Exchange code for short-lived token
-    const tokenRes = await fetch(
-      `https://graph.facebook.com/v19.0/oauth/access_token?client_id=${appId}&redirect_uri=${encodeURIComponent(callbackUrl)}&client_secret=${appSecret}&code=${code}`
-    );
+    // Exchange code for short-lived token. URL-encode every param — `code`
+    // is attacker-controlled via the redirect, so raw interpolation would
+    // let a crafted value inject extra query params into the request.
+    const tokenUrl = new URL('https://graph.facebook.com/v19.0/oauth/access_token');
+    tokenUrl.searchParams.set('client_id', appId);
+    tokenUrl.searchParams.set('redirect_uri', callbackUrl);
+    tokenUrl.searchParams.set('client_secret', appSecret);
+    tokenUrl.searchParams.set('code', code);
+    const tokenRes = await fetch(tokenUrl);
 
     if (!tokenRes.ok) return redirectWithError('Failed to exchange Instagram code');
 
@@ -85,7 +90,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       : null;
 
     // Store tokens directly via database (no self-fetch)
-    const db = getServerClient().database;
+    const db = (await getServerClient()).database;
     const { error: dbError } = await db
       .from('social_accounts')
       .upsert(

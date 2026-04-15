@@ -158,11 +158,13 @@ export default function IdeasPage() {
     );
 
     try {
+      if (!userId) return;
       const insforge = getInsforge();
       await insforge.database
         .from("content_ideas")
         .update({ converted: !idea.converted })
-        .eq("id", idea.id);
+        .eq("id", idea.id)
+        .eq("user_id", userId);
     } catch (err) {
       console.error("Failed to toggle converted", err);
       await fetchIdeas();
@@ -202,11 +204,13 @@ export default function IdeasPage() {
 
       const { text } = await res.json();
 
+      if (!userId) return;
       const insforge = getInsforge();
       await insforge.database
         .from("content_ideas")
         .update({ converted: true })
-        .eq("id", idea.id);
+        .eq("id", idea.id)
+        .eq("user_id", userId);
 
       setIdeas((prev) =>
         prev.map((i) => (i.id === idea.id ? { ...i, converted: true } : i))

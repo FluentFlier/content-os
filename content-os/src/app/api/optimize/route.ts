@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAuthenticatedUser, getServerClient } from '@/lib/insforge/server';
 import { generateContent } from '@/lib/claude';
 import type { CreatorProfileForPrompt } from '@/lib/claude';
+import { checkRateLimit } from '@/lib/rate-limit';
 import { z } from 'zod';
 
 const PLATFORM_ENUM = z.enum(['twitter', 'linkedin', 'instagram', 'threads']);
@@ -9,7 +10,7 @@ const PLATFORM_ENUM = z.enum(['twitter', 'linkedin', 'instagram', 'threads']);
 const OptimizeSchema = z.object({
   content: z.string().min(1, 'Content is required').max(25000),
   sourcePlatform: PLATFORM_ENUM,
-  targetPlatforms: z.array(PLATFORM_ENUM).min(1, 'At least one target platform is required'),
+  targetPlatforms: z.array(PLATFORM_ENUM).min(1, 'At least one target platform is required').max(4),
   postId: z.string().uuid().optional(),
   optimizationLevel: z.enum(['light', 'full']).default('full'),
 });
@@ -246,6 +247,15 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  const rl = checkRateLimit(user.id);
+  if (!rl.allowed) {
+    const retryAfter = Math.ceil((rl.resetAt - Date.now()) / 1000);
+    return NextResponse.json(
+      { error: 'Rate limit exceeded. Try again later.' },
+      { status: 429, headers: { 'Retry-After': String(retryAfter) } },
+    );
+  }
+
   let body: unknown;
   try {
     body = await request.json();
@@ -261,14 +271,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   const { content, targetPlatforms, optimizationLevel } = parsed.data;
 
   // Load user's creator profile for personalized prompts
-  const client = getServerClient();
+  const client = await getServerClient();
   let profile: CreatorProfileForPrompt | null = null;
   try {
     const { data: profileRow } = await client.database
       .from('creator_profile')
       .select('display_name, bio, content_pillars, voice_description, voice_rules')
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
 
     if (profileRow) {
       const contentPillars =
@@ -288,29 +298,28 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     // No profile found - will use default prompt
   }
 
-  // Generate optimized content for each target platform
+  // Generate optimized content for each target platform in parallel.
+  const settled = await Promise.allSettled(
+    targetPlatforms.map(async (platform) => {
+      const prompt = buildOptimizationPrompt(platform, content, optimizationLevel);
+      const generated = await generateContent(prompt, undefined, undefined, profile);
+      const cleaned = generated.replace(/\u2014/g, ' - ').replace(/\u2013/g, '-');
+      return platform === 'twitter'
+        ? processTwitterContent(cleaned)
+        : processStandardContent(platform, cleaned);
+    }),
+  );
+
   const variants: Variant[] = [];
   const errors: { platform: PlatformType; error: string }[] = [];
-
-  for (const platform of targetPlatforms) {
-    try {
-      const prompt = buildOptimizationPrompt(platform, content, optimizationLevel);
-      const systemOverride = undefined; // Use profile-based prompt
-      const generated = await generateContent(prompt, undefined, systemOverride, profile);
-
-      // Strip em dashes from AI output
-      const cleaned = generated.replace(/\u2014/g, ' - ').replace(/\u2013/g, '-');
-
-      if (platform === 'twitter') {
-        variants.push(processTwitterContent(cleaned));
-      } else {
-        variants.push(processStandardContent(platform, cleaned));
-      }
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Generation failed';
-      errors.push({ platform, error: message });
+  settled.forEach((r, i) => {
+    if (r.status === 'fulfilled') {
+      variants.push(r.value);
+    } else {
+      const message = r.reason instanceof Error ? r.reason.message : 'Generation failed';
+      errors.push({ platform: targetPlatforms[i], error: message });
     }
-  }
+  });
 
   // If all platforms failed, return 500
   if (variants.length === 0 && errors.length > 0) {

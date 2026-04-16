@@ -159,10 +159,16 @@ export default function CalendarPage() {
   const schedulePost = async (postId: string, date: Date) => {
     if (!userId) return;
     const insforge = getInsforge();
+    // Also set scheduled_publish_at so the cron publisher can pick this up.
+    // The calendar only captures a date; default to 9:00 AM local. Users can
+    // override the precise time in the editor drawer.
+    const publishAt = new Date(date);
+    publishAt.setHours(9, 0, 0, 0);
     await insforge.database
       .from("posts")
       .update({
         scheduled_date: toDateKey(date),
+        scheduled_publish_at: publishAt.toISOString(),
         updated_at: new Date().toISOString(),
       })
       .eq("id", postId)
@@ -279,10 +285,16 @@ Respond ONLY with a JSON array of objects: [{"postId":"...","date":"YYYY-MM-DD"}
     if (!userId) return;
     const insforge = getInsforge();
     for (const s of fillSuggestions) {
+      // s.date is YYYY-MM-DD — anchor publish time at 9:00 AM local so the
+      // cron publisher actually fires. Without scheduled_publish_at set,
+      // posts scheduled via this flow would never auto-publish.
+      const [y, m, d] = s.date.split("-").map(Number);
+      const publishAt = new Date(y, m - 1, d, 9, 0, 0, 0);
       await insforge.database
         .from("posts")
         .update({
           scheduled_date: s.date,
+          scheduled_publish_at: publishAt.toISOString(),
           updated_at: new Date().toISOString(),
         })
         .eq("id", s.postId)

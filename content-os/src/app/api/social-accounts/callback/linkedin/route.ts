@@ -53,8 +53,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const tokenData = await tokenRes.json();
     const { access_token, refresh_token, expires_in } = tokenData;
 
-    // Get profile
-    const profileRes = await fetch('https://api.linkedin.com/v2/me', {
+    // Get profile via OIDC userinfo (matches the openid/profile scopes
+    // requested by connect/linkedin/route.ts). /v2/me requires the legacy
+    // r_liteprofile scope and returns 403 for OIDC-scoped tokens.
+    const profileRes = await fetch('https://api.linkedin.com/v2/userinfo', {
       headers: { Authorization: `Bearer ${access_token}` },
     });
     const profile = profileRes.ok ? await profileRes.json() : null;
@@ -64,7 +66,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       : null;
 
     // Store tokens directly via database (no self-fetch)
-    const db = getServerClient().database;
+    const db = (await getServerClient()).database;
     const { error: dbError } = await db
       .from('social_accounts')
       .upsert(
@@ -72,9 +74,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           user_id: user.id,
           platform: 'linkedin',
           account_name: profile
-            ? `${profile.localizedFirstName} ${profile.localizedLastName}`
+            ? (profile.name ?? (`${profile.given_name ?? ''} ${profile.family_name ?? ''}`.trim() || 'LinkedIn'))
             : 'LinkedIn',
-          account_id: profile?.id ?? null,
+          account_id: profile?.sub ?? null,
           access_token: encryptToken(access_token),
           refresh_token: refresh_token ? encryptToken(refresh_token) : null,
           token_expires_at: expiresAt,

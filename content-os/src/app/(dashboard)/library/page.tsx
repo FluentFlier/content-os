@@ -50,8 +50,12 @@ export default function LibraryPage() {
       const res = await fetch(`/api/posts?page=1&limit=${PAGE_SIZE}`);
       if (res.ok) {
         const data = await res.json();
-        setPosts((data.posts as Post[]) ?? []);
-        setHasMore((data.posts?.length ?? 0) >= PAGE_SIZE);
+        const fetched = (data.posts as Post[]) ?? [];
+        setPosts(fetched);
+        // Compare against the API-reported total to avoid showing
+        // Load More when the last page is exactly PAGE_SIZE items.
+        const total = typeof data.total === 'number' ? data.total : fetched.length;
+        setHasMore(total > fetched.length);
         setPage(1);
       }
 
@@ -163,8 +167,12 @@ export default function LibraryPage() {
       if (res.ok) {
         const data = await res.json();
         const newPosts = (data.posts as Post[]) ?? [];
-        setPosts((prev) => [...prev, ...newPosts]);
-        setHasMore(newPosts.length >= PAGE_SIZE);
+        setPosts((prev) => {
+          const combined = [...prev, ...newPosts];
+          const total = typeof data.total === 'number' ? data.total : combined.length;
+          setHasMore(total > combined.length);
+          return combined;
+        });
         setPage(nextPage);
       }
     } catch (err) {

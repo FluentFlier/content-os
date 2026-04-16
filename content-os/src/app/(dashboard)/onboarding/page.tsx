@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { getInsforgeClient } from '@/lib/insforge/client';
 import type { ContentPillarConfig } from '@/types/database';
@@ -70,6 +70,33 @@ export default function OnboardingPage() {
 
   // Step 4: Context / background
   const [contextAdditions, setContextAdditions] = useState('');
+
+  // If the user has already completed onboarding, send them to the dashboard
+  // instead of forcing them through the flow again.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const insforge = getInsforgeClient();
+        const { data: userData } = await insforge.auth.getCurrentUser();
+        const uid = userData?.user?.id;
+        if (!uid) return;
+        const { data: profile } = await insforge.database
+          .from('creator_profile')
+          .select('onboarding_complete')
+          .eq('user_id', uid)
+          .maybeSingle();
+        if (!cancelled && profile?.onboarding_complete) {
+          router.replace('/dashboard');
+        }
+      } catch {
+        // ignore; let user proceed with onboarding
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [router]);
 
   /* ---- Pillar helpers ---- */
 

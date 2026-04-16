@@ -33,51 +33,76 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   const callbackUrl = `${appUrl}/api/social-accounts/callback/instagram`;
 
   try {
-    // Exchange code for short-lived token
-    const tokenRes = await fetch(
-      `https://graph.facebook.com/v19.0/oauth/access_token?client_id=${appId}&redirect_uri=${encodeURIComponent(callbackUrl)}&client_secret=${appSecret}&code=${code}`
-    );
+    // Exchange code for short-lived token. URL-encode every param — `code`
+    // is attacker-controlled via the redirect, so raw interpolation would
+    // let a crafted value inject extra query params into the request.
+    const tokenUrl = new URL('https://graph.facebook.com/v19.0/oauth/access_token');
+    tokenUrl.searchParams.set('client_id', appId);
+    tokenUrl.searchParams.set('redirect_uri', callbackUrl);
+    tokenUrl.searchParams.set('client_secret', appSecret);
+    tokenUrl.searchParams.set('code', code);
+    const tokenRes = await fetch(tokenUrl);
 
     if (!tokenRes.ok) return redirectWithError('Failed to exchange Instagram code');
 
     const { access_token } = await tokenRes.json();
 
     // Exchange for long-lived token
-    const longRes = await fetch(
-      `https://graph.facebook.com/v19.0/oauth/access_token?grant_type=fb_exchange_token&client_id=${appId}&client_secret=${appSecret}&fb_exchange_token=${access_token}`
-    );
+    const longUrl = new URL('https://graph.facebook.com/v19.0/oauth/access_token');
+    longUrl.searchParams.set('grant_type', 'fb_exchange_token');
+    longUrl.searchParams.set('client_id', appId);
+    longUrl.searchParams.set('client_secret', appSecret);
+    longUrl.searchParams.set('fb_exchange_token', access_token);
+    const longRes = await fetch(longUrl);
     const longData = longRes.ok ? await longRes.json() : { access_token };
     const longToken = longData.access_token ?? access_token;
     const expiresIn = longData.expires_in;
 
-    // Get Instagram Business Account ID through Pages
-    const pagesRes = await fetch(
-      `https://graph.facebook.com/v19.0/me/accounts?access_token=${longToken}`
-    );
+    // Walk every connected FB page for an attached Instagram Business
+    // account. The old code only checked pagesData.data[0], so users
+    // whose first page had no IG linked but a later one did would end
+    // up with account_id=null and every publish attempt would fail.
+    const pagesUrl = new URL('https://graph.facebook.com/v19.0/me/accounts');
+    pagesUrl.searchParams.set('access_token', longToken);
+    const pagesRes = await fetch(pagesUrl);
     let igAccountId: string | null = null;
     let igUsername = 'Instagram';
 
     if (pagesRes.ok) {
       const pagesData = await pagesRes.json();
-      const page = pagesData.data?.[0];
-      if (page) {
-        const igRes = await fetch(
-          `https://graph.facebook.com/v19.0/${page.id}?fields=instagram_business_account&access_token=${longToken}`
-        );
-        if (igRes.ok) {
-          const igData = await igRes.json();
-          igAccountId = igData.instagram_business_account?.id ?? null;
-          if (igAccountId) {
-            const profileRes = await fetch(
-              `https://graph.facebook.com/v19.0/${igAccountId}?fields=username&access_token=${longToken}`
-            );
-            if (profileRes.ok) {
-              const profileData = await profileRes.json();
-              igUsername = `@${profileData.username}`;
-            }
-          }
+      const pages: Array<{ id: string }> = Array.isArray(pagesData.data) ? pagesData.data : [];
+      for (const page of pages) {
+        const igUrl = new URL(`https://graph.facebook.com/v19.0/${encodeURIComponent(page.id)}`);
+        igUrl.searchParams.set('fields', 'instagram_business_account');
+        igUrl.searchParams.set('access_token', longToken);
+        const igRes = await fetch(igUrl);
+        if (!igRes.ok) continue;
+        const igData = await igRes.json();
+        const candidate = igData.instagram_business_account?.id;
+        if (candidate) {
+          igAccountId = candidate;
+          break;
         }
       }
+
+      if (igAccountId) {
+        const profileUrl = new URL(`https://graph.facebook.com/v19.0/${encodeURIComponent(igAccountId)}`);
+        profileUrl.searchParams.set('fields', 'username');
+        profileUrl.searchParams.set('access_token', longToken);
+        const profileRes = await fetch(profileUrl);
+        if (profileRes.ok) {
+          const profileData = await profileRes.json();
+          if (profileData.username) igUsername = `@${profileData.username}`;
+        }
+      }
+    }
+
+    // Without an Instagram Business Account ID every future publish
+    // would 400, so refuse the connection here and tell the user why.
+    if (!igAccountId) {
+      return redirectWithError(
+        'No Instagram Business Account found on any connected Facebook Page. Convert your IG to a Business account and link it to a Page, then try again.',
+      );
     }
 
     const expiresAt = expiresIn
@@ -85,7 +110,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       : null;
 
     // Store tokens directly via database (no self-fetch)
-    const db = getServerClient().database;
+    const db = (await getServerClient()).database;
     const { error: dbError } = await db
       .from('social_accounts')
       .upsert(

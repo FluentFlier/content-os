@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthenticatedUser } from '@/lib/insforge/server';
+import { checkRateLimit } from '@/lib/rate-limit';
 import { TwitterApi } from 'twitter-api-v2';
 import { z } from 'zod';
 import * as linkedin from '@/lib/platforms/linkedin';
@@ -100,6 +101,15 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   const user = await getAuthenticatedUser();
   if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const rl = checkRateLimit(user.id);
+  if (!rl.allowed) {
+    const retryAfter = Math.ceil((rl.resetAt - Date.now()) / 1000);
+    return NextResponse.json(
+      { error: 'Rate limit exceeded. Try again later.' },
+      { status: 429, headers: { 'Retry-After': String(retryAfter) } },
+    );
   }
 
   let body: unknown;

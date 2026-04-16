@@ -1,17 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthenticatedUser, getServerClient } from '@/lib/insforge/server';
 import { encryptToken } from '@/lib/crypto';
+import { checkRateLimit } from '@/lib/rate-limit';
 import { z } from 'zod';
 
+const TOKEN_MAX = 4096;
+
 const TwitterCredentials = z.object({
-  api_key: z.string().min(1, 'api_key is required'),
-  api_secret: z.string().min(1, 'api_secret is required'),
-  access_token: z.string().min(1, 'access_token is required'),
-  access_token_secret: z.string().min(1, 'access_token_secret is required'),
+  api_key: z.string().min(1).max(TOKEN_MAX),
+  api_secret: z.string().min(1).max(TOKEN_MAX),
+  access_token: z.string().min(1).max(TOKEN_MAX),
+  access_token_secret: z.string().min(1).max(TOKEN_MAX),
 });
 
 const SingleTokenCredentials = z.object({
-  access_token: z.string().min(1, 'access_token is required'),
+  access_token: z.string().min(1).max(TOKEN_MAX),
 });
 
 const ByokSchema = z.discriminatedUnion('platform', [
@@ -30,6 +33,15 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   const user = await getAuthenticatedUser();
   if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const rl = checkRateLimit(user.id);
+  if (!rl.allowed) {
+    const retryAfter = Math.ceil((rl.resetAt - Date.now()) / 1000);
+    return NextResponse.json(
+      { error: 'Rate limit exceeded. Try again later.' },
+      { status: 429, headers: { 'Retry-After': String(retryAfter) } },
+    );
   }
 
   let body: unknown;
@@ -55,7 +67,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     encryptedCredentials[key] = encryptToken(value);
   }
 
-  const client = getServerClient();
+  const client = await getServerClient();
   const { data, error } = await client.database
     .from('social_accounts')
     .upsert(

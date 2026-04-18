@@ -27,11 +27,11 @@ interface SocialAccountRow {
  */
 function getServiceClient() {
   const url = process.env.NEXT_PUBLIC_INSFORGE_URL;
-  const anonKey = process.env.NEXT_PUBLIC_INSFORGE_ANON_KEY;
-  if (!url || !anonKey) {
+  const serviceRoleKey = process.env.INSFORGE_SERVICE_ROLE_KEY;
+  if (!url || !serviceRoleKey) {
     throw new Error('Missing InsForge env vars');
   }
-  return createClient({ baseUrl: url, anonKey, isServerMode: true });
+  return createClient({ baseUrl: url, anonKey: serviceRoleKey, isServerMode: true });
 }
 
 /**

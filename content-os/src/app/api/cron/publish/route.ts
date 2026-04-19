@@ -5,6 +5,7 @@ import * as linkedinClient from '@/lib/platforms/linkedin';
 import * as instagramClient from '@/lib/platforms/instagram';
 import * as threadsClient from '@/lib/platforms/threads';
 import { decryptToken, encryptToken } from '@/lib/crypto';
+import { timingSafeEqual } from 'crypto';
 
 type SocialPlatform = 'twitter' | 'linkedin' | 'instagram' | 'threads';
 
@@ -119,11 +120,12 @@ function decryptByokCredentials(encryptedJson: string): Record<string, string> {
 async function publishPost(
   post: Record<string, unknown>,
   client: ReturnType<typeof createClient>
-): Promise<{ postId: string; success: boolean; error?: string }> {
+): Promise<{ postId: string; success: boolean; error?: string; platformPostId?: string; url?: string }> {
   const postId = post.id as string;
   const userId = post.user_id as string;
   const platform = post.platform as SocialPlatform;
   const content = (post.caption as string) || (post.script as string) || (post.hook as string) || (post.title as string);
+  const imageUrl = (post.image_url as string) || undefined;
 
   if (!content) {
     return { postId, success: false, error: 'No publishable content' };
@@ -182,7 +184,7 @@ async function publishPost(
         result = await linkedinClient.publishPost(freshToken, content, account.account_id ?? undefined);
         break;
       case 'instagram':
-        result = await instagramClient.publishPost(freshToken, content, account.account_id ?? undefined);
+        result = await instagramClient.publishPost(freshToken, content, account.account_id ?? undefined, imageUrl);
         break;
       case 'threads':
         result = await threadsClient.publishPost(freshToken, content, account.account_id ?? undefined);
@@ -212,7 +214,7 @@ async function publishPost(
         case 'instagram': {
           const token = credentials.access_token;
           if (!token) return { postId, success: false, error: 'Missing Instagram BYOK token' };
-          result = await instagramClient.publishPost(token, content);
+          result = await instagramClient.publishPost(token, content, undefined, imageUrl);
           break;
         }
         case 'threads': {
@@ -231,7 +233,7 @@ async function publishPost(
   }
 
   if (!result.success) {
-    return { postId, success: false, error: result.error };
+    return { postId, success: false, error: result.error, platformPostId: result.platformPostId, url: result.url };
   }
 
   // Update post status to 'posted'
@@ -245,7 +247,7 @@ async function publishPost(
     .eq('id', postId)
     .eq('user_id', userId);
 
-  return { postId, success: true };
+  return { postId, success: true, platformPostId: result.platformPostId, url: result.url };
 }
 
 /**
@@ -258,24 +260,35 @@ async function publishPost(
  * Protected by CRON_SECRET env var - rejects requests without valid secret.
  */
 export async function GET(request: NextRequest): Promise<NextResponse> {
-  // Validate CRON_SECRET
-  const authHeader = request.headers.get('authorization');
+  // Validate CRON_SECRET (timing-safe)
+  const authHeader = request.headers.get('authorization') ?? '';
   const cronSecret = process.env.CRON_SECRET;
 
-  if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
+  if (!cronSecret) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const expected = Buffer.from(`Bearer ${cronSecret}`);
+  const provided = Buffer.from(authHeader);
+  if (provided.length !== expected.length || !timingSafeEqual(provided, expected)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   try {
     const client = getServiceClient();
 
-    // Query posts due for publishing
+    // Query posts due for publishing. Skip 'posted' and 'publishing' to
+    // avoid double-publishing when a cron run overlaps with the previous one.
     const now = new Date().toISOString();
+    // Cap each run. At 5-min cadence, 50 posts/run is enough for any real
+    // user and prevents a backfill from blowing out the serverless budget.
     const { data: duePosts, error } = await client.database
       .from('posts')
       .select('*')
       .lte('scheduled_publish_at', now)
-      .neq('status', 'posted');
+      .not('status', 'in', '("posted","publishing")')
+      .order('scheduled_publish_at', { ascending: true })
+      .limit(50);
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
@@ -285,11 +298,42 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       return NextResponse.json({ processed: 0, results: [] });
     }
 
-    // Publish each post
+    // Publish each post. Claim it by flipping to 'publishing' before calling
+    // the platform so a concurrent cron run skips it.
     const results = [];
     for (const post of duePosts) {
+      const postId = post.id as string;
+      const userId = post.user_id as string;
+      const prevStatus = (post.status as string) ?? 'scheduled';
+
+      // Atomic claim: only flip to 'publishing' if the row is still in its
+      // prior status. If a concurrent cron run already claimed it, the
+      // filter matches no rows and we skip. Without the status filter,
+      // two overlapping runs would both publish the same post.
+      const { data: claimed } = await client.database
+        .from('posts')
+        .update({ status: 'publishing', updated_at: new Date().toISOString() })
+        .eq('id', postId)
+        .eq('user_id', userId)
+        .eq('status', prevStatus)
+        .select('id');
+
+      if (!claimed || claimed.length === 0) {
+        results.push({ postId, success: false, error: 'Claimed by another run' });
+        continue;
+      }
+
       const result = await publishPost(post, client);
       results.push(result);
+
+      // On failure, restore prior status so the next cron run can retry.
+      if (!result.success) {
+        await client.database
+          .from('posts')
+          .update({ status: prevStatus, updated_at: new Date().toISOString() })
+          .eq('id', postId)
+          .eq('user_id', userId);
+      }
     }
 
     const successCount = results.filter((r) => r.success).length;

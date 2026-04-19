@@ -59,6 +59,14 @@ export async function publishPost(
 
     const { id: containerId } = await createRes.json();
 
+    // Instagram requires the container to reach status_code=FINISHED
+    // before /media_publish. Images usually finish fast; Meta docs call
+    // out skipping the check as a common reason publishes fail.
+    const ready = await waitForContainerReady(containerId, accessToken);
+    if (!ready.ok) {
+      return { success: false, error: `Instagram container not ready: ${ready.status ?? 'timeout'}` };
+    }
+
     // Step 2: Publish the container
     const publishRes = await fetch(
       `https://graph.facebook.com/v19.0/${igUserId}/media_publish`,
@@ -79,10 +87,26 @@ export async function publishPost(
 
     const { id: mediaId } = await publishRes.json();
 
+    // Instagram post URLs use a shortcode, not the numeric media ID.
+    // Fetch permalink via Graph API; fall back to a Graph link if unavailable.
+    let url = `https://graph.facebook.com/${mediaId}`;
+    try {
+      const permalinkUrl = new URL(`https://graph.facebook.com/v19.0/${mediaId}`);
+      permalinkUrl.searchParams.set('fields', 'permalink');
+      permalinkUrl.searchParams.set('access_token', accessToken);
+      const permalinkRes = await fetch(permalinkUrl);
+      if (permalinkRes.ok) {
+        const data = await permalinkRes.json();
+        if (data.permalink) url = data.permalink;
+      }
+    } catch {
+      // keep fallback
+    }
+
     return {
       success: true,
       platformPostId: mediaId,
-      url: `https://www.instagram.com/p/${mediaId}`,
+      url,
     };
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Unknown error';
@@ -106,9 +130,12 @@ export async function refreshAccessToken(
   accessToken: string
 ): Promise<RefreshResult> {
   try {
-    const res = await fetch(
-      `https://graph.facebook.com/v19.0/oauth/access_token?grant_type=fb_exchange_token&client_id=${process.env.INSTAGRAM_APP_ID}&client_secret=${process.env.INSTAGRAM_APP_SECRET}&fb_exchange_token=${accessToken}`
-    );
+    const refreshUrl = new URL('https://graph.facebook.com/v19.0/oauth/access_token');
+    refreshUrl.searchParams.set('grant_type', 'fb_exchange_token');
+    refreshUrl.searchParams.set('client_id', process.env.INSTAGRAM_APP_ID ?? '');
+    refreshUrl.searchParams.set('client_secret', process.env.INSTAGRAM_APP_SECRET ?? '');
+    refreshUrl.searchParams.set('fb_exchange_token', accessToken);
+    const res = await fetch(refreshUrl);
 
     if (!res.ok) {
       const body = await res.text();
@@ -131,18 +158,75 @@ export async function refreshAccessToken(
   }
 }
 
+async function waitForContainerReady(
+  containerId: string,
+  accessToken: string,
+): Promise<{ ok: boolean; status?: string }> {
+  const deadline = Date.now() + 30_000;
+  let delay = 500;
+  while (Date.now() < deadline) {
+    const url = new URL(`https://graph.facebook.com/v19.0/${encodeURIComponent(containerId)}`);
+    url.searchParams.set('fields', 'status_code,status');
+    url.searchParams.set('access_token', accessToken);
+    try {
+      const res = await fetch(url);
+      if (res.ok) {
+        const data = await res.json();
+        const code = data.status_code ?? data.status;
+        if (code === 'FINISHED') return { ok: true, status: code };
+        if (code === 'ERROR' || code === 'EXPIRED') {
+          return { ok: false, status: code };
+        }
+      }
+    } catch {
+      // transient; retry
+    }
+    await new Promise((r) => setTimeout(r, delay));
+    delay = Math.min(delay * 2, 4000);
+  }
+  return { ok: false };
+}
+
 export async function getProfile(accessToken: string): Promise<ProfileResult | null> {
+  // IG publishing uses the Instagram Business Account ID, NOT the FB
+  // user ID returned by /me. Walk the user's Pages and return the first
+  // attached IG Business Account. The previous implementation returned
+  // the FB user ID, which caused /media and /media_publish to 400 every
+  // time the BYOK path (which has no stored account_id) fell through here.
   try {
-    const res = await fetch(
-      `https://graph.facebook.com/v19.0/me?fields=id,name,username&access_token=${accessToken}`
-    );
-    if (!res.ok) return null;
-    const data = await res.json();
-    return {
-      id: data.id,
-      name: data.name ?? data.username ?? '',
-      username: data.username ?? data.id,
-    };
+    const pagesUrl = new URL('https://graph.facebook.com/v19.0/me/accounts');
+    pagesUrl.searchParams.set('access_token', accessToken);
+    const pagesRes = await fetch(pagesUrl);
+    if (!pagesRes.ok) return null;
+    const pagesData = await pagesRes.json();
+    const pages: Array<{ id: string }> = Array.isArray(pagesData.data) ? pagesData.data : [];
+
+    for (const page of pages) {
+      const igUrl = new URL(`https://graph.facebook.com/v19.0/${encodeURIComponent(page.id)}`);
+      igUrl.searchParams.set('fields', 'instagram_business_account');
+      igUrl.searchParams.set('access_token', accessToken);
+      const igRes = await fetch(igUrl);
+      if (!igRes.ok) continue;
+      const igData = await igRes.json();
+      const igId = igData.instagram_business_account?.id;
+      if (!igId) continue;
+
+      const profileUrl = new URL(`https://graph.facebook.com/v19.0/${encodeURIComponent(igId)}`);
+      profileUrl.searchParams.set('fields', 'id,name,username');
+      profileUrl.searchParams.set('access_token', accessToken);
+      const profileRes = await fetch(profileUrl);
+      if (!profileRes.ok) {
+        return { id: igId, name: '', username: igId };
+      }
+      const data = await profileRes.json();
+      return {
+        id: data.id ?? igId,
+        name: data.name ?? data.username ?? '',
+        username: data.username ?? data.id ?? igId,
+      };
+    }
+
+    return null;
   } catch {
     return null;
   }

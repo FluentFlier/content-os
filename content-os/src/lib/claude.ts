@@ -17,9 +17,29 @@ RULES:
 export interface CreatorProfileForPrompt {
   display_name: string;
   bio?: string;
-  content_pillars?: Array<{ name: string; description?: string; promptTemplate?: string }>;
+  // Stored either as objects ({name, description}) or plain strings,
+  // depending on when/where the row was created. Consumers should
+  // normalize via pillarName()/pillarDescription() before rendering.
+  content_pillars?: Array<{ name: string; description?: string; promptTemplate?: string } | string>;
   voice_description?: string;
   voice_rules?: string;
+}
+
+function pillarName(p: unknown): string | null {
+  if (typeof p === 'string') return p.trim() || null;
+  if (p && typeof p === 'object' && 'name' in p) {
+    const n = (p as { name?: unknown }).name;
+    if (typeof n === 'string' && n.trim()) return n.trim();
+  }
+  return null;
+}
+
+function pillarDescription(p: unknown): string | null {
+  if (p && typeof p === 'object' && 'description' in p) {
+    const d = (p as { description?: unknown }).description;
+    if (typeof d === 'string' && d.trim()) return d.trim();
+  }
+  return null;
 }
 
 /**
@@ -65,12 +85,16 @@ export function buildSystemPrompt(
   }
 
   if (profile.content_pillars && profile.content_pillars.length > 0) {
-    const pillarLines = profile.content_pillars.map((p) => {
-      let line = `- ${p.name}`;
-      if (p.description) line += `: ${p.description}`;
-      return line;
-    });
-    parts.push(`\nCONTENT PILLARS:\n${pillarLines.join('\n')}`);
+    const pillarLines: string[] = [];
+    for (const p of profile.content_pillars) {
+      const name = pillarName(p);
+      if (!name) continue;
+      const desc = pillarDescription(p);
+      pillarLines.push(desc ? `- ${name}: ${desc}` : `- ${name}`);
+    }
+    if (pillarLines.length > 0) {
+      parts.push(`\nCONTENT PILLARS:\n${pillarLines.join('\n')}`);
+    }
   }
 
   if (contextAdditions) {
@@ -90,7 +114,7 @@ export async function generateContent(
     ? systemOverride
     : buildSystemPrompt(profile, contextAdditions);
 
-  const client = getServerClient();
+  const client = await getServerClient();
   const completion = await client.ai.chat.completions.create({
     model: 'anthropic/claude-sonnet-4.5',
     messages: [

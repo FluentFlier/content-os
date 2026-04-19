@@ -5,6 +5,7 @@ import * as linkedinClient from '@/lib/platforms/linkedin';
 import * as instagramClient from '@/lib/platforms/instagram';
 import * as threadsClient from '@/lib/platforms/threads';
 import { decryptToken, encryptToken } from '@/lib/crypto';
+import { checkRateLimit } from '@/lib/rate-limit';
 import { z } from 'zod';
 
 type SocialPlatform = 'twitter' | 'linkedin' | 'instagram' | 'threads';
@@ -30,7 +31,7 @@ interface SocialAccountRow {
 async function ensureFreshToken(
   account: SocialAccountRow,
   platform: SocialPlatform,
-  client: ReturnType<typeof getServerClient>
+  client: Awaited<ReturnType<typeof getServerClient>>
 ): Promise<string> {
   const now = new Date();
   const expiresAt = account.token_expires_at ? new Date(account.token_expires_at) : null;
@@ -165,6 +166,15 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   const user = await getAuthenticatedUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
+  const rl = checkRateLimit(user.id);
+  if (!rl.allowed) {
+    const retryAfter = Math.ceil((rl.resetAt - Date.now()) / 1000);
+    return NextResponse.json(
+      { error: 'Rate limit exceeded. Try again later.' },
+      { status: 429, headers: { 'Retry-After': String(retryAfter) } },
+    );
+  }
+
   let body: unknown;
   try {
     body = await request.json();
@@ -177,7 +187,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     platform: z.enum(['twitter', 'linkedin', 'instagram', 'threads']),
     content: z.string().min(1).max(25000),
     caption: z.string().max(25000).optional(),
-    imageUrl: z.string().url().optional(),
+    imageUrl: z.string().url().max(2048).optional(),
   });
 
   const parsed = PublishSchema.safeParse(body);
@@ -195,7 +205,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     );
   }
 
-  const client = getServerClient();
+  const client = await getServerClient();
   const publishContent = caption || content;
 
   // Step 1: Check for OAuth account (connection_method is null or 'oauth')
@@ -227,6 +237,42 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       { error: `No ${platform} account connected. Connect it in Settings or add API keys.` },
       { status: 400 }
     );
+  }
+
+  // Atomic claim: if a postId is provided, flip its status to 'publishing'
+  // only if it isn't already 'posted' or 'publishing'. This prevents a
+  // rapid double-click from double-posting to the platform.
+  let prevStatus: string | null = null;
+  if (postId) {
+    const { data: current } = await client.database
+      .from('posts')
+      .select('status')
+      .eq('id', postId)
+      .eq('user_id', user.id)
+      .maybeSingle();
+    if (!current) {
+      return NextResponse.json({ error: 'Post not found' }, { status: 404 });
+    }
+    prevStatus = (current.status as string) ?? 'scripted';
+    if (prevStatus === 'posted' || prevStatus === 'publishing') {
+      return NextResponse.json(
+        { error: 'Post is already being published or has been published.' },
+        { status: 409 }
+      );
+    }
+    const { data: claimed } = await client.database
+      .from('posts')
+      .update({ status: 'publishing', updated_at: new Date().toISOString() })
+      .eq('id', postId)
+      .eq('user_id', user.id)
+      .eq('status', prevStatus)
+      .select('id');
+    if (!claimed || claimed.length === 0) {
+      return NextResponse.json(
+        { error: 'Post is already being published.' },
+        { status: 409 }
+      );
+    }
   }
 
   let result: { success: boolean; platformPostId?: string; url?: string; error?: string };
@@ -292,6 +338,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   }
 
   if (!result.success) {
+    // Restore prior status on failure so user can retry.
+    if (postId && prevStatus) {
+      await client.database
+        .from('posts')
+        .update({ status: prevStatus, updated_at: new Date().toISOString() })
+        .eq('id', postId)
+        .eq('user_id', user.id);
+    }
     return NextResponse.json(
       { error: result.error ?? 'Publishing failed' },
       { status: 500 }

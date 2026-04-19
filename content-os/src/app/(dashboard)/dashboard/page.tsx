@@ -89,7 +89,7 @@ export default async function DashboardPage() {
     );
   }
 
-  const client = getServerClient();
+  const client = await getServerClient();
   const { start, end } = getWeekBounds();
   const today = new Date().toISOString().slice(0, 10);
 
@@ -102,7 +102,7 @@ export default async function DashboardPage() {
       client.database.from('posts').select('posted_date').eq('user_id', uid).not('posted_date', 'is', null).order('posted_date', { ascending: false }),
       client.database.from('posts').select('*').eq('user_id', uid).gte('scheduled_date', today).neq('status', 'posted').order('scheduled_date', { ascending: true }).limit(3),
       client.database.from('posts').select('*').eq('user_id', uid).order('updated_at', { ascending: false }).limit(5),
-      client.database.from('content_ideas').select('*').eq('user_id', uid).eq('converted', false).order('priority', { ascending: true }).limit(3),
+      client.database.from('content_ideas').select('*').eq('user_id', uid).eq('converted', false).order('created_at', { ascending: false }).limit(20),
       client.database.from('posts').select('title, pillar, status').eq('user_id', uid).gte('scheduled_date', start).lte('scheduled_date', end),
       client.database.from('creator_profile').select('display_name, content_pillars, voice_description, onboarding_complete').eq('user_id', uid).maybeSingle(),
       client.database.from('social_accounts').select('platform, connection_method').eq('user_id', uid),
@@ -119,7 +119,11 @@ export default async function DashboardPage() {
 
   const upNext = (upNextRes.data as Post[]) ?? [];
   const recentActivity = (recentRes.data as Post[]) ?? [];
-  const backlog = (ideasRes.data as ContentIdea[]) ?? [];
+  const priorityRank: Record<Priority, number> = { high: 0, medium: 1, low: 2 };
+  const backlog = ((ideasRes.data as ContentIdea[]) ?? [])
+    .slice()
+    .sort((a, b) => (priorityRank[a.priority] ?? 99) - (priorityRank[b.priority] ?? 99))
+    .slice(0, 3);
 
   // Setup progress
   const creatorProfile = profileRes.data;

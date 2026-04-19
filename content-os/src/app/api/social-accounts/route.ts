@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthenticatedUser, getServerClient } from '@/lib/insforge/server';
 import { encryptToken } from '@/lib/crypto';
+import { checkRateLimit } from '@/lib/rate-limit';
 import { z } from 'zod';
 
 // GET: list connected social accounts for the current user
@@ -8,7 +9,7 @@ export async function GET(): Promise<NextResponse> {
   const user = await getAuthenticatedUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const client = getServerClient();
+  const client = await getServerClient();
   const { data, error } = await client.database
     .from('social_accounts')
     .select('id, platform, account_name, account_id, connected_at, token_expires_at, connection_method')
@@ -23,6 +24,15 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   const user = await getAuthenticatedUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
+  const rl = checkRateLimit(user.id);
+  if (!rl.allowed) {
+    const retryAfter = Math.ceil((rl.resetAt - Date.now()) / 1000);
+    return NextResponse.json(
+      { error: 'Rate limit exceeded. Try again later.' },
+      { status: 429, headers: { 'Retry-After': String(retryAfter) } },
+    );
+  }
+
   let body: unknown;
   try {
     body = await request.json();
@@ -32,11 +42,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
   const ConnectionSchema = z.object({
     platform: z.enum(['instagram', 'linkedin', 'twitter', 'threads']),
-    account_name: z.string().nullish(),
-    account_id: z.string().nullish(),
-    access_token: z.string().min(1),
-    refresh_token: z.string().nullish(),
-    token_expires_at: z.string().nullish(),
+    account_name: z.string().max(500).nullish(),
+    account_id: z.string().max(500).nullish(),
+    access_token: z.string().min(1).max(8192),
+    refresh_token: z.string().max(8192).nullish(),
+    token_expires_at: z.string().max(100).nullish(),
   });
 
   const parsed = ConnectionSchema.safeParse(body);
@@ -46,7 +56,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
   const { platform, account_name, account_id, access_token, refresh_token, token_expires_at } = parsed.data;
 
-  const client = getServerClient();
+  const client = await getServerClient();
   const { data, error } = await client.database
     .from('social_accounts')
     .upsert(

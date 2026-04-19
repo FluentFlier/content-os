@@ -3,14 +3,15 @@ import { getAuthenticatedUser, getServerClient } from '@/lib/insforge/server';
 import { generateContent, buildSystemPrompt } from '@/lib/claude';
 import type { CreatorProfileForPrompt } from '@/lib/claude';
 import { searchUserContext } from '@/lib/supermemory';
+import { checkRateLimit } from '@/lib/rate-limit';
 import { z } from 'zod';
 
 const AutoGenSchema = z.object({
   type: z.enum(['trend_reaction', 'scheduled', 'reply', 'original']),
-  topic: z.string().optional(),
+  topic: z.string().max(500).optional(),
   platform: z.enum(['twitter', 'linkedin', 'instagram', 'threads']),
-  trendId: z.string().optional(),
-  context: z.string().optional(),
+  trendId: z.string().max(200).optional(),
+  context: z.string().max(5000).optional(),
 });
 
 /**
@@ -26,6 +27,15 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   const user = await getAuthenticatedUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
+  const rl = checkRateLimit(user.id);
+  if (!rl.allowed) {
+    const retryAfter = Math.ceil((rl.resetAt - Date.now()) / 1000);
+    return NextResponse.json(
+      { error: 'Rate limit exceeded. Try again later.' },
+      { status: 429, headers: { 'Retry-After': String(retryAfter) } },
+    );
+  }
+
   let body: unknown;
   try { body = await request.json(); } catch { return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 }); }
 
@@ -33,7 +43,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   if (!parsed.success) return NextResponse.json({ error: parsed.error.message }, { status: 400 });
 
   const { type, topic, platform, context } = parsed.data;
-  const client = getServerClient();
+  const client = await getServerClient();
 
   // Load profile
   let profile: CreatorProfileForPrompt | null = null;
@@ -42,7 +52,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       .from('creator_profile')
       .select('display_name, bio, content_pillars, voice_description, voice_rules')
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
 
     if (profileRow) {
       profile = {
@@ -123,7 +133,21 @@ Return JSON:
       return NextResponse.json({ error: 'Failed to parse generated content' }, { status: 500 });
     }
 
-    const generated = JSON.parse(jsonMatch[0]);
+    let generated: {
+      content?: string;
+      hook?: string;
+      hashtags?: string;
+      confidence?: number;
+      reasoning?: string;
+    };
+    try {
+      generated = JSON.parse(jsonMatch[0]);
+    } catch {
+      return NextResponse.json({ error: 'Model returned invalid JSON' }, { status: 502 });
+    }
+    if (!generated.content) {
+      return NextResponse.json({ error: 'Generated content missing body' }, { status: 502 });
+    }
 
     // Store in auto_generated_posts queue
     const { data: savedPost, error: saveError } = await client.database
@@ -131,7 +155,11 @@ Return JSON:
       .insert({
         user_id: user.id,
         title: generated.hook || topic || 'Auto-generated post',
-        pillar: profile?.content_pillars?.[0]?.name || 'general',
+        pillar: (() => {
+          const first = profile?.content_pillars?.[0];
+          if (typeof first === 'string') return first || 'general';
+          return first?.name || 'general';
+        })(),
         platform,
         status: shouldAutoPublish ? 'edited' : 'scripted',
         script: generated.content,

@@ -6,7 +6,7 @@ export async function GET(): Promise<NextResponse> {
   const user = await getAuthenticatedUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const client = getServerClient();
+  const client = await getServerClient();
   const { data, error } = await client
     .database.from('series')
     .select('*')
@@ -26,16 +26,15 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
   const SeriesSchema = z.object({
     name: z.string().min(1).max(200),
-    description: z.string().max(2000).optional(),
-    cadence: z.string().max(100).optional(),
-    platform: z.string().max(50).optional(),
-    status: z.enum(['active', 'paused', 'completed']).optional(),
+    description: z.string().max(2000).optional().nullable(),
+    pillar: z.string().min(1).max(200),
+    total_parts: z.number().int().min(1).max(500).optional(),
   });
 
   const parsed = SeriesSchema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: parsed.error.message }, { status: 400 });
 
-  const client = getServerClient();
+  const client = await getServerClient();
   const { data, error } = await client
     .database.from('series')
     .insert({ ...parsed.data, user_id: user.id })

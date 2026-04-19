@@ -2,6 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAuthenticatedUser, getServerClient } from '@/lib/insforge/server';
 import { generateContent } from '@/lib/claude';
 import type { CreatorProfileForPrompt } from '@/lib/claude';
+import { checkRateLimit } from '@/lib/rate-limit';
+import { z } from 'zod';
+
+const DetectSchema = z.object({
+  niche: z.string().max(500).optional(),
+});
 
 const TREND_DETECT_PROMPT = `You are a social media trend analyst. Your job is to identify current trending topics and angles that a content creator could capitalize on RIGHT NOW.
 
@@ -39,7 +45,16 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   const user = await getAuthenticatedUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const client = getServerClient();
+  const rl = checkRateLimit(user.id);
+  if (!rl.allowed) {
+    const retryAfter = Math.ceil((rl.resetAt - Date.now()) / 1000);
+    return NextResponse.json(
+      { error: 'Rate limit exceeded. Try again later.' },
+      { status: 429, headers: { 'Retry-After': String(retryAfter) } },
+    );
+  }
+
+  const client = await getServerClient();
 
   // Load creator profile for context
   let profile: CreatorProfileForPrompt | null = null;
@@ -48,7 +63,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       .from('creator_profile')
       .select('display_name, bio, content_pillars, voice_description, voice_rules')
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
 
     if (profileRow) {
       profile = {
@@ -65,14 +80,19 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     // No profile, use generic detection
   }
 
-  let body: { niche?: string } = {};
-  try { body = await request.json(); } catch { /* empty body is fine */ }
+  let rawBody: unknown = {};
+  try { rawBody = await request.json(); } catch { /* empty body is fine */ }
+  const bodyParsed = DetectSchema.safeParse(rawBody);
+  const niche = bodyParsed.success ? bodyParsed.data.niche : undefined;
 
-  const pillarContext = profile?.content_pillars
-    ? `Creator's content pillars: ${profile.content_pillars.map((p: { name: string }) => p.name).join(', ')}`
+  const pillarNames = (profile?.content_pillars ?? [])
+    .map((p) => (typeof p === 'string' ? p : p?.name))
+    .filter((n): n is string => typeof n === 'string' && n.trim().length > 0);
+  const pillarContext = pillarNames.length > 0
+    ? `Creator's content pillars: ${pillarNames.join(', ')}`
     : '';
 
-  const nicheContext = body.niche ? `Creator's niche: ${body.niche}` : '';
+  const nicheContext = niche ? `Creator's niche: ${niche}` : '';
 
   const prompt = `Detect trending topics and content opportunities for today (${new Date().toISOString().split('T')[0]}).
 
@@ -89,22 +109,39 @@ Find trends that this specific creator could ride. Be specific, not generic.`;
       return NextResponse.json({ error: 'Failed to parse trends' }, { status: 500 });
     }
 
-    const trends = JSON.parse(jsonMatch[0]);
-
-    // Store trends in DB for the dashboard
-    for (const trend of trends) {
-      await client.database.from('detected_trends').upsert({
-        user_id: user.id,
-        topic: trend.topic,
-        why_trending: trend.why_trending,
-        angle: trend.angle,
-        best_platform: trend.best_platform,
-        urgency: trend.urgency,
-        draft_hook: trend.draft_hook,
-        confidence: trend.confidence,
-        detected_at: new Date().toISOString(),
-      }, { onConflict: 'user_id,topic' }).select();
+    let trends: Array<Record<string, unknown>>;
+    try {
+      trends = JSON.parse(jsonMatch[0]);
+    } catch {
+      return NextResponse.json({ error: 'Model returned invalid JSON' }, { status: 502 });
     }
+    if (!Array.isArray(trends)) {
+      return NextResponse.json({ error: 'Model returned non-array trends' }, { status: 502 });
+    }
+
+    // Store trends in DB in parallel. Use allSettled so one bad upsert
+    // (e.g. type mismatch on a model-generated field) doesn't discard the
+    // rest of the successfully detected trends.
+    const nowIso = new Date().toISOString();
+    await Promise.allSettled(
+      trends
+        .filter((t) => typeof t.topic === 'string' && t.topic)
+        .map((trend) =>
+          Promise.resolve(
+            client.database.from('detected_trends').upsert({
+              user_id: user.id,
+              topic: trend.topic,
+              why_trending: trend.why_trending,
+              angle: trend.angle,
+              best_platform: trend.best_platform,
+              urgency: trend.urgency,
+              draft_hook: trend.draft_hook,
+              confidence: trend.confidence,
+              detected_at: nowIso,
+            }, { onConflict: 'user_id,topic' }),
+          ),
+        ),
+    );
 
     return NextResponse.json({ trends });
   } catch (err) {

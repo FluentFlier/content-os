@@ -1,15 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthenticatedUser } from '@/lib/insforge/server';
 import { generateContent } from '@/lib/claude';
+import { checkRateLimit } from '@/lib/rate-limit';
 import { z } from 'zod';
 
 const InterviewSchema = z.object({
   analysis: z.record(z.string(), z.unknown()),
   answers: z.array(z.object({
-    questionId: z.string(),
-    question: z.string(),
+    questionId: z.string().max(100),
+    question: z.string().max(1000),
     answer: z.string().min(1).max(2000),
-  })),
+  })).min(1).max(50),
 });
 
 const SYNTHESIZE_PROMPT = `You are a voice synthesis expert. Given a voice analysis and interview answers, produce the final persona profile.
@@ -36,6 +37,15 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   const user = await getAuthenticatedUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
+  const rl = checkRateLimit(user.id);
+  if (!rl.allowed) {
+    const retryAfter = Math.ceil((rl.resetAt - Date.now()) / 1000);
+    return NextResponse.json(
+      { error: 'Rate limit exceeded. Try again later.' },
+      { status: 429, headers: { 'Retry-After': String(retryAfter) } },
+    );
+  }
+
   let body: unknown;
   try { body = await request.json(); } catch { return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 }); }
 
@@ -52,7 +62,12 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       return NextResponse.json({ error: 'Failed to parse synthesis' }, { status: 500 });
     }
 
-    const persona = JSON.parse(jsonMatch[0]);
+    let persona: unknown;
+    try {
+      persona = JSON.parse(jsonMatch[0]);
+    } catch {
+      return NextResponse.json({ error: 'Model returned invalid JSON' }, { status: 502 });
+    }
     return NextResponse.json(persona);
   } catch (err) {
     console.error('Voice synthesis error:', err);

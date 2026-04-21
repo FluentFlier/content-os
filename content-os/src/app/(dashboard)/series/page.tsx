@@ -143,7 +143,8 @@ export default function SeriesPage() {
       await insforge.database
         .from("posts")
         .update({ series_id: null, series_position: null })
-        .eq("series_id", seriesId);
+        .eq("series_id", seriesId)
+        .eq("user_id", userId);
       await insforge.database
         .from("series")
         .delete()

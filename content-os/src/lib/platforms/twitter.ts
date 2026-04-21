@@ -75,12 +75,27 @@ export async function publishPost(
     // Post as thread
     let lastId: string | undefined;
     let firstId: string | undefined;
-    for (const part of parts) {
-      const payload: { text: string; reply?: { in_reply_to_tweet_id: string } } = { text: part };
-      if (lastId) payload.reply = { in_reply_to_tweet_id: lastId };
-      const tweet = await client.v2.tweet(payload);
-      if (!firstId) firstId = tweet.data.id;
-      lastId = tweet.data.id;
+    let postedCount = 0;
+    try {
+      for (const part of parts) {
+        const payload: { text: string; reply?: { in_reply_to_tweet_id: string } } = { text: part };
+        if (lastId) payload.reply = { in_reply_to_tweet_id: lastId };
+        const tweet = await client.v2.tweet(payload);
+        if (!firstId) firstId = tweet.data.id;
+        lastId = tweet.data.id;
+        postedCount++;
+      }
+    } catch (threadErr) {
+      const message = threadErr instanceof Error ? threadErr.message : 'Thread publish failed';
+      if (firstId) {
+        return {
+          success: false,
+          platformPostId: firstId,
+          url: `https://x.com/i/status/${firstId}`,
+          error: `Posted ${postedCount}/${parts.length} tweets before failing: ${message}`,
+        };
+      }
+      return { success: false, error: message };
     }
 
     return {
@@ -125,12 +140,27 @@ export async function publishPostWithOAuth1(
 
     let lastId: string | undefined;
     let firstId: string | undefined;
-    for (const part of parts) {
-      const payload: { text: string; reply?: { in_reply_to_tweet_id: string } } = { text: part };
-      if (lastId) payload.reply = { in_reply_to_tweet_id: lastId };
-      const tweet = await client.v2.tweet(payload);
-      if (!firstId) firstId = tweet.data.id;
-      lastId = tweet.data.id;
+    let postedCount = 0;
+    try {
+      for (const part of parts) {
+        const payload: { text: string; reply?: { in_reply_to_tweet_id: string } } = { text: part };
+        if (lastId) payload.reply = { in_reply_to_tweet_id: lastId };
+        const tweet = await client.v2.tweet(payload);
+        if (!firstId) firstId = tweet.data.id;
+        lastId = tweet.data.id;
+        postedCount++;
+      }
+    } catch (threadErr) {
+      const message = threadErr instanceof Error ? threadErr.message : 'Thread publish failed';
+      if (firstId) {
+        return {
+          success: false,
+          platformPostId: firstId,
+          url: `https://x.com/i/status/${firstId}`,
+          error: `Posted ${postedCount}/${parts.length} tweets before failing: ${message}`,
+        };
+      }
+      return { success: false, error: message };
     }
 
     return {

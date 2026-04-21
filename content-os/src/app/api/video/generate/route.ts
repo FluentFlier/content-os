@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { getAuthenticatedUser, getServerClient } from '@/lib/insforge/server';
+import { checkRateLimit } from '@/lib/rate-limit';
 import { z } from 'zod';
 
 const GenerateVideoSchema = z.object({
@@ -18,6 +19,15 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   const user = await getAuthenticatedUser();
   if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const rl = checkRateLimit(user.id);
+  if (!rl.allowed) {
+    const retryAfter = Math.ceil((rl.resetAt - Date.now()) / 1000);
+    return NextResponse.json(
+      { error: 'Rate limit exceeded. Try again later.' },
+      { status: 429, headers: { 'Retry-After': String(retryAfter) } },
+    );
   }
 
   let body: unknown;
@@ -40,7 +50,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   const totalFrames = duration * fps;
 
   try {
-    const client = getServerClient();
+    const client = await getServerClient();
 
     // Generate composition data based on template
     let systemPrompt = '';
@@ -69,7 +79,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         });
     }
 
-    const { data: aiResponse } = await client.ai.chat.completions.create({
+    // SDK returns the completion object directly. Destructuring { data }
+    // silently yields undefined and every caller of this route was getting
+    // back an empty compositionData object as a result.
+    const aiResponse = await client.ai.chat.completions.create({
       model: 'anthropic/claude-sonnet-4.5',
       messages: [
         { role: 'system', content: systemPrompt },
@@ -80,7 +93,17 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     const rawText = aiResponse?.choices?.[0]?.message?.content ?? '{}';
     const jsonMatch = rawText.match(/[\[{][\s\S]*[\]}]/);
-    const compositionData = jsonMatch ? JSON.parse(jsonMatch[0]) : {};
+    let compositionData: unknown = {};
+    if (jsonMatch) {
+      try {
+        compositionData = JSON.parse(jsonMatch[0]);
+      } catch {
+        return NextResponse.json(
+          { error: 'Model returned invalid JSON' },
+          { status: 502 },
+        );
+      }
+    }
 
     return NextResponse.json({
       compositionData,

@@ -50,17 +50,20 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const { access_token } = await tokenRes.json();
 
     // Exchange for long-lived token
-    const longRes = await fetch(
-      `https://graph.threads.net/access_token?grant_type=th_exchange_token&client_secret=${appSecret}&access_token=${access_token}`
-    );
+    const longUrl = new URL('https://graph.threads.net/access_token');
+    longUrl.searchParams.set('grant_type', 'th_exchange_token');
+    longUrl.searchParams.set('client_secret', appSecret);
+    longUrl.searchParams.set('access_token', access_token);
+    const longRes = await fetch(longUrl);
     const longData = longRes.ok ? await longRes.json() : { access_token };
     const longToken = longData.access_token ?? access_token;
     const expiresIn = longData.expires_in;
 
     // Get profile
-    const profileRes = await fetch(
-      `https://graph.threads.net/v1.0/me?fields=id,username,name&access_token=${longToken}`
-    );
+    const profileUrl = new URL('https://graph.threads.net/v1.0/me');
+    profileUrl.searchParams.set('fields', 'id,username,name');
+    profileUrl.searchParams.set('access_token', longToken);
+    const profileRes = await fetch(profileUrl);
     const profile = profileRes.ok ? await profileRes.json() : null;
 
     const expiresAt = expiresIn
@@ -68,7 +71,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       : null;
 
     // Store tokens directly via database (no self-fetch)
-    const db = getServerClient().database;
+    const db = (await getServerClient()).database;
     const { error: dbError } = await db
       .from('social_accounts')
       .upsert(

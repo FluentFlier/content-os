@@ -12,6 +12,7 @@ const PROTECTED_ROUTES = [
   '/settings',
   '/teleprompter',
   '/video-studio',
+  '/voice-lab',
   '/onboarding',
 ];
 

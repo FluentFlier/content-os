@@ -63,6 +63,11 @@ function GeneratePageInner() {
     TAB_LIST.find((t) => t.id === tabParam)?.id || "script",
   );
 
+  useEffect(() => {
+    const nextTab = TAB_LIST.find((t) => t.id === tabParam)?.id || "script";
+    setActiveTab((currentTab) => (currentTab === nextTab ? currentTab : nextTab));
+  }, [tabParam]);
+
   // Sync URL with active tab
   useEffect(() => {
     const current = searchParams.get("tab");

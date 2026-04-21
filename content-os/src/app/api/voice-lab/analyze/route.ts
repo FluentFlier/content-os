@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthenticatedUser } from '@/lib/insforge/server';
 import { generateContent } from '@/lib/claude';
+import { checkRateLimit } from '@/lib/rate-limit';
 import { z } from 'zod';
 
 const AnalyzeSchema = z.object({
   samples: z.array(z.object({
     content: z.string().min(1).max(5000),
-    platform: z.string().optional(),
+    platform: z.string().max(100).optional(),
   })).min(1).max(20),
 });
 
@@ -53,6 +54,15 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   const user = await getAuthenticatedUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
+  const rl = checkRateLimit(user.id);
+  if (!rl.allowed) {
+    const retryAfter = Math.ceil((rl.resetAt - Date.now()) / 1000);
+    return NextResponse.json(
+      { error: 'Rate limit exceeded. Try again later.' },
+      { status: 429, headers: { 'Retry-After': String(retryAfter) } },
+    );
+  }
+
   let body: unknown;
   try { body = await request.json(); } catch { return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 }); }
 
@@ -75,7 +85,12 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       return NextResponse.json({ error: 'Failed to parse analysis' }, { status: 500 });
     }
 
-    const analysis = JSON.parse(jsonMatch[0]);
+    let analysis: unknown;
+    try {
+      analysis = JSON.parse(jsonMatch[0]);
+    } catch {
+      return NextResponse.json({ error: 'Model returned invalid JSON' }, { status: 502 });
+    }
     return NextResponse.json(analysis);
   } catch (err) {
     console.error('Voice analysis error:', err);

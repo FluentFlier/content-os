@@ -6,7 +6,18 @@ const TAG_LENGTH = 16;
 
 function getEncryptionKey(): Buffer | null {
   const hex = process.env.TOKEN_ENCRYPTION_KEY;
-  if (!hex || hex.length !== 64) return null;
+  if (!hex || hex.length !== 64) {
+    // Fail loud in production. Silently returning null here would cause
+    // every new OAuth/BYOK token to be written to the DB as plaintext,
+    // which is exactly the failure mode encryption exists to prevent.
+    // In dev/test we fall back to plaintext so local setup stays simple.
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error(
+        'TOKEN_ENCRYPTION_KEY must be set to a 64-char hex string in production',
+      );
+    }
+    return null;
+  }
   return Buffer.from(hex, 'hex');
 }
 

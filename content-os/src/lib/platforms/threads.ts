@@ -48,6 +48,14 @@ export async function publishPost(
 
     const { id: containerId } = await createRes.json();
 
+    // Threads requires the container to reach status=FINISHED before
+    // publishing. Text-only usually finishes in <1s but Meta explicitly
+    // warns against skipping the check. Poll up to ~20s, then give up.
+    const statusReady = await waitForContainerReady(containerId, accessToken);
+    if (!statusReady.ok) {
+      return { success: false, error: `Threads container not ready: ${statusReady.status ?? 'timeout'}` };
+    }
+
     // Step 2: Publish the container
     const publishRes = await fetch(
       `https://graph.threads.net/v1.0/${threadsUserId}/threads_publish`,
@@ -68,10 +76,25 @@ export async function publishPost(
 
     const { id: postId } = await publishRes.json();
 
+    // The raw post ID isn't a valid URL slug; fetch the permalink.
+    let url = `https://graph.threads.net/${postId}`;
+    try {
+      const permalinkUrl = new URL(`https://graph.threads.net/v1.0/${postId}`);
+      permalinkUrl.searchParams.set('fields', 'permalink');
+      permalinkUrl.searchParams.set('access_token', accessToken);
+      const permalinkRes = await fetch(permalinkUrl);
+      if (permalinkRes.ok) {
+        const data = await permalinkRes.json();
+        if (data.permalink) url = data.permalink;
+      }
+    } catch {
+      // keep fallback
+    }
+
     return {
       success: true,
       platformPostId: postId,
-      url: `https://www.threads.net/post/${postId}`,
+      url,
     };
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Unknown error';
@@ -95,9 +118,10 @@ export async function refreshAccessToken(
   accessToken: string
 ): Promise<RefreshResult> {
   try {
-    const res = await fetch(
-      `https://graph.threads.net/refresh_access_token?grant_type=th_refresh_token&access_token=${accessToken}`
-    );
+    const refreshUrl = new URL('https://graph.threads.net/refresh_access_token');
+    refreshUrl.searchParams.set('grant_type', 'th_refresh_token');
+    refreshUrl.searchParams.set('access_token', accessToken);
+    const res = await fetch(refreshUrl);
 
     if (!res.ok) {
       const body = await res.text();
@@ -120,11 +144,40 @@ export async function refreshAccessToken(
   }
 }
 
+async function waitForContainerReady(
+  containerId: string,
+  accessToken: string,
+): Promise<{ ok: boolean; status?: string }> {
+  const deadline = Date.now() + 20_000;
+  let delay = 500;
+  while (Date.now() < deadline) {
+    const url = new URL(`https://graph.threads.net/v1.0/${encodeURIComponent(containerId)}`);
+    url.searchParams.set('fields', 'status,error_message');
+    url.searchParams.set('access_token', accessToken);
+    try {
+      const res = await fetch(url);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.status === 'FINISHED') return { ok: true, status: data.status };
+        if (data.status === 'ERROR' || data.status === 'EXPIRED') {
+          return { ok: false, status: data.error_message ?? data.status };
+        }
+      }
+    } catch {
+      // transient; retry
+    }
+    await new Promise((r) => setTimeout(r, delay));
+    delay = Math.min(delay * 2, 4000);
+  }
+  return { ok: false };
+}
+
 export async function getProfile(accessToken: string): Promise<ProfileResult | null> {
   try {
-    const res = await fetch(
-      `https://graph.threads.net/v1.0/me?fields=id,username,name&access_token=${accessToken}`
-    );
+    const profileUrl = new URL('https://graph.threads.net/v1.0/me');
+    profileUrl.searchParams.set('fields', 'id,username,name');
+    profileUrl.searchParams.set('access_token', accessToken);
+    const res = await fetch(profileUrl);
     if (!res.ok) return null;
     const data = await res.json();
     return {

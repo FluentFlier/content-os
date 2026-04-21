@@ -1,14 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthenticatedUser, getServerClient } from '@/lib/insforge/server';
+import { checkRateLimit } from '@/lib/rate-limit';
 
 const MAX_SIZE = 10 * 1024 * 1024; // 10MB
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+const TYPE_EXT: Record<string, string> = {
+  'image/jpeg': 'jpg',
+  'image/png': 'png',
+  'image/webp': 'webp',
+  'image/gif': 'gif',
+};
 const BUCKET = 'post-media';
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
   const user = await getAuthenticatedUser();
   if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const rl = checkRateLimit(user.id);
+  if (!rl.allowed) {
+    const retryAfter = Math.ceil((rl.resetAt - Date.now()) / 1000);
+    return NextResponse.json(
+      { error: 'Rate limit exceeded. Try again later.' },
+      { status: 429, headers: { 'Retry-After': String(retryAfter) } },
+    );
   }
 
   try {
@@ -33,8 +49,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       );
     }
 
-    const client = getServerClient();
-    const ext = file.name.split('.').pop() || 'jpg';
+    const client = await getServerClient();
+    // Use the validated mime type, not the user-supplied filename, to
+    // pick the extension. Guarantees the storage key is controlled by
+    // the server and can't carry traversal sequences from file.name.
+    const ext = TYPE_EXT[file.type] ?? 'bin';
     const fileName = `${user.id}/${Date.now()}-${crypto.randomUUID().slice(0, 8)}.${ext}`;
 
     const { data, error } = await client.storage
